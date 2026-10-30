@@ -1,0 +1,14 @@
+{
+  "schema": "team-qa/release-b-mutations/v1",
+  "release": "1.4.0",
+  "mutations": [
+    { "id": "RBQ-M01", "file": "scripts/lib/reliability-handoff.mjs", "from": "verifyReceiptShape(receipt);", "to": "void receipt;", "acceptance": "TQB01" },
+    { "id": "RBQ-M02", "file": "scripts/lib/reliability-handoff.mjs", "from": "assertIntegrity(handoff, 'HANDOFF_INTEGRITY');", "to": "void handoff;", "acceptance": "TQB02" },
+    { "id": "RBQ-M03", "file": "scripts/lib/reliability-handoff.mjs", "from": "assertEqual(handoff.exact_final_sha, expected.exact_final_sha, 'HANDOFF_BINDING_MISMATCH:exact_final_sha');", "to": "assertEqual(handoff.exact_final_sha, handoff.exact_final_sha, 'HANDOFF_BINDING_MISMATCH:exact_final_sha');", "acceptance": "TQB03" },
+    { "id": "RBQ-M04", "file": "scripts/lib/reliability-handoff.mjs", "from": "assertEqual(handoff.requirements_hash, expected.requirements_hash, 'HANDOFF_BINDING_MISMATCH:requirements_hash');", "to": "assertEqual(handoff.requirements_hash, handoff.requirements_hash, 'HANDOFF_BINDING_MISMATCH:requirements_hash');", "acceptance": "TQB03" },
+    { "id": "RBQ-M05", "file": "scripts/lib/reliability-handoff.mjs", "from": "assertEqual(handoff.capsule_digest, expected.capsule_digest, 'HANDOFF_BINDING_MISMATCH:capsule_digest');", "to": "assertEqual(handoff.capsule_digest, handoff.capsule_digest, 'HANDOFF_BINDING_MISMATCH:capsule_digest');", "acceptance": "TQB03" },
+    { "id": "RBQ-M06", "file": "scripts/lib/reliability-handoff.mjs", "from": "if (ack.handoff_latency_ms > maxLatencyMs) throw new ReliabilityHandoffError('HANDOFF_SLO_EXCEEDED');", "to": "if (ack.handoff_latency_ms < 0) throw new ReliabilityHandoffError('HANDOFF_SLO_EXCEEDED');", "acceptance": "TQB04" },
+    { "id": "RBQ-M07", "file": "scripts/lib/reliability-handoff.mjs", "from": "exactKeys(handoff, HANDOFF_FIELDS, 'HANDOFF_FIELDS');", "to": "void HANDOFF_FIELDS;", "acceptance": "TQB05" },
+    { "id": "RBQ-M08", "file": "VERSION", "from": "1.14.0", "to": "1.3.0", "acceptance": "TQB06" }
+  ]
+}

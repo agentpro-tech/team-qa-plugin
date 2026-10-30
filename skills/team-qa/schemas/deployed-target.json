@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/deployed-target.json",
+  "title": "team-qa/deployed-target/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project_id",
+    "preview_url",
+    "version",
+    "kind",
+    "environment",
+    "backend_origin",
+    "frontend_build",
+    "asset_manifest_sha256",
+    "target_binding_sha256",
+    "identity_proof"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "preview_url": {
+      "type": "string",
+      "pattern": "^https?://"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "const": "deployed-build"
+    },
+    "environment": {
+      "enum": [
+        "Local",
+        "Test",
+        "Staging",
+        "Production"
+      ]
+    },
+    "backend_origin": {
+      "type": "string",
+      "pattern": "^https?://"
+    },
+    "frontend_build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "asset_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "target_binding_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "identity_proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

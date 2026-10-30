@@ -1,0 +1,29 @@
+{
+  "schema": "team-qa/deployed-identity-proof/v1",
+  "target_binding_sha256": "cc85f8bbcdcc1efd2a7654e0e1fa6a06a9afb09e407256a6a0a1739986cc1958",
+  "identity": {
+    "project_id": "fixture-app",
+    "preview_url": "https://test.example/app",
+    "version": "build-123",
+    "kind": "deployed-build",
+    "environment": "Test",
+    "backend_origin": "https://api.test.example",
+    "frontend_build": {
+      "kind": "next-build-id",
+      "id": "build-123"
+    },
+    "asset_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "sources": [
+    {
+      "path": "/fixture/original-codex.jsonl",
+      "call_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "call_line": 10,
+      "result_line": 11,
+      "host": {
+        "schema": "fixture-host"
+      }
+    }
+  ]
+}

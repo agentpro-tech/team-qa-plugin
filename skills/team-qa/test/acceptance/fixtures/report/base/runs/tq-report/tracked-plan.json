@@ -1,0 +1,44 @@
+{
+  "cases": [
+    {
+      "id": "CASE-HIGH-1",
+      "req_id": "REQ-HIGH-1",
+      "lane": "lane-high",
+      "steps": ["Run the high 1 flow"],
+      "expected": "High 1 passes",
+      "data": {},
+      "priority": "P2",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-HIGH-2",
+      "req_id": "REQ-HIGH-2",
+      "lane": "lane-high",
+      "steps": ["Run the high 2 flow"],
+      "expected": "High 2 passes",
+      "data": {},
+      "priority": "P2",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-LOW-1",
+      "req_id": "REQ-LOW-1",
+      "lane": "lane-low",
+      "steps": ["Run the low 1 flow"],
+      "expected": "Low 1 passes",
+      "data": {},
+      "priority": "P2",
+      "kind": "static"
+    },
+    {
+      "id": "CASE-LOW-2",
+      "req_id": "REQ-LOW-2",
+      "lane": "lane-low",
+      "steps": ["Run the low 2 flow"],
+      "expected": "Low 2 passes",
+      "data": {},
+      "priority": "P2",
+      "kind": "static"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "cases": [
+    {
+      "id": "CASE-001",
+      "req_id": "REQ-CHECKOUT",
+      "lane": "lane-checkout",
+      "steps": ["Open the cart", "Click checkout"],
+      "expected": "The confirmation page is shown",
+      "data": {"cart": "standard"},
+      "priority": "P0",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-002",
+      "req_id": "REQ-CHECKOUT",
+      "lane": "lane-checkout",
+      "steps": ["Delete the shipping address", "Click checkout"],
+      "expected": "An address error is shown",
+      "data": {"address": null},
+      "priority": "P1",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-003",
+      "req_id": "REQ-LANDING",
+      "lane": "lane-content",
+      "steps": ["Open the intro page"],
+      "expected": "The main title is shown",
+      "data": {},
+      "priority": "P2",
+      "kind": "static"
+    },
+    {
+      "id": "CASE-004",
+      "req_id": "REQ-PROFILE",
+      "lane": "lane-profile",
+      "steps": ["Open the profile", "Change the name"],
+      "expected": "The new name is saved",
+      "data": {"name": "Test User"},
+      "priority": "P2",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-005",
+      "req_id": "REQ-LOGIN",
+      "lane": "lane-auth",
+      "steps": ["Enter a wrong password", "Click log in"],
+      "expected": "A login error is shown",
+      "data": {"password": "wrong"},
+      "priority": "P1",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-006",
+      "req_id": "REQ-LOGOUT",
+      "lane": "lane-auth",
+      "steps": ["Click log out"],
+      "expected": "Back to the login screen",
+      "data": {},
+      "priority": "P2",
+      "kind": "behavioral"
+    }
+  ]
+}

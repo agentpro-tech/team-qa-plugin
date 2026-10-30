@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentpro.local/contracts/reliability-handoff/v1/job-capsule.schema.json",
+  "title": "team-code/job-capsule/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contract_sha256",
+    "capsule_version",
+    "run_uuid",
+    "task_id",
+    "task_base",
+    "source_revision",
+    "exact_final_sha",
+    "requirements_hash",
+    "brief_hashes",
+    "dependency_manifest_sha256",
+    "engine_contract",
+    "created_at",
+    "digest"
+  ],
+  "properties": {
+    "schema": { "const": "team-code/job-capsule/v1" },
+    "contract_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "capsule_version": { "const": 1 },
+    "run_uuid": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+    "task_base": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "source_revision": { "type": "string", "minLength": 1 },
+    "exact_final_sha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "requirements_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "brief_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "spec", "map"],
+      "properties": {
+        "source": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "spec": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "map": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "dependency_manifest_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "engine_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mixer", "scroll_outer_loop"],
+      "properties": {
+        "mixer": { "const": "mixer-exec/v1" },
+        "scroll_outer_loop": { "const": true }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

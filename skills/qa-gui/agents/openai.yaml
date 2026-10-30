@@ -1,0 +1,4 @@
+interface:
+  display_name: "QA GUI"
+  short_description: "Real-browser QA with two verdicts: Function and UI"
+  default_prompt: "Use $qa-gui to verify this UI through human-like browser actions and return evidence-backed Function and UI verdicts."

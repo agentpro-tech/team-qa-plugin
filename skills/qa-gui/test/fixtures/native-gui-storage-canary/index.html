@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QA GUI Dragon storage contract canary</title>
+<style>
+  body { font: 18px/1.5 system-ui, sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
+  button { font: inherit; padding: .7rem 1rem; }
+</style>
+<h1>Dragon storage contract canary</h1>
+<p>This local fixture changes one known storage key only after a trusted click.</p>
+<p id="state" role="status">Reading fixture state…</p>
+<button id="toggle" type="button">Change fixture state</button>
+<script>
+  const key = 'qa-gui-storage-canary';
+  if (localStorage.getItem(key) === null) localStorage.setItem(key, 'before');
+  function render() {
+    const value = localStorage.getItem(key) || 'before';
+    document.querySelector('#state').textContent = `Fixture state: ${value}`;
+  }
+  document.querySelector('#toggle').addEventListener('click', () => {
+    localStorage.setItem(key, 'after');
+    render();
+  });
+  render();
+</script>
+</html>

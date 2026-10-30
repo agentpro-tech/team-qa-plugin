@@ -1,0 +1,12 @@
+{
+  "fetched_at": "2026-10-02T13:00:00.000Z",
+  "client_version": "0.150.0",
+  "models": [
+    {"slug":"gpt-6.1-sol","display_name":"GPT Sol","visibility":"list","supported_in_api":true,"supported_reasoning_levels":[{"effort":"low"},{"effort":"medium"},{"effort":"high"},{"effort":"xhigh"},{"effort":"max"}]},
+    {"slug":"gpt-6-astra","display_name":"GPT Astra","visibility":"list","supported_in_api":true,"supported_reasoning_levels":[{"effort":"low"},{"effort":"high"},{"effort":"max"}]},
+    {"slug":"gpt-new-unknown","display_name":"New Model","visibility":"list","supported_in_api":true,"supported_reasoning_levels":[{"effort":"low"}]},
+    {"slug":"gpt-hidden","display_name":"Hidden Model","visibility":"hide","supported_in_api":false,"supported_reasoning_levels":[]}
+  ],
+  "identity":"DO_NOT_COPY_SECRET_MARKER",
+  "model_messages":"DO_NOT_COPY_PRIVATE_MARKER"
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  TEMPLATE — do NOT load directly. scripts/install.sh renders the __PLACEHOLDER__
+  values below into ABSOLUTE paths (script, repo, node, state, stdout,
+  stderr) and then writes the result to ~/Library/LaunchAgents. Keep this file
+  free of anyone's hardcoded checkout so that the skill stays distributable.
+  Install/uninstall: see SKILL.md §"Nightly mutation — install the LaunchAgent".
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>io.qacode.mutation-nightly</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__NIGHTLY_SCRIPT__</string>
+    <string>--repo</string>
+    <string>__TARGET_REPO__</string>
+    <string>--base</string>
+    <string>__BASE__</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>__SKILL_DIR__</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>QA_CODE_NODE</key>
+    <string>__NODE__</string>
+    <key>QA_CODE_NIGHTLY_STATE_DIR</key>
+    <string>__STATE_DIR__</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>2</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>__STDOUT__</string>
+  <key>StandardErrorPath</key>
+  <string>__STDERR__</string>
+</dict>
+</plist>

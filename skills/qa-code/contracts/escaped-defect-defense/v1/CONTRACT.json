@@ -1,0 +1,8 @@
+{
+  "schema": "agentpro/escaped-defect-defense-contract/v1",
+  "contract_sha256": "5dde665f641a5a2d51e2307cd1b56902e7b0eb667787059edb59ee609dd72f32",
+  "schemas": {
+    "agentpro/escaped-defect-registry/v1": "92d0411080e109f79f712ea97ac7063e2b8288e93a31f459b1ead8502c15e36e",
+    "agentpro/escaped-defect-root-map/v1": "84c281e1194efdaac4406812486417d1ff050138301328e1b2ecdb1764458f5e"
+  }
+}

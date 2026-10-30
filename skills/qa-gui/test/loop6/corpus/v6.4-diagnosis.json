@@ -1,0 +1,908 @@
+{
+  "feature": "V6.4",
+  "version": 1,
+  "frozen": true,
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "hard": [
+    {
+      "id": "v64-h-selector-01-renamed-testid",
+      "evidence": {
+        "stepDescription": "click [data-testid=submit-order]",
+        "errorMessage": "locate failed: no element matches [data-testid=submit-order]",
+        "domSnapshotNote": "button present with text 'Submit Order' but attribute is now [data-testid=submit-order-btn]",
+        "consoleLogs": [],
+        "networkCalls": [],
+        "retryHistory": { "attempts": 1, "sameSelectorEachTime": true }
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-02-dom-nesting-shift",
+      "evidence": {
+        "stepDescription": "click .card > .actions > button",
+        "errorMessage": "locate failed: no element matches .card > .actions > button",
+        "domSnapshotNote": "a new wrapper div .card > .actions-wrap > .actions > button was introduced; target button still visible with text 'Save'",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-03-css-module-hash-changed",
+      "evidence": {
+        "stepDescription": "click .btn-3f8a2",
+        "errorMessage": "locate failed: no element matches .btn-3f8a2",
+        "domSnapshotNote": "css-module class regenerated after rebuild to .btn-9c1d4; same role=button, same text 'Confirm'",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-04-aria-label-renamed",
+      "evidence": {
+        "stepDescription": "click [aria-label='Close']",
+        "errorMessage": "locate failed: no element matches [aria-label='Close']",
+        "domSnapshotNote": "icon-only button now has aria-label='Dismiss', identical icon and position (top-right of dialog)",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-05-duplicate-id-collision",
+      "evidence": {
+        "stepDescription": "click #save-btn",
+        "errorMessage": "strict-mode locate failed: #save-btn matches 2 elements (duplicate id in markup)",
+        "domSnapshotNote": "correct target is the second #save-btn (inside the visible panel); first #save-btn is inside a hidden template clone",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-06-shadow-dom-boundary",
+      "evidence": {
+        "stepDescription": "click button:text=Upload",
+        "errorMessage": "locate failed: no element matches button:text=Upload in light DOM",
+        "domSnapshotNote": "control moved inside <upload-widget> custom element's shadow root after a redesign; visually present in the same place on screen",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-07-iframe-context-switch",
+      "evidence": {
+        "stepDescription": "click button:text=Pay Now",
+        "errorMessage": "locate failed: no element matches button:text=Pay Now in top-level document",
+        "domSnapshotNote": "payment widget now renders inside an <iframe id=payment-frame>; control visible on screen inside that frame",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-08-i18n-label-changed",
+      "evidence": {
+        "stepDescription": "click text=Submit",
+        "errorMessage": "locate failed: no element matches text=Submit",
+        "domSnapshotNote": "locale switched to en-GB copy; button text is now 'Send', same [data-testid=submit-btn] underneath",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-09-radix-portal-id-rotates",
+      "evidence": {
+        "stepDescription": "click #radix-:r5: button:text=Delete",
+        "errorMessage": "locate failed: no element matches #radix-:r5:",
+        "domSnapshotNote": "Radix regenerates the portal container id on every mount (#radix-:r9: this run); dialog content and buttons are otherwise identical",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-selector-10-list-reordered-nth-child",
+      "evidence": {
+        "stepDescription": "click tr:nth-child(3) button:text=Edit",
+        "errorMessage": "assertion mismatch: tr:nth-child(3) is now row 'Order #1050', expected 'Order #1032'",
+        "domSnapshotNote": "list was re-sorted by the app after a background refresh; target row 'Order #1032' still exists, now at position 5, identifiable by its data-order-id",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "selector",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-01-modal-animation-not-settled",
+      "evidence": {
+        "stepDescription": "click button:text=Confirm inside just-opened modal",
+        "errorMessage": "click intercepted: element received pointer-events from an ancestor mid-transition (opacity 0.4)",
+        "domSnapshotNote": "modal slide-in animation runs 300ms; step waited only 100ms after open before clicking",
+        "consoleLogs": [],
+        "networkCalls": [],
+        "timingMs": { "waited": 100, "requiredSettle": 300 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-02-debounced-search-race",
+      "evidence": {
+        "stepDescription": "type 'laptop' into #search then read results list",
+        "errorMessage": "assertion mismatch: results list still shows previous query 'phone'",
+        "domSnapshotNote": "search input debounces network fetch by 400ms; read ran 200ms after typing finished",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/search?q=laptop", "status": "pending-at-read-time" }],
+        "timingMs": { "waited": 200, "requiredSettle": 400 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-03-lazy-loaded-chunk",
+      "evidence": {
+        "stepDescription": "goto /reports then read chart container",
+        "errorMessage": "assertion mismatch: chart container is empty",
+        "domSnapshotNote": "route is code-split; JS chunk for the chart component finishes loading ~600ms after navigation, populating the container",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/assets/chart-chunk-8a1.js", "status": 200, "timingMs": 600 }],
+        "timingMs": { "waited": 150, "requiredSettle": 600 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-04-websocket-delayed-push",
+      "evidence": {
+        "stepDescription": "another user updates order status; read local order card for 'Shipped' badge",
+        "errorMessage": "assertion mismatch: badge still shows 'Processing'",
+        "domSnapshotNote": "websocket push for the status change arrives ~1200ms after the server-side change; read ran at 400ms",
+        "consoleLogs": [],
+        "networkCalls": [{ "type": "ws", "event": "order.updated", "arrivedAtMs": 1200 }],
+        "timingMs": { "waited": 400, "requiredSettle": 1200 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-05-optimistic-ui-reconcile-window",
+      "evidence": {
+        "stepDescription": "click Like, read final like count",
+        "errorMessage": "assertion mismatch: like count shows 42 (optimistic frame), server reconciles to 43",
+        "domSnapshotNote": "UI increments optimistically on click, then server response arrives ~800ms later and may adjust the count; read captured the optimistic frame before reconciliation",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/likes", "status": 200, "timingMs": 800 }],
+        "timingMs": { "waited": 250, "requiredSettle": 800 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-06-double-raf-commit-delay",
+      "evidence": {
+        "stepDescription": "click Recalculate, read total cell",
+        "errorMessage": "assertion mismatch: total cell shows previous value in the same tick as the click",
+        "domSnapshotNote": "the value is only committed to the DOM after two requestAnimationFrame cycles following the state update; single-tick read observed stale value",
+        "consoleLogs": [],
+        "networkCalls": [],
+        "timingMs": { "waited": 0, "requiredSettle": 33 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-07-spinner-mounts-next-microtask",
+      "evidence": {
+        "stepDescription": "click Submit, immediately assert loading spinner visible",
+        "errorMessage": "assertion mismatch: neither spinner nor result is present at read time",
+        "domSnapshotNote": "spinner mounts on the next microtask after click handler runs; read executed synchronously in the same tick",
+        "consoleLogs": [],
+        "networkCalls": [],
+        "timingMs": { "waited": 0, "requiredSettle": 10 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-08-fetch-retries-with-backoff",
+      "evidence": {
+        "stepDescription": "click Load Report, read for report table",
+        "errorMessage": "assertion mismatch: read at 300ms shows an inline 'retrying...' state, not the report table",
+        "domSnapshotNote": "app's internal fetch client retries with exponential backoff after a first timeout, succeeding on the 2nd attempt at ~900ms",
+        "consoleLogs": [],
+        "networkCalls": [
+          { "url": "/api/reports/weekly", "status": "timeout", "attempt": 1, "timingMs": 300 },
+          { "url": "/api/reports/weekly", "status": 200, "attempt": 2, "timingMs": 900 }
+        ],
+        "timingMs": { "waited": 300, "requiredSettle": 900 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-09-silent-token-refresh-delay",
+      "evidence": {
+        "stepDescription": "switch back to tab after being away 20 minutes, click Refresh Orders",
+        "errorMessage": "assertion mismatch: first read after click shows a transient 401 flash, then 200 succeeds",
+        "domSnapshotNote": "silent auth-token refresh blocks the first request for ~700ms after tab refocus; read ran too early and captured the 401 flash",
+        "consoleLogs": [],
+        "networkCalls": [
+          { "url": "/api/orders", "status": 401, "timingMs": 50 },
+          { "url": "/api/orders", "status": 200, "timingMs": 700 }
+        ],
+        "timingMs": { "waited": 100, "requiredSettle": 700 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-timing-10-font-load-reflow-shifts-click-target",
+      "evidence": {
+        "stepDescription": "clickXY at pre-computed coordinates of the Save button",
+        "errorMessage": "click landed on an unrelated element; coordinates no longer match Save button's position",
+        "domSnapshotNote": "web font finishes loading ~250ms after initial paint, causing a layout reflow that shifts the button down by 18px; coordinates were computed before the reflow",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/fonts/inter-var.woff2", "status": 200, "timingMs": 250 }],
+        "timingMs": { "waited": 0, "requiredSettle": 250 }
+      },
+      "expectedLabel": "timing",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-data-01-seed-order-missing",
+      "evidence": {
+        "stepDescription": "goto /orders, assert row 'Order #1001' present",
+        "errorMessage": "assertion mismatch: 'Order #1001' not found in list",
+        "domSnapshotNote": "orders list is empty on this env; fixture data for Order #1001 was never seeded here",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders", "status": 200, "bodyCount": 0 }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-02-materialized-view-stale-total",
+      "evidence": {
+        "stepDescription": "create order, read dashboard 'Total Orders' widget",
+        "errorMessage": "assertion mismatch: widget shows 41, expected 42",
+        "domSnapshotNote": "dashboard widget reads from a materialized view refreshed every 5 minutes; the just-created order has not propagated to it yet and won't within the test window",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/dashboard/totals", "status": 200, "cachedAgeSec": 240 }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-03-shared-test-db-polluted",
+      "evidence": {
+        "stepDescription": "assert exactly 3 draft orders for user test@qa",
+        "errorMessage": "assertion mismatch: 5 draft orders found",
+        "domSnapshotNote": "a concurrent test run against the same shared test DB created 2 extra draft orders under the same seed user between setup and this read",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders?status=draft", "status": 200, "bodyCount": 5 }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-04-feature-flag-default-mismatch",
+      "evidence": {
+        "stepDescription": "assert 'New Checkout' banner visible",
+        "errorMessage": "assertion mismatch: banner not present",
+        "domSnapshotNote": "feature flag 'new-checkout' defaults to off on this env's flag config, while the test assumes the on-default used in the design doc",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/flags", "status": 200, "body": { "new-checkout": false } }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-05-pagination-page-size-env-diff",
+      "evidence": {
+        "stepDescription": "assert 20 rows rendered on page 1",
+        "errorMessage": "assertion mismatch: 10 rows rendered",
+        "domSnapshotNote": "this env's config sets default page size to 10, while the test's expected value of 20 came from a different env's config",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders?page=1", "status": 200, "bodyCount": 10 }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-06-dangling-foreign-key-deleted-customer",
+      "evidence": {
+        "stepDescription": "goto /orders/2044, assert customer name visible",
+        "errorMessage": "assertion mismatch: customer name field renders blank",
+        "domSnapshotNote": "Order #2044's customer_id references a customer row that was deleted from seed data; the order itself is intact",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders/2044", "status": 200, "body": { "customer_id": 9081, "customer": null } }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-07-renamed-fixture-field",
+      "evidence": {
+        "stepDescription": "read order.total_amount from API response",
+        "errorMessage": "assertion mismatch: field 'total_amount' is undefined",
+        "domSnapshotNote": "fixture JSON still uses the old field name 'amount_total'; the schema was renamed to 'total_amount' but this env's seed data was not migrated",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders/2044", "status": 200, "body": { "amount_total": 120.5 } }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-08-duplicate-seeded-row",
+      "evidence": {
+        "stepDescription": "assert exactly 1 row for SKU 'ABC-100'",
+        "errorMessage": "assertion mismatch: 2 rows found for SKU 'ABC-100'",
+        "domSnapshotNote": "seed script inserted the same product twice under different primary keys",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/products?sku=ABC-100", "status": 200, "bodyCount": 2 }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-data-09-search-index-not-yet-caught-up",
+      "evidence": {
+        "stepDescription": "create product 'Blue Widget', immediately search for 'Blue Widget'",
+        "errorMessage": "assertion mismatch: search returns 0 results",
+        "domSnapshotNote": "the product write path is synchronous but the search index consumer catches up asynchronously, typically within a few seconds; re-reading after a short bounded wait finds it",
+        "consoleLogs": [],
+        "networkCalls": [
+          { "url": "/api/products", "method": "POST", "status": 201 },
+          { "url": "/api/search?q=Blue+Widget", "status": 200, "bodyCount": 0, "timingMs": 300 }
+        ]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "retry",
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-h-data-10-decimal-precision-seed-mismatch",
+      "evidence": {
+        "stepDescription": "assert price displays '19.99'",
+        "errorMessage": "assertion mismatch: price displays '19.9900'",
+        "domSnapshotNote": "seed data stores price with 4 decimal digits of precision on this env; test expectation assumed the 2-digit precision used elsewhere",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/products/55", "status": 200, "body": { "price": "19.9900" } }]
+      },
+      "expectedLabel": "data",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-01-tab-crashed",
+      "evidence": {
+        "stepDescription": "click Export Report",
+        "errorMessage": "Dragon: tab unresponsive, Chrome reports 'Aw, Snap!' crash page",
+        "domSnapshotNote": "renderer process crashed mid-export",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-02-oom-render-loop",
+      "evidence": {
+        "stepDescription": "click Apply Filters",
+        "errorMessage": "Dragon: action timed out, tab unresponsive for 15s",
+        "domSnapshotNote": "page entered an infinite re-render loop after the filter change; tab memory usage climbing, all subsequent input unresponsive",
+        "consoleLogs": [{ "level": "warn", "text": "Maximum update depth exceeded" }],
+        "networkCalls": []
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-03-uncaught-exception-white-screen",
+      "evidence": {
+        "stepDescription": "goto /orders/2044",
+        "errorMessage": "page is blank white, no interactive elements found",
+        "domSnapshotNote": "no error boundary present; document body is empty except for a root div",
+        "consoleLogs": [{ "level": "error", "text": "Uncaught TypeError: Cannot read properties of undefined (reading 'map') at OrderDetail.jsx:41" }],
+        "networkCalls": []
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-04-extension-context-invalidated",
+      "evidence": {
+        "stepDescription": "click Save (immediately after Dragon extension reload)",
+        "errorMessage": "Input.dispatchMouseEvent timed out after ~5000ms",
+        "domSnapshotNote": "reads (read/focusCycle/perceive) still succeed; only trusted mouse input is orphaned since the extension context was invalidated by a mid-session reload",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-05-dragon-rpc-connection-refused",
+      "evidence": {
+        "stepDescription": "click Submit",
+        "errorMessage": "POST http://localhost:9233/rpc: ECONNREFUSED",
+        "domSnapshotNote": "Dragon service process is not responding mid-run; no HTTP response received at all",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-06-websocket-server-permanently-down",
+      "evidence": {
+        "stepDescription": "goto /live-orders, wait for live feed to populate",
+        "errorMessage": "feed stays in 'Connecting...' state indefinitely",
+        "domSnapshotNote": "backend websocket server process crashed and did not restart; connection closed with a fatal error, not a transient delay",
+        "consoleLogs": [{ "level": "error", "text": "WebSocket connection to 'wss://api/live' failed: Connection refused" }],
+        "networkCalls": []
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-07-localstorage-quota-exceeded",
+      "evidence": {
+        "stepDescription": "click Save Draft (large attachment cached client-side)",
+        "errorMessage": "assertion mismatch: draft not saved, page shows broken state on next render",
+        "domSnapshotNote": "app attempted to cache a large payload in localStorage and threw a quota-exceeded exception, breaking subsequent renders",
+        "consoleLogs": [{ "level": "error", "text": "Uncaught DOMException: Failed to execute 'setItem' on 'Storage': Setting the value exceeded the quota" }],
+        "networkCalls": []
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-08-stale-service-worker-bad-bundle",
+      "evidence": {
+        "stepDescription": "goto / (fresh tab, first load)",
+        "errorMessage": "page loads then immediately throws, no interactive elements found",
+        "domSnapshotNote": "a stale service worker served a previous broken JS bundle from cache instead of the current deployed one",
+        "consoleLogs": [{ "level": "error", "text": "Uncaught TypeError: undefined is not a function at bundle.old.js:1" }],
+        "networkCalls": [{ "url": "/bundle.js", "status": 200, "servedBy": "service-worker-cache" }]
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-09-blocking-third-party-script",
+      "evidence": {
+        "stepDescription": "click any element on the page",
+        "errorMessage": "Dragon: all actions on this tab time out for ~10s",
+        "domSnapshotNote": "a synchronous third-party analytics script is freezing the main thread; page recovers responsiveness after ~10s",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "https://analytics.example.com/tag.js", "status": 200, "blockingMs": 10000 }]
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-runtime-10-session-policy-circuit-open",
+      "evidence": {
+        "stepDescription": "read step inside do chain",
+        "errorMessage": "result.ok=false code=SYNTHETIC_FORBIDDEN, then every subsequent call returns CIRCUIT_OPEN",
+        "domSnapshotNote": "session was opened with default forbidSyntheticDOM:true; the first synthetic-DOM read was denied and latched the circuit breaker",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "http://localhost:9233/rpc", "httpStatus": 200, "innerOk": false, "code": "SYNTHETIC_FORBIDDEN" }]
+      },
+      "expectedLabel": "runtime",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-01-negative-quantity-accepted",
+      "evidence": {
+        "stepDescription": "fill quantity=-5, click Add to Cart",
+        "errorMessage": "none — request succeeded",
+        "domSnapshotNote": "cart now shows a line item with quantity -5; no client or server validation rejected it; reproducible on retry with the same steps",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/cart/items", "method": "POST", "status": 201, "body": { "quantity": -5 } }]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-02-total-miscalculated",
+      "evidence": {
+        "stepDescription": "add 2 items at $10.00 each, read cart total",
+        "errorMessage": "assertion mismatch: total displays $15.00, expected $20.00",
+        "domSnapshotNote": "value is stable after a long wait (5s), DOM fully settled, no pending network; deterministic wrong computation on every retry",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/cart", "status": 200, "body": { "items": 2, "unitPrice": 10, "total": 15 } }]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-03-permission-bypass-cross-account",
+      "evidence": {
+        "stepDescription": "as User A, goto /orders/{User B's order id} via direct URL",
+        "errorMessage": "none — page renders User B's order details and allows Edit",
+        "domSnapshotNote": "no server-side authorization check on the order-detail endpoint for a different account's order id",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders/9911", "status": 200, "requestedByUser": "A", "ownerUser": "B" }]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-04-duplicate-charge-double-click",
+      "evidence": {
+        "stepDescription": "rapid double-click on Pay",
+        "errorMessage": "none — both requests succeeded",
+        "domSnapshotNote": "two separate payment records were created for a single purchase; app has no client or server-side idempotency guard, reproducible every run",
+        "consoleLogs": [],
+        "networkCalls": [
+          { "url": "/api/payments", "method": "POST", "status": 201, "body": { "id": "pay_1" } },
+          { "url": "/api/payments", "method": "POST", "status": 201, "body": { "id": "pay_2" } }
+        ]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-05-delete-silently-noops",
+      "evidence": {
+        "stepDescription": "click Delete on 'Order #1044', reload, assert row absent",
+        "errorMessage": "assertion mismatch: 'Order #1044' still present after reload",
+        "domSnapshotNote": "DELETE endpoint returns 200 OK but backend does not actually remove the row; reproducible every run",
+        "consoleLogs": [],
+        "networkCalls": [
+          { "url": "/api/orders/1044", "method": "DELETE", "status": 200 },
+          { "url": "/api/orders", "status": 200, "bodyContains": "Order #1044" }
+        ]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-06-wrong-currency-symbol-for-locale",
+      "evidence": {
+        "stepDescription": "set locale to vi-VN, read prices on catalog page",
+        "errorMessage": "assertion mismatch: prices show '$120' instead of '120 ₫'",
+        "domSnapshotNote": "every price on the page uses the USD symbol regardless of locale; consistent and reproducible, not a rendering glitch",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/catalog?locale=vi-VN", "status": 200 }]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-07-stale-validation-error-persists",
+      "evidence": {
+        "stepDescription": "fill invalid email, see error, correct to a valid email, read error state",
+        "errorMessage": "assertion mismatch: 'Invalid email' message still shown though value is now valid",
+        "domSnapshotNote": "re-validation is not wired to the corrected input event; console shows no validation call fired after the fix, reproducible every run",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-08-infinite-scroll-drops-items",
+      "evidence": {
+        "stepDescription": "scroll to load page 2, read full rendered item list",
+        "errorMessage": "assertion mismatch: 2 items from page 1 are missing from the DOM after page 2 loads",
+        "domSnapshotNote": "API response for page 1+2 combined contains all items, but a list-key collision in rendering silently drops 2 of them; reproducible every run",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/feed?page=1", "status": 200, "bodyCount": 20 }, { "url": "/api/feed?page=2", "status": 200, "bodyCount": 20 }]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-09-session-not-invalidated-cross-tab",
+      "evidence": {
+        "stepDescription": "log out in tab 1, switch to tab 2, click a protected action",
+        "errorMessage": "none — protected action in tab 2 still succeeds after logout in tab 1",
+        "domSnapshotNote": "logout only clears local tab state, does not invalidate the server-side session/token used by other open tabs",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders", "method": "POST", "status": 201, "tab": 2, "afterLogoutInTab": 1 }]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-realbug-10-csv-export-truncates-rows",
+      "evidence": {
+        "stepDescription": "click Export CSV on a 137-row table, read downloaded file row count",
+        "errorMessage": "assertion mismatch: CSV contains 50 rows, expected 137",
+        "domSnapshotNote": "export endpoint hard-caps at 50 rows with no error or warning surfaced to the user; reproducible every run",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders/export.csv", "status": 200, "rowsReturned": 50, "rowsExpected": 137 }]
+      },
+      "expectedLabel": "real-bug",
+      "expectedAction": "fail",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-ambiguous-01-selector-vs-timing-tie",
+      "evidence": {
+        "stepDescription": "click button:text=Confirm",
+        "errorMessage": "locate failed: no element matches button:text=Confirm",
+        "domSnapshotNote": "DOM snapshot shows both a stale selector reference (attribute renamed) AND an in-flight network request that could still be rendering the button; evidence does not indicate which factor dominates",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/checkout/init", "status": "pending-at-read-time" }]
+      },
+      "expectedLabel": "UNGRADED",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-ambiguous-02-evidence-capture-failed",
+      "evidence": {
+        "stepDescription": "click button:text=Save",
+        "errorMessage": "step failed",
+        "domSnapshotNote": "no DOM snapshot was captured at failure time",
+        "consoleLogs": [],
+        "networkCalls": [],
+        "captureNote": "console and network readers themselves failed to attach for this step; no evidence bundle available"
+      },
+      "expectedLabel": "UNGRADED",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-ambiguous-03-data-vs-realbug-tie",
+      "evidence": {
+        "stepDescription": "read cart total for a 3-item cart",
+        "errorMessage": "assertion mismatch: total displays $27.00, expected $30.00",
+        "domSnapshotNote": "seed data for one item has an ambiguous price field (two conflicting price entries in the fixture) AND the total calculation code path is also plausibly wrong; evidence does not disambiguate between wrong seed data and wrong calculation logic",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/cart", "status": 200 }]
+      },
+      "expectedLabel": "UNGRADED",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-ambiguous-04-runtime-vs-selector-tie",
+      "evidence": {
+        "stepDescription": "click button:text=Continue",
+        "errorMessage": "Input.dispatchMouseEvent timed out after ~5000ms",
+        "domSnapshotNote": "logs show both a possible extension-context invalidation (runtime) AND a DOM rewrite around the same control that could explain a stale selector; equal-weight signals for both, no way to tell which caused the timeout",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "UNGRADED",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    },
+    {
+      "id": "v64-h-ambiguous-05-truncated-evidence-log",
+      "evidence": {
+        "stepDescription": "click button:text=Place Order",
+        "errorMessage": "step failed",
+        "domSnapshotNote": "evidence bundle was truncated mid-capture; log cuts off exactly at the error line with no stack trace and no surrounding context",
+        "consoleLogs": ["[log truncated]"],
+        "networkCalls": []
+      },
+      "expectedLabel": "UNGRADED",
+      "expectedAction": "blocked",
+      "mustNeverRetry": true
+    }
+  ],
+  "ordinary": [
+    {
+      "id": "v64-o-success-01-click-nav-orders",
+      "evidence": {
+        "stepDescription": "click nav:Orders",
+        "errorMessage": null,
+        "domSnapshotNote": "route changed to /orders, list rendered with 12 rows",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders", "status": 200, "bodyCount": 12 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-02-fill-and-submit-form",
+      "evidence": {
+        "stepDescription": "fill contact form fields, click Submit",
+        "errorMessage": null,
+        "domSnapshotNote": "success toast 'Message sent' appeared",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/contact", "method": "POST", "status": 201 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-03-open-close-modal",
+      "evidence": {
+        "stepDescription": "click New Order, then click Close",
+        "errorMessage": null,
+        "domSnapshotNote": "dialog opened then closed cleanly, screen back to Orders list",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-04-delete-item-confirmed",
+      "evidence": {
+        "stepDescription": "click Delete, confirm dialog, read list",
+        "errorMessage": null,
+        "domSnapshotNote": "row removed from list, matches DELETE 200 response",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders/2001", "method": "DELETE", "status": 200 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-05-tab-switch",
+      "evidence": {
+        "stepDescription": "click Completed tab",
+        "errorMessage": null,
+        "domSnapshotNote": "tab panel switched to completed orders list, no console errors",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-06-refresh-preserves-state",
+      "evidence": {
+        "stepDescription": "reload page, read active filter chip",
+        "errorMessage": null,
+        "domSnapshotNote": "filter state persisted via query string, chip still shows 'Status: Active' after reload",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders?status=active", "status": 200 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-07-checkbox-toggle",
+      "evidence": {
+        "stepDescription": "click checkbox 'Select all', read selected count",
+        "errorMessage": null,
+        "domSnapshotNote": "selected count reads 12, matches row count",
+        "consoleLogs": [],
+        "networkCalls": []
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-08-pagination-next-page",
+      "evidence": {
+        "stepDescription": "click Next page, read row count",
+        "errorMessage": null,
+        "domSnapshotNote": "page 2 shows the expected next 10 rows",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders?page=2", "status": 200, "bodyCount": 10 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-09-logout-redirects-to-login",
+      "evidence": {
+        "stepDescription": "click Log out",
+        "errorMessage": null,
+        "domSnapshotNote": "route changed to /login, session cleared",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/logout", "method": "POST", "status": 200 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-10-export-full-row-count",
+      "evidence": {
+        "stepDescription": "click Export CSV on a 12-row table, read downloaded file row count",
+        "errorMessage": null,
+        "domSnapshotNote": "CSV contains all 12 rows, matches on-screen count",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/orders/export.csv", "status": 200, "rowsReturned": 12, "rowsExpected": 12 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-11-search-returns-expected-result",
+      "evidence": {
+        "stepDescription": "type 'Order #1032' into search, wait for debounce, read results",
+        "errorMessage": null,
+        "domSnapshotNote": "result list shows exactly 'Order #1032' after the 400ms debounce settles",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/search?q=Order+%231032", "status": 200, "bodyCount": 1 }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    },
+    {
+      "id": "v64-o-success-12-total-calculated-correctly",
+      "evidence": {
+        "stepDescription": "add 3 items at $10.00 each, read cart total",
+        "errorMessage": null,
+        "domSnapshotNote": "total displays $30.00, matches unit price times quantity",
+        "consoleLogs": [],
+        "networkCalls": [{ "url": "/api/cart", "status": 200, "body": { "items": 3, "unitPrice": 10, "total": 30 } }]
+      },
+      "expectedLabel": "none",
+      "expectedAction": null,
+      "mustNeverRetry": false
+    }
+  ]
+}

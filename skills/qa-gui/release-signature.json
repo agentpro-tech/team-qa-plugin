@@ -1,0 +1,14 @@
+{
+  "schema": "agentpro/release-signature/v1",
+  "key_id": "0cf79a5cf736467e17536e403e95fa66d9b901f29457b98d3111452329b3caa8",
+  "signed": {
+    "skill": "qa-gui",
+    "version": "2.17.0",
+    "commit": "f0400f6236d7c7cc28884b164ebeb5b7bb9e2da6",
+    "tree": "afc7a78ee661e396ea18c0422dde3dc0f8ed4b04",
+    "repo": "https://github.com/agentpro-tech/qa-gui.git",
+    "manifest_sha256": "c4fe9b6a8be58a739cf0cdcbca448eda0b166fc8bb413c438af4629ee51c2d6a",
+    "package_sha256": "fc5200e5e40f894bd377b382e08adf9850ee9fc910a09ff43d887d63194a0210"
+  },
+  "signature": "kGjdLvMhgOReLBj7Hhu+MZKeJuXKqbsDx3+Zdl6V96oQ8kAlbM0eLE4qWNX8Gi7ESljJmt/ftOPNm/J5krQUBg=="
+}

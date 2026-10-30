@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/web-receipt.json",
+  "title": "team-qa/receipt/web-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contract_sha256",
+    "run_uuid",
+    "requirements_hash",
+    "verification_lane",
+    "target_kind",
+    "target_binding_sha256",
+    "target",
+    "artifacts",
+    "plan_case_total",
+    "executed",
+    "missing_ids",
+    "rtm_filled",
+    "rtm_total",
+    "release_verdict",
+    "created_at",
+    "run_provenance",
+    "integrity"
+  ],
+  "properties": {
+    "schema": {
+      "const": "team-qa/receipt/web-v1"
+    },
+    "contract_sha256": {
+      "const": "c4961eaa1e1915e567d357fc49d4472d75167c51f388e348e6ac11af790d7d5d"
+    },
+    "run_uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requirements_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "verification_lane": {
+      "const": "gui"
+    },
+    "target_kind": {
+      "const": "deployed-build"
+    },
+    "target_binding_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "target": {
+      "$ref": "deployed-target.json"
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "plan_case_total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "executed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "missing_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rtm_filled": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rtm_total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "release_verdict": {
+      "enum": [
+        "GO",
+        "NO-GO",
+        "UNGRADED"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_provenance": {
+      "type": "object"
+    },
+    "integrity": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

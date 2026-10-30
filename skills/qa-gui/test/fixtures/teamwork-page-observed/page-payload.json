@@ -1,0 +1,28 @@
+{
+  "protocol": "qa-gui/page-export/v1",
+  "title": "Mẫu QA kiểm chứng skill Team QA",
+  "initial_blocks": [
+    "**Ứng dụng:** Dữ liệu minh họa kiểm chứng skill · **Môi trường và cơ sở dữ liệu:** LOCAL / fixture\n\n**Build:** fixture-20261002 · **Vai trò kiểm thử:** qa-agent · **Hồ sơ kiểm thử:** sample-not-product-qa",
+    "## Lỗi đang xử lý",
+    "### Minh họa lỗi lưu biểu mẫu làm mất lựa chọn chi nhánh\n\nDF-01 · ASSIGNED · P2\n\n**Người phụ trách:** dev-agent\n\n**Vị trí:** Dữ liệu minh họa kiểm chứng skill · LOCAL / fixture · 1280x800 · Ca TC-01 Minh họa kiểm tra lưu lựa chọn chi nhánh\n\n**Các bước tái hiện:**\n\n1. Mở biểu mẫu minh họa bằng vai trò quản trị.\n2. Chọn chi nhánh A.\n3. Lưu và mở lại biểu mẫu.\n\n**Thực tế:** Trong tình huống minh họa, trường chi nhánh trở về trạng thái chưa chọn.\n\n**Mong đợi:** Lựa chọn chi nhánh A vẫn được giữ khi mở lại.\n\n**Bằng chứng QA:**\n\n- EV-ORIGINAL · original · evidence/replace-with-capture.png — bằng chứng cục bộ chưa truy cập được trên Page; cần tải lên\n- EV-ANNOTATED · annotated · evidence/replace-with-capture.annotated.png — bằng chứng cục bộ chưa truy cập được trên Page; cần tải lên\n\n**Bằng chứng sửa lỗi:**\n\nChưa có.",
+    "## Chờ QA kiểm tra lại",
+    "Chưa có lỗi trong nhóm này.",
+    "## Lỗi đã giải quyết",
+    "Chưa có lỗi trong nhóm này.",
+    "## Phạm vi và kết quả vòng QA",
+    "Dữ liệu minh họa kiểm chứng skill · LOCAL / fixture · 1280x800\n\nKết luận phát hành: NO-GO\n\n- Dữ liệu mẫu chỉ dùng kiểm chứng skill; chưa có kết quả QA sản phẩm.\n\n- Vòng 1: Kiểm chứng template và đường tạo Page bằng dữ liệu minh họa; chưa chạy QA sản phẩm.",
+    "## Tất cả ca kiểm thử",
+    "### Minh họa kiểm tra lưu lựa chọn chi nhánh\n\nTC-01 · TODO · P2 · Function: UNGRADED · UI: UNGRADED\n\nNguồn: SRC-REQ-01\n\nYêu cầu: REQ-01\n\n**Các bước kiểm thử:**\n\n1. Mở biểu mẫu minh họa.\n2. Chọn chi nhánh A.\n3. Lưu và mở lại.\n\n**Mong đợi:** Lựa chọn chi nhánh A được giữ khi mở lại.\n\n**Function:** Chưa chạy.\n\n**UI:** Chưa chạy.\n\n",
+    "## Tham chiếu kỹ thuật",
+    "canonical sha256 3d62290e34929588a0e0ad633189b645f366e87147ba537b585957bb48738ddd · revision 1 · board skill-upgrade-verification-sample\n\nĐịnh danh bản chạy: {\"runUuid\":\"00000000-0000-4000-8000-000000000001\",\"commit\":\"0000000000000000000000000000000000000000\",\"build\":\"fixture-20261002\",\"env\":\"LOCAL\",\"db\":\"not-applicable\",\"role\":\"qa-agent\",\"testProfile\":\"sample-not-product-qa\",\"currentRound\":1}",
+    "### Nguồn yêu cầu\n\n- {\"id\":\"SRC-REQ-01\",\"kind\":\"spec\",\"sourceSystem\":\"skill-verification-fixture\",\"externalKey\":\"REQ-01\",\"title\":\"Yêu cầu minh họa giữ lựa chọn sau khi lưu\",\"origin\":\"upstream\"}",
+    "### TC-01 Nhật ký ca kiểm thử\n\n- assignee: \"qa-agent\"\n- requirements: \\[\"REQ-01\"\\]\n- machine: {\"rule\":\"UNGRADED\",\"selector\":\"#sample-form\"}\n- states: \\[\\]\n- stateReceipts: \\[\\]\n- results: \\[\\]\n- comments: \\[\\]\n- history: \\[\\]",
+    "### DF-01 Nhật ký lỗi\n\n- caseId: \"TC-01\"\n- assignee: \"dev-agent\"\n- createdBy: \"qa-agent\"\n- findings: \\[{\"id\":\"F-01\",\"rule\":\"sample-fixture\",\"severity\":\"high\",\"selector\":\"#sample-form\",\"caption\":\"Minh họa cách gắn bằng chứng vào lỗi; chưa có ảnh kiểm chứng sản phẩm.\",\"bbox\":{\"x\":0,\"y\":0,\"width\":1,\"height\":1,\"dpr\":1}}\\]\n- fixEvidence: \\[\\]\n- lastRetestFixEvidenceCount: 0\n- comments: \\[\\]\n- history: \\[\\]\n- rejectionReason: null",
+    "### Độ bao phủ và phần chưa kiểm thử\n\n- coverage: \\[\\]\n- untested: \\[\\]\n- rounds: \\[{\"round\":1,\"startedAt\":\"2026-08-11T00:00:00Z\",\"scope\":\"Kiểm chứng template và đường tạo Page bằng dữ liệu minh họa; chưa chạy QA sản phẩm.\"}\\]\n- evidenceManifest: \\[\\]\n- release: {\"verdict\":\"NO-GO\",\"risks\":\\[\"Dữ liệu mẫu chỉ dùng kiểm chứng skill; chưa có kết quả QA sản phẩm.\"\\]}"
+  ],
+  "canonical": {
+    "boardId": "skill-upgrade-verification-sample",
+    "rev": 1,
+    "sha256": "3d62290e34929588a0e0ad633189b645f366e87147ba537b585957bb48738ddd"
+  }
+}

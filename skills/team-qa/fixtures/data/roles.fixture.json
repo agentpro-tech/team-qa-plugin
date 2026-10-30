@@ -1,0 +1,18 @@
+{
+  "roles": [],
+  "mirror": {
+    "notion": {
+      "probe": ["node", "fixtures/support/mirror-adapter.mjs", "probe-fail"],
+      "publish": ["node", "fixtures/support/mirror-adapter.mjs", "publish"],
+      "readback": ["node", "fixtures/support/mirror-adapter.mjs", "readback"]
+    },
+    "doc_colab": {
+      "publish": ["node", "fixtures/support/mirror-adapter.mjs", "publish"],
+      "readback": ["node", "fixtures/support/mirror-adapter.mjs", "readback"]
+    }
+  },
+  "skills": {
+    "qa-gui": {"verdict_schema":"skill-schemas/qa-gui.json","supported_major":1,"receipt_schema":"skill-schemas/qa-gui-receipt-v2.json","supported_receipt_major":2},
+    "qa-code": {"verdict_schema":"skill-schemas/qa-code.json","supported_major":1,"receipt_schema":"skill-schemas/qa-code-receipt-v2.json","supported_receipt_major":2}
+  }
+}

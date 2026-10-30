@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "roles": [
+    {"role": "test_manager", "engine": "resolved-provider-manager", "fallback": null, "tool_bound": false},
+    {"role": "analyst", "engine": "resolved-provider-analysis", "fallback": null, "tool_bound": false},
+    {"role": "designer", "engine": "resolved-provider-design", "fallback": null, "tool_bound": false},
+    {"role": "executor_gui", "engine": "resolved-provider-gui", "fallback": null, "tool_bound": true},
+    {"role": "executor_code", "engine": "resolved-provider-code", "fallback": null, "tool_bound": true},
+    {"role": "coverage_gate", "engine": "node-stdlib", "fallback": null, "tool_bound": false}
+  ],
+  "engines": {
+    "resolved-provider-manager": {"tools": ["fs.read", "fs.write", "shell.exec"], "description": "Tool declaration only; exact manager provider/model/effort are locked in each approved roster."},
+    "resolved-provider-analysis": {"tools": ["fs.read"], "description": "Read-only risk analysis; provider/model/effort are resolved for the approved run."},
+    "resolved-provider-design": {"tools": ["fs.read", "fs.write"], "description": "Design artifact capability; the controller materializes reviewed output under the current run contract."},
+    "resolved-provider-gui": {"tools": ["dragon", "qa-gui"], "description": "Declared GUI interfaces; actual compatible strict Dragon MCP route and child attestation are required before an official GUI result."},
+    "resolved-provider-code": {"tools": ["qa-code"], "description": "Declared independent QA Code interface; actual provider execution is locked by the current child dispatch proof."},
+    "node-stdlib": {"tools": ["fs.read", "fs.write"], "description": "Deterministic coverage gate; no model or provider."},
+    "codex-terra": {"tools": ["fs.read"], "description": "Historical configuration compatibility alias only; it selects no provider/model for a current official run."},
+    "haiku": {"tools": ["fs.read"], "description": "Historical configuration compatibility alias only; it is never an automatic current-run fallback."}
+  },
+  "role_tools": {
+    "executor_gui": ["dragon", "qa-gui"],
+    "executor_code": ["qa-code"]
+  },
+  "mirror": {
+    "notion": {
+      "probe": ["node", "scripts/adapters/notion-env.mjs", "probe"],
+      "publish": ["node", "scripts/adapters/notion-env.mjs", "publish"],
+      "readback": ["node", "scripts/adapters/notion-env.mjs", "readback"]
+    },
+    "doc_colab": {
+      "probe": ["node", "scripts/adapters/doc-colab.mjs", "probe"],
+      "publish": ["node", "scripts/adapters/doc-colab.mjs", "publish"],
+      "readback": ["node", "scripts/adapters/doc-colab.mjs", "readback"]
+    }
+  },
+  "skills": {
+    "qa-gui": {
+      "verdict_schema": "~/.agents/skills/qa-gui/scripts/qa-board.schema.json",
+      "supported_major": 3,
+      "receipt_schema": "~/.agents/skills/qa-gui/contracts/release-truth-contract/v2/qa-gui.receipt.schema.json",
+      "supported_receipt_major": 2,
+      "commands": {"gate": ["node", "~/.agents/skills/qa-gui/scripts/qa-gate.mjs"]}
+    },
+    "qa-code": {
+      "verdict_schema": "~/.agents/skills/qa-code/references/verdict.schema.json",
+      "supported_major": 1,
+      "receipt_schema": "~/.agents/skills/qa-code/contracts/release-truth-contract/v2/qa-code.receipt.schema.json",
+      "supported_receipt_major": 2,
+      "commands": {
+        "gate0": ["bash", "~/.agents/skills/qa-code/scripts/gate0.sh"],
+        "run": ["bash", "~/.agents/skills/qa-code/scripts/qa-run.sh"],
+        "validate": ["node", "~/.agents/skills/qa-code/scripts/verdict-validate.mjs"]
+      }
+    }
+  },
+  "scroll": {"root": "~/Dev/scroll", "ledger": "local://runs/{run_id}/ledger.csv"}
+}

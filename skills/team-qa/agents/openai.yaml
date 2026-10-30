@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team QA"
+  short_description: "Orchestrates whole-app QA with evidence gates"
+  default_prompt: "Use $team-qa to plan, gate, execute, and report an evidence-backed whole-app QA run."

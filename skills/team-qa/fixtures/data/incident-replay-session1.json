@@ -1,0 +1,13 @@
+{
+  "schema": "release-truth-incident-fixture/v1",
+  "source": "Sample shop app Phase 3 artifact shape; secrets and product payload removed",
+  "requirement_ids": [
+    "P3-T01", "P3-T02", "P3-T03", "P3-T04", "P3-T05", "P3-T06", "P3-T07", "P3-T08", "P3-T09", "P3-T10",
+    "P3-T11", "P3-T12", "P3-T13", "P3-T14", "P3-T15", "P3-T16", "P3-T17", "OP-FIX-RECORDING", "OP-FIX-SAVE-STATE",
+    "OP-FIX-INPUT-CATALOG", "OP-FIX-CA-VISIBILITY", "OP-FIX-ACCESS-DEDUPE", "OP-RETEST-06914", "OP-PRESET-SOURCE",
+    "NG-REPORTING", "NG-LANGUAGE-SLOTS", "NG-SHARED-LISTS", "NG-EDITOR-WORDING", "NG-PRODUCTION-WRITE"
+  ],
+  "missing_ids": ["P3-T06", "P3-T09", "P3-T14", "OP-RETEST-06914", "NG-REPORTING", "NG-LANGUAGE-SLOTS", "NG-SHARED-LISTS"],
+  "board_release": "NO-GO",
+  "board_risk": "QA has not been run."
+}

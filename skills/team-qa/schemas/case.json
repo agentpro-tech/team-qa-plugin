@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/case-v1.json",
+  "title": "Team QA tracked plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["cases"],
+  "properties": {
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id", "req_id", "lane", "steps", "expected", "data", "priority", "kind",
+          "taxonomy", "states", "viewports"
+        ],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "req_id": {"type": "string", "minLength": 1},
+          "lane": {"type": "string", "minLength": 1},
+          "steps": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "expected": {"type": "string", "minLength": 1},
+          "data": {"type": "object"},
+          "priority": {"enum": ["P0", "P1", "P2"]},
+          "kind": {"enum": ["behavioral", "static"]},
+          "taxonomy": {
+            "description": "The test type this case carries. Without this axis, the coverage matrix cannot see which kinds of defects nobody has touched.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "functional", "boundary", "negative", "state", "regression",
+                "visual", "accessibility", "performance", "security"
+              ]
+            }
+          },
+          "states": {
+            "description": "The data/screen states the case covers. A plan that runs only the ideal state still reaches a high percentage while leaving empty and error states blank.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"enum": ["empty", "loading", "partial", "ideal", "error"]}
+          },
+          "viewports": {
+            "description": "The screen sizes the case runs on, kept so that UI+Visual is not graded on only one screen size.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"enum": ["mobile", "tablet", "desktop"]}
+          }
+        }
+      }
+    }
+  }
+}

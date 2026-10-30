@@ -1,0 +1,9 @@
+{
+  "schema":"team-qa/model-fit/v1",
+  "models":[
+    {"id":"gpt-6.1-sol","provider":"openai","tier":"general","selection_priority":1,"roles":["test_manager","analyst","designer","executor_gui","executor_code"],"tools":["fs.read","dragon","qa-gui","qa-code"],"fit_review":"source-reviewed","source_url":"https://developers.openai.com/api/docs/models"},
+    {"id":"gpt-6-astra","provider":"openai","tier":"reasoning","roles":["test_manager","executor_code"],"tools":["fs.read","qa-code"],"fit_review":"source-reviewed-user-override-only","source_url":"https://developers.openai.com/api/docs/models"},
+    {"id":"claude-opus-5-5","provider":"anthropic","tier":"reasoning","roles":["test_manager"],"tools":["fs.read"],"efforts":["low","medium","high","xhigh","max"],"min_harness_version":"2.1.280","fit_review":"source-reviewed","source_url":"https://platform.claude.com/docs/en/models/overview"},
+    {"id":"claude-haiku-4-5-20251001","provider":"anthropic","tier":"small","roles":[],"tools":[],"efforts":[],"fit_review":"pending","source_url":"https://platform.claude.com/docs/en/models/overview"}
+  ]
+}

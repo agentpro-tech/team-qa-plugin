@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ui-sanity fixture B — overlay defects</title>
+<style>
+  body { font-family: sans-serif; margin: 24px; }
+  .btn { height: 36px; padding: 0 16px; border: 1px solid #ccc; border-radius: 6px; background: #f5f5f5; }
+</style>
+</head>
+<body>
+
+<p>Background page content. A modal dialog is open, so page-level controls below are legitimately behind it and must NOT be flagged.</p>
+<button class="btn">Background action</button>
+
+<!-- DEFECT 1: dropdown menu escapes an overflow:hidden card → expect overlay-cut-ancestor -->
+<div id="card" style="position:relative;width:280px;height:120px;overflow:hidden;border:1px solid #ddd;border-radius:8px;padding:12px;margin-top:16px;">
+  Card with a dropdown whose menu is clipped:
+  <div id="menu" role="menu" style="position:absolute;left:12px;top:60px;width:200px;background:#fff;border:1px solid #bbb;box-shadow:0 4px 12px rgba(0,0,0,.15);">
+    <div role="menuitem" style="padding:8px 12px;">Rename</div>
+    <div role="menuitem" style="padding:8px 12px;">Duplicate</div>
+    <div role="menuitem" style="padding:8px 12px;">Delete</div>
+    <div role="menuitem" style="padding:8px 12px;">Share…</div>
+  </div>
+</div>
+
+<!-- backdrop -->
+<div id="backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,.35);"></div>
+
+<!-- DEFECT 2 + 3: dialog partially off the right viewport edge → expect overlay-cut-viewport;
+     inside it, the primary button is covered by a toast → expect occluded-control -->
+<div id="dlg" role="dialog" aria-label="Settings" style="position:fixed;top:120px;right:-140px;width:360px;background:#fff;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);padding:20px;">
+  <h3 style="margin-top:0;">Settings</h3>
+  <p>Dialog body text. The confirm button below is covered by a toast notification.</p>
+  <div style="position:relative;height:56px;">
+    <button id="confirm-btn" class="btn" style="position:absolute;left:0;top:10px;">Confirm</button>
+    <button id="cancel-btn" class="btn" style="position:absolute;left:110px;top:10px;">Cancel</button>
+    <div id="toast" style="position:absolute;left:-10px;top:0;width:104px;height:52px;background:#333;color:#fff;border-radius:8px;padding:6px;font-size:12px;">Saved ✓</div>
+  </div>
+</div>
+
+</body>
+</html>

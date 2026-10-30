@@ -1,0 +1,1756 @@
+{
+  "feature": "V6.3",
+  "version": 1,
+  "frozen": true,
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "schema": "qa-gui/v6.3-memory-corpus/v1",
+  "app": "SampleShop",
+  "liveTarget": {
+    "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+    "appName": "SampleShop (remix TEST)",
+    "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+    "status": "draft",
+    "published": false,
+    "gitConnected": false,
+    "databaseEnabled": false
+  },
+  "layerEnum": [
+    "episodic",
+    "reflective",
+    "strategic"
+  ],
+  "recordReasonEnum": [
+    "fresh",
+    "stale",
+    "foreign",
+    "evidence-missing",
+    "duplicate",
+    "retention-dropped"
+  ],
+  "verdictEnum": [
+    "PASS",
+    "UNGRADED"
+  ],
+  "ungradedReasonEnum": [
+    "env-guard"
+  ],
+  "hard": [
+    {
+      "id": "v63-h-episodic-basic",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-EP-01",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 4: điền lý do hoàn tiền dài 256 ký tự làm nút Xác nhận bật console.error 'Maximum length exceeded' thay vì disable field.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-4/refund-reason-overflow.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-05T09:12:00Z",
+          "recordedRound": 4
+        }
+      ],
+      "nextRound": {
+        "round": 5,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-EP-01"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/orders/:id/refund"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-EP-01",
+            "layer": "episodic",
+            "path": "/orders/:id/refund"
+          }
+        ],
+        "notes": "Bản ghi episodic đơn lẻ, đúng app, đúng hash, đủ evidence -> nạp lại và ghi nguồn vào test plan."
+      }
+    },
+    {
+      "id": "v63-h-reflective-basic",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-RF-01",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/refund",
+          "content": "Rút ra từ 3 vòng gần nhất: dialog hoàn tiền hay đổi selector mỗi lần redesign; luôn kiểm tra lại ràng buộc maxlength trước khi tin selector cũ.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/refund-dialog-pattern.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-07T10:00:00Z",
+          "recordedRound": 4
+        }
+      ],
+      "nextRound": {
+        "round": 5,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-RF-01"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/orders/:id/refund"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-RF-01",
+            "layer": "reflective",
+            "path": "/orders/:id/refund"
+          }
+        ],
+        "notes": "Bản ghi reflective mô tả pattern nhiều vòng, đúng app/hash/evidence -> nạp lại và ghi nguồn."
+      }
+    },
+    {
+      "id": "v63-h-strategic-basic",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-ST-01",
+          "layer": "strategic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "*",
+          "content": "Chiến lược dài hạn: ưu tiên phủ luồng checkout và refund mỗi vòng regression; hạ ưu tiên các trang tĩnh (marketing/about).",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/strategic/coverage-priority.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-01T08:00:00Z",
+          "recordedRound": 2
+        }
+      ],
+      "nextRound": {
+        "round": 5,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-ST-01"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [
+          {
+            "recordId": "R-ST-01",
+            "layer": "strategic",
+            "path": "*"
+          }
+        ],
+        "notes": "Bản ghi strategic áp dụng toàn app (path '*'), đúng hash và evidence -> nạp lại và ghi nguồn."
+      }
+    },
+    {
+      "id": "v63-h-three-layers-combined",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-COMBO-EP",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Vòng 5: bấm Thanh toán khi giỏ hàng rỗng vẫn cho qua, không hiện lỗi.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/checkout-empty-cart.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-08T11:00:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-COMBO-RF",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Luồng checkout thường thiếu validate giỏ hàng rỗng sau mỗi lần đổi UI giỏ hàng; luôn thêm ca boundary giỏ hàng rỗng.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/checkout-empty-cart-pattern.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T09:30:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-COMBO-ST",
+          "layer": "strategic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Chiến lược: coi checkout là vùng rủi ro cao nhất của app, luôn chạy đủ EP-BVA cho giỏ hàng ở mỗi vòng.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/strategic/checkout-risk-priority.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T09:35:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "scheduled",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-COMBO-EP",
+          "R-COMBO-RF",
+          "R-COMBO-ST"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/cart/checkout"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-COMBO-EP",
+            "layer": "episodic",
+            "path": "/cart/checkout"
+          },
+          {
+            "recordId": "R-COMBO-RF",
+            "layer": "reflective",
+            "path": "/cart/checkout"
+          },
+          {
+            "recordId": "R-COMBO-ST",
+            "layer": "strategic",
+            "path": "/cart/checkout"
+          }
+        ],
+        "notes": "Cả ba lớp cùng anchor vào /cart/checkout, đúng app/hash -> phải nạp đủ ba lớp riêng biệt, không gộp lẫn layer, và cùng ghi nguồn."
+      }
+    },
+    {
+      "id": "v63-h-dedupe-exact-duplicate",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-DUP-OLD",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/settings/profile",
+          "content": "Trường Tên hiển thị chấp nhận chuỗi rỗng nhưng nút Lưu vẫn active; nên coi là boundary case cần test.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/profile-empty-name.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-06T08:00:00Z",
+          "recordedRound": 4
+        },
+        {
+          "recordId": "R-DUP-NEW",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/settings/profile",
+          "content": "Trường Tên hiển thị chấp nhận chuỗi rỗng nhưng nút Lưu vẫn active; nên coi là boundary case cần test.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/profile-empty-name-round5.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T08:00:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-DUP-NEW"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [
+          "R-DUP-OLD"
+        ],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [
+          {
+            "recordId": "R-DUP-NEW",
+            "layer": "reflective",
+            "path": "/settings/profile"
+          }
+        ],
+        "notes": "R-DUP-OLD và R-DUP-NEW cùng layer/path/content, chỉ khác thời điểm ghi -> giữ bản mới nhất (R-DUP-NEW) làm canonical, R-DUP-OLD bị gộp trùng, không nạp hai lần."
+      }
+    },
+    {
+      "id": "v63-h-stale-hash-full",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:9e8d7c6b5a4930281716f5e4d3c2b1a09f8e7d6c5b4a392817160f5e4d3c2b1",
+      "records": [
+        {
+          "recordId": "R-STALE-EP",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 3: nút Xác nhận hoàn tiền nằm ngoài viewport trên popup cũ.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-3/refund-overlay-cut.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-07-28T09:00:00Z",
+          "recordedRound": 3
+        },
+        {
+          "recordId": "R-STALE-RF",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "path": "/orders/:id/refund",
+          "content": "Dialog hoàn tiền cũ hay bị cắt viewport trên mobile.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/refund-old-overlay.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-07-29T09:00:00Z",
+          "recordedRound": 3
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [
+          "R-STALE-EP",
+          "R-STALE-RF"
+        ],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "reconciliationRequired": true,
+        "notes": "App-map hash hiện tại (H_LIVE_NEWER) khác hash lúc ghi (H_LIVE_OLD) cho mọi record -> tất cả bị đánh dấu stale, không được dùng làm nguồn PASS cho tới khi đối chiếu lại app-map mới; vòng vẫn chạy được (PASS) nhưng không có memory khả dụng."
+      }
+    },
+    {
+      "id": "v63-h-stale-hash-partial-mixed",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-MIX-FRESH-EP",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Vòng 5: submit đơn với coupon hết hạn vẫn báo áp dụng thành công.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/checkout-expired-coupon.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T10:00:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-MIX-STALE-RF",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "path": "/orders",
+          "content": "Danh sách đơn hàng cũ hay lazy-load sai thứ tự khi scroll nhanh.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/orders-list-scroll-order.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-07-20T09:00:00Z",
+          "recordedRound": 2
+        },
+        {
+          "recordId": "R-MIX-FRESH-ST",
+          "layer": "strategic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Chiến lược: ưu tiên test coupon/mã giảm giá mỗi vòng vì đã có lịch sử lỗi.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/strategic/coupon-priority.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T10:05:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-MIX-FRESH-EP",
+          "R-MIX-FRESH-ST"
+        ],
+        "staleRecordIds": [
+          "R-MIX-STALE-RF"
+        ],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/cart/checkout"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-MIX-FRESH-EP",
+            "layer": "episodic",
+            "path": "/cart/checkout"
+          },
+          {
+            "recordId": "R-MIX-FRESH-ST",
+            "layer": "strategic",
+            "path": "/cart/checkout"
+          }
+        ],
+        "reconciliationRequired": true,
+        "notes": "R-MIX-STALE-RF neo vào hash cũ (H_LIVE_OLD) trong khi app-map hiện tại là H_LIVE -> chỉ record này stale; hai record còn lại (đúng H_LIVE) vẫn dùng được bình thường, không bị kéo theo."
+      }
+    },
+    {
+      "id": "v63-h-foreign-app-cross-product-leak",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-LIVE-OK",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 5: nút hoàn tiền double-submit khi bấm nhanh 2 lần, tạo 2 request POST.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/refund-double-submit.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T09:00:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-FOREIGN-01",
+          "layer": "episodic",
+          "ownerAppId": "b2140a7e-9c31-4e2a-8a5f-6d1efb203aa1",
+          "ownerAppMapHash": "sha256:c1d2e3f4a5b60791829304152637485960a1b2c3d4e5f60718293a4b5c6d7e8",
+          "path": "/orders/:id/refund",
+          "content": "(InvoiceHub) Vòng 5: cùng path /orders/:id/refund nhưng đây là app khác — không được lẫn vào SampleShop.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/foreign/invoicehub-refund.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T09:10:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-FOREIGN-02",
+          "layer": "strategic",
+          "ownerAppId": "b2140a7e-9c31-4e2a-8a5f-6d1efb203aa1",
+          "ownerAppMapHash": "sha256:c1d2e3f4a5b60791829304152637485960a1b2c3d4e5f60718293a4b5c6d7e8",
+          "path": "*",
+          "content": "(InvoiceHub) Chiến lược riêng của InvoiceHub, không áp dụng cho SampleShop.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/foreign/invoicehub-strategy.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T09:15:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-LIVE-OK"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [
+          "R-FOREIGN-01",
+          "R-FOREIGN-02"
+        ],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/orders/:id/refund"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-LIVE-OK",
+            "layer": "episodic",
+            "path": "/orders/:id/refund"
+          }
+        ],
+        "notes": "R-FOREIGN-01/02 có ownerAppId khác (InvoiceHub) dù trùng path /orders/:id/refund với SampleShop — path trùng tên KHÔNG được coi là cùng app; hai record này bị loại hoàn toàn khỏi kế hoạch chạy hiện tại, không rò sang test plan của SampleShop."
+      }
+    },
+    {
+      "id": "v63-h-foreign-target-official-guard",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (official)",
+        "previewUrl": "https://sampleshop.app/dashboard",
+        "status": "published",
+        "published": true,
+        "gitConnected": false,
+        "databaseEnabled": true
+      },
+      "appMapHash": "sha256:7a9c3e5f1b6d8042a7c9e3f5b1d6804217a9c3e5f1b6d8042a7c9e3f5b1d680",
+      "records": [
+        {
+          "recordId": "R-OFFICIAL-CTX",
+          "layer": "strategic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "*",
+          "content": "Memory hợp lệ của bản remix TEST đã pin, đúng app/hash — nhưng vòng này bị yêu cầu chạy trên bản official.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/strategic/coverage-priority.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T10:05:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "UNGRADED",
+        "ungradedReason": "env-guard",
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "notes": "appIdentity của vòng này trỏ vào previewUrl chính thức sampleshop.app/dashboard (status=published, databaseEnabled=true), không phải bản draft remix đã pin — dù record memory hợp lệ và đúng app, cả vòng phải dừng UNGRADED theo HR2/L7/H8, không được mở bản official thay thế và không được dùng bất kỳ record nào."
+      }
+    },
+    {
+      "id": "v63-h-foreign-target-git-connected-guard",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (git-connected staging)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": true,
+        "databaseEnabled": true
+      },
+      "appMapHash": "sha256:5e3c1a7f9d6b4028e5c3a1f7d9b6402815e3c1a7f9d6b4028e5c3a1f7d9b640",
+      "records": [
+        {
+          "recordId": "R-GITCON-CTX",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/refund",
+          "content": "Memory hợp lệ neo vào bản remix TEST đã pin, đúng hash — nhưng vòng này báo project đã nối Git.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/refund-double-submit.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T09:00:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "UNGRADED",
+        "ungradedReason": "env-guard",
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "notes": "Cùng projectId/previewUrl với live target nhưng gitConnected=true và databaseEnabled=true — pin yêu cầu chưa nối GitHub/GitLab và database tắt; đây là target bị cấm dù selector/record hoàn toàn hợp lệ, cả vòng UNGRADED, không dùng record nào kể cả record hợp lệ."
+      }
+    },
+    {
+      "id": "v63-h-foreign-target-production-guard",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (production)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "production",
+        "published": true,
+        "gitConnected": true,
+        "databaseEnabled": true
+      },
+      "appMapHash": "sha256:3d1b9f7e5c3a108630d1b9f7e5c3a108630d1b9f7e5c3a108630d1b9f7e5c30",
+      "records": [
+        {
+          "recordId": "R-PROD-CTX",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Memory hợp lệ neo vào bản remix TEST đã pin — vòng này lại nhắm vào bản production.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/checkout-empty-cart-pattern.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T09:30:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "UNGRADED",
+        "ungradedReason": "env-guard",
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "notes": "status=production, published=true, gitConnected=true, databaseEnabled=true — vi phạm K2 (không dogfood Production) và HR2; dừng UNGRADED trước khi chạm bất kỳ dữ liệu nào, không tự retry, không rơi về official."
+      }
+    },
+    {
+      "id": "v63-h-priority-bug-path-single",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-PRI-FAIL",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 5: hoàn tiền vượt số tiền gốc đơn hàng vẫn được chấp nhận (không có boundary check).",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/refund-overrefund.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T09:20:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-PRI-PASS",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/view",
+          "content": "Vòng 5: xem chi tiết đơn hàng hoạt động đúng, không có lỗi.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/order-view-ok.mp4",
+          "priorOutcome": "pass",
+          "recordedAt": "2026-08-09T09:22:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-PRI-FAIL",
+          "R-PRI-PASS"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/orders/:id/refund",
+          "/orders/:id/view"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-PRI-FAIL",
+            "layer": "episodic",
+            "path": "/orders/:id/refund"
+          },
+          {
+            "recordId": "R-PRI-PASS",
+            "layer": "episodic",
+            "path": "/orders/:id/view"
+          }
+        ],
+        "notes": "Đường /orders/:id/refund từng fail (priorOutcome=fail) phải đứng trước /orders/:id/view (từng pass) trong priorityPathOrder và trong test plan, đúng tinh thần 'ưu tiên đường từng có lỗi'."
+      }
+    },
+    {
+      "id": "v63-h-priority-bug-path-multi-tie",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-TIE-FAIL-OLDER",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/settings/profile",
+          "content": "Vòng 3: đổi email không hợp lệ vẫn lưu được.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-3/profile-invalid-email.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-02T09:00:00Z",
+          "recordedRound": 3
+        },
+        {
+          "recordId": "R-TIE-FAIL-NEWER",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Vòng 5: submit đơn với coupon hết hạn vẫn báo áp dụng thành công.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/checkout-expired-coupon.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T10:00:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-TIE-PASS",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/reports/export",
+          "content": "Vòng 5: xuất báo cáo CSV hoạt động đúng.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/reports-export-ok.mp4",
+          "priorOutcome": "pass",
+          "recordedAt": "2026-08-09T10:10:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-TIE-FAIL-OLDER",
+          "R-TIE-FAIL-NEWER",
+          "R-TIE-PASS"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/cart/checkout",
+          "/settings/profile",
+          "/reports/export"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-TIE-FAIL-NEWER",
+            "layer": "episodic",
+            "path": "/cart/checkout"
+          },
+          {
+            "recordId": "R-TIE-FAIL-OLDER",
+            "layer": "episodic",
+            "path": "/settings/profile"
+          },
+          {
+            "recordId": "R-TIE-PASS",
+            "layer": "episodic",
+            "path": "/reports/export"
+          }
+        ],
+        "notes": "Hai đường đều từng fail đứng trước đường từng pass; giữa hai đường cùng fail, đường có bằng chứng gần đây hơn (R-TIE-FAIL-NEWER, 2026-08-09) đứng trước đường cũ hơn (R-TIE-FAIL-OLDER, 2026-08-02) — tie-break theo recordedAt mới nhất trước."
+      }
+    },
+    {
+      "id": "v63-h-evidence-missing-episodic",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-NOEV-EP",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 5: nghi ngờ có lỗi double-submit nhưng không kịp lưu recording.",
+          "evidence": null,
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T09:00:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-HASEV-EP",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/view",
+          "content": "Vòng 5: xem chi tiết đơn hàng hoạt động đúng.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/order-view-ok.mp4",
+          "priorOutcome": "pass",
+          "recordedAt": "2026-08-09T09:22:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-HASEV-EP"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [
+          "R-NOEV-EP"
+        ],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/orders/:id/view"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-HASEV-EP",
+            "layer": "episodic",
+            "path": "/orders/:id/view"
+          }
+        ],
+        "notes": "R-NOEV-EP không có evidence -> không được dùng làm nguồn PASS/ghi vào test plan dù priorOutcome=fail và path đáng ưu tiên; chỉ record có evidence (R-HASEV-EP) được nạp."
+      }
+    },
+    {
+      "id": "v63-h-evidence-missing-strategic",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-NOEV-ST",
+          "layer": "strategic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "*",
+          "content": "Chiến lược đề xuất ưu tiên vùng thanh toán, nhưng chưa có tài liệu/evidence chứng minh.",
+          "evidence": null,
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T10:05:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-HASEV-RF",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Luồng checkout thường thiếu validate giỏ hàng rỗng.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/checkout-empty-cart-pattern.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T09:30:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-HASEV-RF"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [
+          "R-NOEV-ST"
+        ],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [
+          {
+            "recordId": "R-HASEV-RF",
+            "layer": "reflective",
+            "path": "/cart/checkout"
+          }
+        ],
+        "notes": "R-NOEV-ST (strategic) thiếu evidence -> loại khỏi testPlanSources dù layer strategic thường có ảnh hưởng rộng; quy tắc thiếu bằng chứng áp dụng đều cho cả ba lớp, không riêng episodic."
+      }
+    },
+    {
+      "id": "v63-h-retention-order-limit",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-RET-FAIL-1",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 5: hoàn tiền vượt số tiền gốc vẫn được chấp nhận.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/refund-overrefund.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T09:20:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-RET-FAIL-2",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Vòng 5: submit đơn với coupon hết hạn vẫn báo áp dụng thành công.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/checkout-expired-coupon.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-09T10:00:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-RET-PASS-OLDEST",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/reports/export",
+          "content": "Vòng 1: xuất báo cáo CSV hoạt động đúng.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-1/reports-export-ok.mp4",
+          "priorOutcome": "pass",
+          "recordedAt": "2026-07-15T09:00:00Z",
+          "recordedRound": 1
+        },
+        {
+          "recordId": "R-RET-PASS-MID",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/settings/profile",
+          "content": "Vòng 3: cập nhật hồ sơ thành công.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-3/profile-update-ok.mp4",
+          "priorOutcome": "pass",
+          "recordedAt": "2026-08-02T09:00:00Z",
+          "recordedRound": 3
+        },
+        {
+          "recordId": "R-RET-PASS-NEWEST",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/orders/:id/view",
+          "content": "Vòng 5: xem chi tiết đơn hàng hoạt động đúng.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-5/order-view-ok.mp4",
+          "priorOutcome": "pass",
+          "recordedAt": "2026-08-09T09:22:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ],
+        "retentionLimit": 3
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-RET-FAIL-1",
+          "R-RET-FAIL-2",
+          "R-RET-PASS-NEWEST"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [
+          "R-RET-PASS-OLDEST",
+          "R-RET-PASS-MID"
+        ],
+        "priorityPathOrder": [
+          "/orders/:id/refund",
+          "/cart/checkout",
+          "/orders/:id/view"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-RET-FAIL-1",
+            "layer": "episodic",
+            "path": "/orders/:id/refund"
+          },
+          {
+            "recordId": "R-RET-FAIL-2",
+            "layer": "episodic",
+            "path": "/cart/checkout"
+          },
+          {
+            "recordId": "R-RET-PASS-NEWEST",
+            "layer": "episodic",
+            "path": "/orders/:id/view"
+          }
+        ],
+        "notes": "retentionLimit=3 trên 5 record: hai record priorOutcome=fail luôn được giữ bất kể tuổi; suất còn lại (1 slot) thuộc về record pass mới nhất (R-RET-PASS-NEWEST); hai record pass cũ hơn (R-RET-PASS-OLDEST, R-RET-PASS-MID) bị drop theo thứ tự cũ nhất trước."
+      }
+    },
+    {
+      "id": "v63-h-empty-memory-first-round",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [],
+      "nextRound": {
+        "round": 1,
+        "trigger": "live-smoke",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "notes": "Vòng đầu tiên của app, chưa có record nào ở cả ba lớp -> đây KHÔNG phải lỗi; test plan chạy bình thường không có nguồn memory để trích dẫn, verdict vẫn PASS, không phải UNGRADED."
+      }
+    },
+    {
+      "id": "v63-h-empty-memory-after-full-purge",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:2b4d6f81a3c5e709182b4d6f81a3c5e709182b4d6f81a3c5e709182b4d6f811",
+      "records": [
+        {
+          "recordId": "R-PURGE-EP",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 3: bằng chứng cũ trước redesign lớn, app-map đã đổi hai lần kể từ đó.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-3/refund-overlay-cut.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-07-28T09:00:00Z",
+          "recordedRound": 3
+        },
+        {
+          "recordId": "R-PURGE-RF",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "/cart/checkout",
+          "content": "Pattern ghi ở vòng 5, nhưng app-map vừa đổi lần nữa sang H_LIVE_NEWEST ở vòng 7.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/checkout-empty-cart-pattern.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T09:30:00Z",
+          "recordedRound": 5
+        }
+      ],
+      "nextRound": {
+        "round": 7,
+        "trigger": "scheduled",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [
+          "R-PURGE-EP",
+          "R-PURGE-RF"
+        ],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "reconciliationRequired": true,
+        "notes": "Có record trong kho nhưng cả hai đều neo vào hash khác app-map hiện tại (H_LIVE_NEWEST) -> tập memory khả dụng cho vòng này rỗng như thể chưa từng có memory; vòng vẫn PASS (không phải lỗi), nhưng phải chờ đối chiếu lại app-map mới trước khi các record cũ được tính là nguồn PASS."
+      }
+    },
+    {
+      "id": "v63-h-multi-app-corpus-no-leak",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [
+        {
+          "recordId": "R-MULTI-LIVE",
+          "layer": "strategic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+          "path": "*",
+          "content": "SampleShop: ưu tiên checkout và refund.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/strategic/coverage-priority.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T10:05:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-MULTI-FOREIGN",
+          "layer": "strategic",
+          "ownerAppId": "b2140a7e-9c31-4e2a-8a5f-6d1efb203aa1",
+          "ownerAppMapHash": "sha256:c1d2e3f4a5b60791829304152637485960a1b2c3d4e5f60718293a4b5c6d7e8",
+          "path": "*",
+          "content": "InvoiceHub: ưu tiên đối soát hoá đơn.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/foreign/invoicehub-strategy.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-09T09:15:00Z",
+          "recordedRound": 5
+        },
+        {
+          "recordId": "R-MULTI-THIRD",
+          "layer": "episodic",
+          "ownerAppId": "44a1f0d2-6c8b-4e15-9a3d-0b7c2e5f8a91",
+          "ownerAppMapHash": "sha256:00ff11ee22dd33cc44bb55aa669977880011ff22ee33dd44cc55bb66aa99887",
+          "path": "/pricing",
+          "content": "Marketing Site Alpha: nút CTA trên trang pricing bị occluded bởi banner cookie.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/foreign/marketing-pricing-occluded.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-08T09:00:00Z",
+          "recordedRound": 2
+        }
+      ],
+      "nextRound": {
+        "round": 6,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-MULTI-LIVE"
+        ],
+        "staleRecordIds": [],
+        "foreignRecordIds": [
+          "R-MULTI-FOREIGN",
+          "R-MULTI-THIRD"
+        ],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [
+          {
+            "recordId": "R-MULTI-LIVE",
+            "layer": "strategic",
+            "path": "*"
+          }
+        ],
+        "notes": "Kho memory chứa record của 3 app khác nhau trong cùng corpus; vòng chạy cho SampleShop (LIVE) chỉ được nạp đúng 1 record của chính nó, hai record còn lại (InvoiceHub, Marketing Site Alpha) phải bị loại hoàn toàn — không một phần, không rò rỉ nội dung hay path."
+      }
+    },
+    {
+      "id": "v63-h-mixed-stress-all-categories",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:9e8d7c6b5a4930281716f5e4d3c2b1a09f8e7d6c5b4a392817160f5e4d3c2b1",
+      "records": [
+        {
+          "recordId": "R-STRESS-FRESH-FAIL",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:9e8d7c6b5a4930281716f5e4d3c2b1a09f8e7d6c5b4a392817160f5e4d3c2b1",
+          "path": "/orders/:id/refund",
+          "content": "Vòng 6: hoàn tiền vượt số tiền gốc vẫn được chấp nhận trên app-map mới.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-6/refund-overrefund.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-10T09:00:00Z",
+          "recordedRound": 6
+        },
+        {
+          "recordId": "R-STRESS-DUP-OLD",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:9e8d7c6b5a4930281716f5e4d3c2b1a09f8e7d6c5b4a392817160f5e4d3c2b1",
+          "path": "/cart/checkout",
+          "content": "Checkout thường thiếu validate giỏ hàng rỗng sau redesign.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/checkout-empty-cart-pattern-v2.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-10T08:00:00Z",
+          "recordedRound": 6
+        },
+        {
+          "recordId": "R-STRESS-DUP-NEW",
+          "layer": "reflective",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:9e8d7c6b5a4930281716f5e4d3c2b1a09f8e7d6c5b4a392817160f5e4d3c2b1",
+          "path": "/cart/checkout",
+          "content": "Checkout thường thiếu validate giỏ hàng rỗng sau redesign.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/reflective/checkout-empty-cart-pattern-v2-r6.md",
+          "priorOutcome": null,
+          "recordedAt": "2026-08-10T09:30:00Z",
+          "recordedRound": 6
+        },
+        {
+          "recordId": "R-STRESS-STALE",
+          "layer": "episodic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "path": "/orders",
+          "content": "Vòng 3: danh sách đơn hàng lazy-load sai thứ tự (trước redesign hai lần).",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/round-3/orders-list-scroll-order.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-07-28T09:00:00Z",
+          "recordedRound": 3
+        },
+        {
+          "recordId": "R-STRESS-FOREIGN",
+          "layer": "episodic",
+          "ownerAppId": "b2140a7e-9c31-4e2a-8a5f-6d1efb203aa1",
+          "ownerAppMapHash": "sha256:c1d2e3f4a5b60791829304152637485960a1b2c3d4e5f60718293a4b5c6d7e8",
+          "path": "/orders/:id/refund",
+          "content": "(InvoiceHub) cùng path nhưng khác app, không được lẫn.",
+          "evidence": "qa-evidence/2026-08-11-sampleshop-remix/foreign/invoicehub-refund.mp4",
+          "priorOutcome": "fail",
+          "recordedAt": "2026-08-10T09:10:00Z",
+          "recordedRound": 6
+        },
+        {
+          "recordId": "R-STRESS-NOEVIDENCE",
+          "layer": "strategic",
+          "ownerAppId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "ownerAppMapHash": "sha256:9e8d7c6b5a4930281716f5e4d3c2b1a09f8e7d6c5b4a392817160f5e4d3c2b1",
+          "path": "*",
+          "content": "Đề xuất chiến lược mới nhưng chưa kịp gắn evidence.",
+          "evidence": null,
+          "priorOutcome": null,
+          "recordedAt": "2026-08-10T09:40:00Z",
+          "recordedRound": 6
+        }
+      ],
+      "nextRound": {
+        "round": 7,
+        "trigger": "scheduled",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ],
+        "retentionLimit": 5
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [
+          "R-STRESS-FRESH-FAIL",
+          "R-STRESS-DUP-NEW"
+        ],
+        "staleRecordIds": [
+          "R-STRESS-STALE"
+        ],
+        "foreignRecordIds": [
+          "R-STRESS-FOREIGN"
+        ],
+        "duplicateRecordIds": [
+          "R-STRESS-DUP-OLD"
+        ],
+        "missingEvidenceRecordIds": [
+          "R-STRESS-NOEVIDENCE"
+        ],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [
+          "/orders/:id/refund",
+          "/cart/checkout"
+        ],
+        "testPlanSources": [
+          {
+            "recordId": "R-STRESS-FRESH-FAIL",
+            "layer": "episodic",
+            "path": "/orders/:id/refund"
+          },
+          {
+            "recordId": "R-STRESS-DUP-NEW",
+            "layer": "reflective",
+            "path": "/cart/checkout"
+          }
+        ],
+        "reconciliationRequired": true,
+        "notes": "Sáu record cùng lúc trộn mọi loại: R-STRESS-STALE loại vì hash cũ; R-STRESS-FOREIGN loại vì khác app dù trùng path; R-STRESS-DUP-OLD gộp trùng vào R-STRESS-DUP-NEW; R-STRESS-NOEVIDENCE loại vì thiếu evidence; chỉ 2 record hợp lệ (đúng app, đúng hash H_LIVE_NEWER, đủ evidence, không trùng) được nạp và ghi nguồn, đường từng fail đứng trước."
+      }
+    }
+  ],
+  "ordinary": [
+    {
+      "id": "v63-o-live-target-first-round-clean",
+      "appIdentity": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "appName": "SampleShop (remix TEST)",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:4f1c9a2e7b6d3081c5e9a47f2b6d1e8a3c7f0b92d4e6a1c8f3b7d0e5a29c6f14",
+      "records": [],
+      "nextRound": {
+        "round": 1,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "notes": "Bản remix TEST đã pin, vòng crawl đầu tiên, chưa từng ghi memory."
+      }
+    },
+    {
+      "id": "v63-o-clean-app-crm-alpha",
+      "appIdentity": {
+        "projectId": "9c6a2e40-7b1d-4f83-a5c6-1e9d3b7a4c20",
+        "appName": "Internal CRM Alpha",
+        "previewUrl": "https://id-preview--9c6a2e40-7b1d-4f83-a5c6-1e9d3b7a4c20.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:aa11bb22cc33dd44ee55ff6600112233445566778899aabbccddeeff001122",
+      "records": [],
+      "nextRound": {
+        "round": 1,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "notes": "App draft độc lập khác, sạch, chưa có memory."
+      }
+    },
+    {
+      "id": "v63-o-clean-app-marketing-site",
+      "appIdentity": {
+        "projectId": "6d8f1a30-2c4e-4b96-8f7a-3d5c9e1b6a48",
+        "appName": "Marketing Site Beta",
+        "previewUrl": "https://id-preview--6d8f1a30-2c4e-4b96-8f7a-3d5c9e1b6a48.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:bb22cc33dd44ee55ff661122334455667788990011aabbccddeeff00112233",
+      "records": [],
+      "nextRound": {
+        "round": 1,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "notes": "App draft độc lập khác, sạch, chưa có memory."
+      }
+    },
+    {
+      "id": "v63-o-clean-app-support-portal",
+      "appIdentity": {
+        "projectId": "3e7b5c90-1a4d-4e62-9c8b-7f2a6d0e5b31",
+        "appName": "Support Portal",
+        "previewUrl": "https://id-preview--3e7b5c90-1a4d-4e62-9c8b-7f2a6d0e5b31.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:cc33dd44ee55ff66112233445566778899001122aabbccddeeff0011223344",
+      "records": [],
+      "nextRound": {
+        "round": 1,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "notes": "App draft độc lập khác, sạch, chưa có memory."
+      }
+    },
+    {
+      "id": "v63-o-clean-app-internal-tools",
+      "appIdentity": {
+        "projectId": "8a4c2e60-5b9f-4d31-a7e8-2c6b0f9a3d75",
+        "appName": "Internal Tools Dashboard",
+        "previewUrl": "https://id-preview--8a4c2e60-5b9f-4d31-a7e8-2c6b0f9a3d75.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:dd44ee55ff6611223344556677889900112233aabbccddeeff001122334455",
+      "records": [],
+      "nextRound": {
+        "round": 1,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "notes": "App draft độc lập khác, sạch, chưa có memory."
+      }
+    },
+    {
+      "id": "v63-o-clean-app-docs-portal",
+      "appIdentity": {
+        "projectId": "2f5d8b10-4e7a-4c93-b6d1-9a3e7c5f0b62",
+        "appName": "Docs Portal",
+        "previewUrl": "https://id-preview--2f5d8b10-4e7a-4c93-b6d1-9a3e7c5f0b62.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMapHash": "sha256:ee55ff661122334455667788990011223344aabbccddeeff00112233445566",
+      "records": [],
+      "nextRound": {
+        "round": 1,
+        "trigger": "manual",
+        "requestedLayers": [
+          "episodic",
+          "reflective",
+          "strategic"
+        ]
+      },
+      "expected": {
+        "verdict": "PASS",
+        "ungradedReason": null,
+        "usedRecordIds": [],
+        "staleRecordIds": [],
+        "foreignRecordIds": [],
+        "duplicateRecordIds": [],
+        "missingEvidenceRecordIds": [],
+        "retentionDroppedRecordIds": [],
+        "priorityPathOrder": [],
+        "testPlanSources": [],
+        "notes": "App draft độc lập khác, sạch, chưa có memory."
+      }
+    }
+  ]
+}

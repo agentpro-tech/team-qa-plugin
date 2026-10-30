@@ -1,0 +1,36 @@
+{
+  "schema": "agentpro/release-c-scroll-agent-contract-mutations/v1",
+  "component": "team-qa",
+  "mutations": [
+    {
+      "id": "TQA-ANALYST-TRAP",
+      "target": "agents/analyst/evals/case-03-boundary.md",
+      "anchor": "- { op: not_cites, value: \"S4\" }",
+      "replacement": ""
+    },
+    {
+      "id": "TQA-COVERAGE-DECISION",
+      "target": "agents/coverage-gate/evals/case-example.md",
+      "anchor": "- { op: icontains, value: \"Decision: NO_GO\" }",
+      "replacement": ""
+    },
+    {
+      "id": "TQA-DESIGNER-SCHEMA",
+      "target": "agents/designer/evals/case-03-boundary.md",
+      "anchor": "- { op: icontains, value: '\"expected\"' }",
+      "replacement": ""
+    },
+    {
+      "id": "TQA-CODE-VERDICT",
+      "target": "agents/executor-code/evals/case-03-boundary.md",
+      "anchor": "- { op: icontains, value: \"Verdict: fail\" }",
+      "replacement": ""
+    },
+    {
+      "id": "TQA-GUI-TRAP",
+      "target": "agents/executor-gui/evals/case-03-boundary.md",
+      "anchor": "- { op: not_cites, value: \"S4\" }",
+      "replacement": ""
+    }
+  ]
+}

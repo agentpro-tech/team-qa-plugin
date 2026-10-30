@@ -1,0 +1,8 @@
+{
+  "schema": "team-qa/board-review-policy/v1",
+  "timeout_ms": 300000,
+  "max_turns": 1,
+  "max_response_words": 4000,
+  "facts_max_bytes": 196608,
+  "max_output_tokens": 60000
+}

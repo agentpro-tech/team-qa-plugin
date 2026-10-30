@@ -1,0 +1,63 @@
+{
+  "cases": [
+    {
+      "id": "CASE-001",
+      "req_id": "REQ-CHECKOUT",
+      "lane": "lane-checkout",
+      "steps": ["Open the cart"],
+      "expected": "The cart is shown",
+      "data": {},
+      "priority": "P0",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-002",
+      "req_id": "REQ-CHECKOUT",
+      "lane": "lane-checkout",
+      "steps": ["Click checkout"],
+      "data": {},
+      "priority": "P1",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-003",
+      "req_id": "REQ-LANDING",
+      "lane": "lane-content",
+      "steps": ["Open the page"],
+      "expected": "The page is shown",
+      "data": {},
+      "priority": "P2",
+      "kind": "static"
+    },
+    {
+      "id": "CASE-004",
+      "req_id": "REQ-PROFILE",
+      "lane": "lane-profile",
+      "steps": ["Open the profile"],
+      "expected": "The profile is shown",
+      "data": {},
+      "priority": "P2",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-005",
+      "req_id": "REQ-LOGIN",
+      "lane": "lane-auth",
+      "steps": ["Log in"],
+      "expected": "Login succeeds",
+      "data": {},
+      "priority": "P1",
+      "kind": "behavioral"
+    },
+    {
+      "id": "CASE-006",
+      "req_id": "REQ-LOGOUT",
+      "lane": "lane-auth",
+      "steps": ["Log out"],
+      "expected": "Logout succeeds",
+      "data": {},
+      "priority": "P2",
+      "kind": "behavioral"
+    }
+  ]
+}

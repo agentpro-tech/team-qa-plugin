@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "sourceItems": [
+    {
+      "id": "SRC-REQ-HIGH",
+      "kind": "spec",
+      "sourceSystem": "example-spec",
+      "externalKey": "REQ-HIGH",
+      "title": "High-risk flow requirement",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-QA-LOW-STATE",
+      "kind": "qa-derived",
+      "sourceSystem": "team-qa",
+      "externalKey": "QA-LOW-STATE",
+      "title": "Low-risk state guardrail",
+      "origin": "qa-derived",
+      "qaDerivedReason": "QA added this guardrail to keep empty and ideal states in the regression matrix."
+    }
+  ],
+  "cases": [
+    {
+      "id": "CASE-HIGH",
+      "title": "High-risk flow succeeds",
+      "req_id": "REQ-HIGH",
+      "sourceRefs": ["SRC-REQ-HIGH"],
+      "lane": "lane-high",
+      "steps": ["Run high-risk flow"],
+      "expected": "High-risk flow succeeds",
+      "data": {},
+      "priority": "P2",
+      "kind": "behavioral",
+      "taxonomy": ["functional", "negative", "regression"],
+      "states": ["ideal", "error"],
+      "viewports": ["mobile", "desktop"]
+    },
+    {
+      "id": "CASE-LOW",
+      "title": "Low-risk state is correct",
+      "req_id": "REQ-LOW",
+      "sourceRefs": ["SRC-QA-LOW-STATE"],
+      "lane": "lane-low",
+      "steps": ["Inspect low-risk state"],
+      "expected": "Low-risk state is correct",
+      "data": {},
+      "priority": "P2",
+      "kind": "static",
+      "taxonomy": ["functional", "visual"],
+      "states": ["empty", "ideal"],
+      "viewports": ["tablet", "desktop"]
+    }
+  ]
+}

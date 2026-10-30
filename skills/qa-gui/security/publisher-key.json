@@ -1,0 +1,6 @@
+{
+  "schema": "team-qa/owner-grant-key/v1",
+  "alg": "ed25519",
+  "key_id": "0cf79a5cf736467e17536e403e95fa66d9b901f29457b98d3111452329b3caa8",
+  "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAVWzfmUhG3UlD8ZOwAF6dxUNSJuBRX+XyyJtUVjd4L+A=\n-----END PUBLIC KEY-----\n"
+}

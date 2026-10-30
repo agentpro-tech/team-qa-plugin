@@ -1,0 +1,64 @@
+{
+  "name": "@agentpro/scroll",
+  "version": "0.11.0",
+  "description": "SCROLL \u2014 a harness for agentic loops. Build AI agents as folders, not code: filesystem-native, vendor-neutral, with risk-tiered permissions, grounding, and a loop-engineering outer loop.",
+  "keywords": [
+    "loop-engineering",
+    "agent-harness",
+    "agentic",
+    "agentic-loops",
+    "ai-agents",
+    "autonomous-agents",
+    "agent-framework",
+    "llm",
+    "multi-agent",
+    "vendor-neutral",
+    "mcp",
+    "markdown",
+    "cli",
+    "claude",
+    "codex",
+    "gemini"
+  ],
+  "type": "module",
+  "bin": {
+    "scroll": "bin/scroll.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "SPEC.md",
+    "AGENTS.md",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/smoke.mjs && node test/runtime.smoke.mjs && node test/v14.smoke.mjs && node test/v15.smoke.mjs && node test/installers.smoke.mjs && node test/v16.smoke.mjs && node test/audit.smoke.mjs && node --test test/teamcode.test.js",
+    "test:core": "node test/smoke.mjs",
+    "test:runtime": "node test/runtime.smoke.mjs",
+    "test:v14": "node test/v14.smoke.mjs",
+    "test:installers": "node test/installers.smoke.mjs",
+    "ci": "node test/smoke.mjs && node test/runtime.smoke.mjs && node test/v14.smoke.mjs && node test/v15.smoke.mjs && node test/installers.smoke.mjs && node test/v16.smoke.mjs && node test/audit.smoke.mjs && node --test test/teamcode.test.js",
+    "eval:ab": "node eval/ab-scroll-vs-baseline/runner.mjs",
+    "eval:ab:live": "node eval/ab-scroll-vs-baseline/runner.mjs --delay 350",
+    "eval:ab:real": "node eval/ab-scroll-vs-baseline/real-runner.mjs --provider codex --repeats 3 --cases T01",
+    "eval:ab:codex": "node eval/ab-scroll-vs-baseline/real-runner.mjs --provider codex --repeats 3 --cases T01",
+    "eval:ab:claude": "node eval/ab-scroll-vs-baseline/real-runner.mjs --provider claude --repeats 3 --cases T01",
+    "eval:ab:codex:quick": "node eval/ab-scroll-vs-baseline/real-runner.mjs --provider codex --repeats 1 --cases T01",
+    "eval:ab:claude:quick": "node eval/ab-scroll-vs-baseline/real-runner.mjs --provider claude --repeats 1 --cases T01",
+    "eval:ab:real:full": "node eval/ab-scroll-vs-baseline/real-runner.mjs --provider codex --repeats 3",
+    "eval:ab:score": "node eval/ab-scroll-vs-baseline/runner.mjs --score-existing --mode live-provider",
+    "eval:ab:watch": "node eval/ab-scroll-vs-baseline/runner.mjs --score-existing --watch --mode live-provider",
+    "eval:ab:dashboard": "node eval/ab-scroll-vs-baseline/dashboard/server.mjs",
+    "eval:ab:dashboard:export": "node eval/ab-scroll-vs-baseline/dashboard/export-static.mjs",
+    "test:v15": "node test/v15.smoke.mjs",
+    "test:teamcode": "node --test test/teamcode.test.js",
+    "test:v16": "node test/v16.smoke.mjs",
+    "test:audit": "node test/audit.smoke.mjs"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}

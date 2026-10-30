@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/report-v2.json",
+  "title": "Team QA summary report v2 with source traceability",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reportSchemaVersion",
+    "traceabilityVersion",
+    "sourceTraceability",
+    "run_id",
+    "target",
+    "decision",
+    "metrics",
+    "reasons",
+    "waived_p1",
+    "grounded_issues",
+    "red_checkers",
+    "child_gates"
+  ],
+  "properties": {
+    "reportSchemaVersion": {
+      "const": 2
+    },
+    "traceabilityVersion": {
+      "const": "team-qa/source-traceability/v1"
+    },
+    "sourceTraceability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceItems",
+        "rows"
+      ],
+      "properties": {
+        "sourceItems": {
+          "type": "array",
+          "items": {
+            "$ref": "case-v2.json#/$defs/sourceItem"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "sourceRef",
+              "sourceSystem",
+              "externalKey",
+              "sourceTitle",
+              "caseId",
+              "requirement",
+              "priority",
+              "verdict",
+              "evidence"
+            ],
+            "properties": {
+              "sourceRef": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceSystem": {
+                "type": "string",
+                "minLength": 1
+              },
+              "externalKey": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceTitle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "caseId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "requirement": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "priority": {
+                "enum": [
+                  "P0",
+                  "P1",
+                  "P2",
+                  null
+                ]
+              },
+              "verdict": {
+                "enum": [
+                  "PENDING",
+                  "PASS",
+                  "FAIL",
+                  "UNGRADED",
+                  "BLOCKED",
+                  "UNUSED"
+                ]
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "run_id": {
+      "$ref": "report.json#/properties/run_id"
+    },
+    "task_base": {
+      "$ref": "report.json#/properties/task_base"
+    },
+    "source_revision": {
+      "$ref": "report.json#/properties/source_revision"
+    },
+    "verification_lane": {
+      "$ref": "report.json#/properties/verification_lane"
+    },
+    "contract_sha256": {
+      "$ref": "report.json#/properties/contract_sha256"
+    },
+    "exact_final_sha": {
+      "$ref": "report.json#/properties/exact_final_sha"
+    },
+    "target": {
+      "$ref": "report.json#/properties/target"
+    },
+    "decision": {
+      "$ref": "report.json#/properties/decision"
+    },
+    "metrics": {
+      "$ref": "report.json#/properties/metrics"
+    },
+    "reasons": {
+      "$ref": "report.json#/properties/reasons"
+    },
+    "waived_p1": {
+      "$ref": "report.json#/properties/waived_p1"
+    },
+    "grounded_issues": {
+      "$ref": "report.json#/properties/grounded_issues"
+    },
+    "red_checkers": {
+      "$ref": "report.json#/properties/red_checkers"
+    },
+    "child_gates": {
+      "$ref": "report.json#/properties/child_gates"
+    },
+    "target_kind": {
+      "$ref": "report.json#/properties/target_kind"
+    },
+    "target_binding_sha256": {
+      "$ref": "report.json#/properties/target_binding_sha256"
+    }
+  }
+}

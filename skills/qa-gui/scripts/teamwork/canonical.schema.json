@@ -1,0 +1,471 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentpro.local/schemas/qa-board-teamwork-v2.schema.json",
+  "title": "QA Board teamwork canonical data",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "canonicalVersion",
+    "rev",
+    "boardId",
+    "title",
+    "boardCreated",
+    "language",
+    "deepCheck",
+    "app",
+    "envDb",
+    "viewport",
+    "currentRound",
+    "cases",
+    "defects",
+    "rounds",
+    "coverage",
+    "untested",
+    "release"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "integer", "enum": [4, 5, 6] },
+    "canonicalVersion": { "type": "string", "enum": ["qa-board-teamwork/v1", "qa-board-teamwork/v2"] },
+    "boardKind": { "type": "string", "enum": ["team-qa-board"] },
+    "rev": { "type": "integer", "minimum": 0 },
+    "boardId": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "boardCreated": { "type": "string", "minLength": 1 },
+    "language": { "type": "string", "pattern": "^[a-z]{2}$" },
+    "deepCheck": { "type": "string", "enum": ["available", "unavailable"] },
+    "app": { "type": "string", "minLength": 1 },
+    "envDb": { "type": "string", "minLength": 1 },
+    "viewport": { "type": "string", "minLength": 1 },
+    "runUuid": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$" },
+    "commit": { "type": "string", "pattern": "^[0-9a-fA-F]{40}$" },
+    "build": { "type": "string", "minLength": 1 },
+    "env": { "type": "string", "minLength": 1 },
+    "db": { "type": "string", "minLength": 1 },
+    "role": { "type": "string", "minLength": 1 },
+    "testProfile": { "type": "string", "minLength": 1 },
+    "evidenceManifest": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceManifestEntry" }
+    },
+    "vision": { "$ref": "#/$defs/vision" },
+    "currentRound": { "type": "integer", "minimum": 1 },
+    "sourceItems": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/sourceItem" }
+    },
+    "cases": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/case" }
+    },
+    "defects": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/defect" }
+    },
+    "rounds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/round" }
+    },
+    "coverage": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "untested": {
+      "type": "array",
+      "items": {}
+    },
+    "release": {
+      "type": "object",
+      "required": ["verdict", "risks"],
+      "properties": {
+        "verdict": { "type": "string", "enum": ["GO", "NO-GO", "GO-WITH-RISKS"] },
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "approval": { "$ref": "#/$defs/approval" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "approval": {
+      "type": "object",
+      "required": ["by", "ts"],
+      "properties": {
+        "by": { "type": "string", "minLength": 1 },
+        "ts": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "evidenceManifestEntry": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" },
+        "evidence_type": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/evidenceMetadata" }
+      },
+      "additionalProperties": false
+    },
+    "evidenceMetadata": {
+      "type": "object",
+      "required": ["run_uuid", "task_base", "commit", "case_id", "state", "captured_at"],
+      "properties": {
+        "run_uuid": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$" },
+        "task_base": { "type": "string", "pattern": "^[0-9a-fA-F]{40}$" },
+        "commit": { "type": "string", "pattern": "^[0-9a-fA-F]{40}$" },
+        "case_id": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "minLength": 1 },
+        "captured_at": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "targetBindingSha256": {
+      "$comment": "Deployed-build (web-v1) board field, see references/release-receipt-web-v1.md. canonical.mjs adds it to the root of a board that declares it, in place of commit.",
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "recordingSegments": {
+      "$comment": "Deployed-build (web-v1) behavioral case: which part of which recording shows the run (SKILL.md behavioral evidence). canonical.mjs allows it on the cases of a board that declares targetBindingSha256.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "startMs", "endMs"],
+        "properties": {
+          "file": { "type": "string", "minLength": 1 },
+          "startMs": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "number", "minimum": 0 }] },
+          "endMs": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "number", "minimum": 0 }] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidenceMetadataWeb": {
+      "$comment": "Evidence metadata of a deployed-build (web-v1) board, used by canonical.mjs instead of evidenceMetadata when the board declares targetBindingSha256.",
+      "type": "object",
+      "required": ["run_uuid", "target_binding_sha256", "case_id", "state", "captured_at"],
+      "properties": {
+        "run_uuid": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$" },
+        "target_binding_sha256": { "$ref": "#/$defs/targetBindingSha256" },
+        "case_id": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "minLength": 1 },
+        "captured_at": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "vision": {
+      "type": "object",
+      "required": ["version", "assertions"],
+      "properties": {
+        "version": { "type": "integer", "enum": [2] },
+        "assertions": { "type": "array", "items": { "$ref": "#/$defs/visionAssertion" } }
+      },
+      "additionalProperties": false
+    },
+    "visionAssertion": {
+      "type": "object",
+      "required": ["assertion_id", "case_id", "state", "verdict", "evidence_ref", "evidence_type"],
+      "properties": {
+        "assertion_id": { "type": "string", "minLength": 1 },
+        "case_id": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "minLength": 1 },
+        "rule": { "type": "string", "enum": ["C10", "C11", "C12", "C13", "C14", "C15", "C16"] },
+        "verdict": { "type": "string", "enum": ["PASS", "FAIL", "UNGRADED"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "evidence_type": { "type": "string", "minLength": 1 },
+        "requirement_id": { "type": "string", "minLength": 1 },
+        "risk_dimension": { "type": "string", "enum": ["stable-identity", "ordered-setup"] },
+        "scenario": { "type": "string", "enum": ["hidden-ui-identity", "same-session-mutation-read", "fresh-load"] },
+        "observed_internal_identifiers": { "type": "array", "items": { "type": "string" } },
+        "observed_order": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      },
+      "additionalProperties": false
+    },
+    "stateReceiptLink": {
+      "type": "object",
+      "required": ["state", "file"],
+      "properties": {
+        "state": { "type": "string", "minLength": 1 },
+        "file": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "sourceItem": {
+      "type": "object",
+      "required": ["id", "kind", "sourceSystem", "externalKey", "title", "origin"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$" },
+        "kind": { "type": "string", "pattern": "^[a-z][a-z0-9._-]*$" },
+        "sourceSystem": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "externalKey": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "pattern": "^https?://" },
+        "origin": { "type": "string", "enum": ["upstream", "qa-derived"] },
+        "qaDerivedReason": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "TODO",
+        "DOING",
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "ASSIGNED",
+        "FIXING",
+        "RETEST",
+        "VERIFIED",
+        "CLOSED",
+        "REOPENED",
+        "REJECTED",
+        "DEFERRED"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P1", "P2", "P3", "P4"]
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "BLOCKED", "UNGRADED"]
+    },
+    "history": {
+      "type": "object",
+      "required": ["who", "field", "from", "to", "when", "source"],
+      "properties": {
+        "who": { "type": "string", "minLength": 1 },
+        "field": { "type": "string", "enum": ["status", "priority", "assignee"] },
+        "from": {},
+        "to": {},
+        "when": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "enum": ["native", "notion", "agent"] }
+      },
+      "additionalProperties": false
+    },
+    "comment": {
+      "type": "object",
+      "required": ["id", "author", "text", "when", "source"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "author": { "type": "string", "minLength": 1 },
+        "text": { "type": "string", "minLength": 1 },
+        "when": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "enum": ["native", "notion", "agent"] }
+      },
+      "additionalProperties": false
+    },
+    "result": {
+      "type": "object",
+      "required": ["round", "functionVerdict", "uiVerdict", "recordedAt", "evidence"],
+      "properties": {
+        "round": { "type": "integer", "minimum": 1 },
+        "functionVerdict": { "$ref": "#/$defs/verdict" },
+        "uiVerdict": { "$ref": "#/$defs/verdict" },
+        "recordedAt": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "caseWorkEvidence": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "caseWorkBlocker": {
+      "type": "object",
+      "required": ["kind", "operation", "code", "owner", "unblockCondition"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["input", "permission", "dependency", "execution"] },
+        "operation": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "minLength": 1 },
+        "owner": { "type": "string", "minLength": 1 },
+        "unblockCondition": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "caseWork": {
+      "type": "object",
+      "required": ["schema", "state", "nextAction", "remainingChecks", "evidence"],
+      "properties": {
+        "schema": { "type": "string", "enum": ["qa-gui/case-work/v1"] },
+        "state": { "type": "string", "enum": ["ready", "running", "blocked"] },
+        "nextAction": { "type": "string", "minLength": 1 },
+        "remainingChecks": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "workerSessionId": { "type": "string", "minLength": 1 },
+        "blocker": { "$ref": "#/$defs/caseWorkBlocker" },
+        "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/caseWorkEvidence" } },
+        "attemptRef": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "requirement",
+        "status",
+        "priority",
+        "assignee",
+        "functionVerdict",
+        "uiVerdict",
+        "humanSummary",
+        "machine",
+        "results",
+        "evidence",
+        "comments",
+        "history"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "requirement": { "type": "string", "minLength": 1 },
+        "requirements": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "sourceRefs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "steps": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/$defs/status" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "assignee": { "type": "string", "minLength": 1 },
+        "functionVerdict": { "$ref": "#/$defs/verdict" },
+        "uiVerdict": { "$ref": "#/$defs/verdict" },
+        "humanSummary": {
+          "type": "object",
+          "required": ["function", "ui"],
+          "properties": {
+            "function": { "type": "string", "minLength": 1 },
+            "ui": { "type": "string", "minLength": 1 }
+          }
+        },
+        "machine": {
+          "type": "object",
+          "required": ["rule", "selector"],
+          "properties": {
+            "rule": { "type": "string", "minLength": 1 },
+            "selector": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "kind": { "type": "string", "enum": ["static", "behavioral"] },
+        "states": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "stateReceipts": { "type": "array", "items": { "$ref": "#/$defs/stateReceiptLink" } },
+        "work": { "$ref": "#/$defs/caseWork" },
+        "results": { "type": "array", "items": { "$ref": "#/$defs/result" } },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "comments": { "type": "array", "items": { "$ref": "#/$defs/comment" } },
+        "history": { "type": "array", "items": { "$ref": "#/$defs/history" } }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["id", "rule", "severity", "caption"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "rule": { "type": "string", "minLength": 1 },
+        "severity": { "type": "string", "minLength": 1 },
+        "selector": { "type": "string", "minLength": 1 },
+        "caption": { "type": "string", "minLength": 1 },
+        "bbox": { "type": "object" },
+        "bboxReason": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "findingEvidence": {
+      "type": "object",
+      "required": ["id", "type", "path", "role", "findingId"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["image"] },
+        "path": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "enum": ["original", "annotated"] },
+        "findingId": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "defectHandoff": {
+      "type": "object",
+      "required": ["kind", "problem", "request", "expected"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["fix", "investigate", "clarify", "input"] },
+        "problem": { "type": "string", "minLength": 1 },
+        "request": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "fixEvidence": {
+      "type": "object",
+      "required": ["id", "type", "path", "addedBy", "addedAt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["image", "video", "commit", "log", "link"] },
+        "path": { "type": "string", "minLength": 1 },
+        "addedBy": { "type": "string", "minLength": 1 },
+        "addedAt": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "defect": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "caseId",
+        "status",
+        "priority",
+        "assignee",
+        "createdBy",
+        "repro",
+        "expected",
+        "actual",
+        "fixEvidence",
+        "lastRetestFixEvidenceCount",
+        "comments",
+        "history",
+        "rejectionReason"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "caseId": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/$defs/status" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "assignee": { "type": "string", "minLength": 1 },
+        "createdBy": { "type": "string", "minLength": 1 },
+        "repro": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string", "minLength": 1 },
+        "actual": { "type": "string", "minLength": 1 },
+        "handoff": { "$ref": "#/$defs/defectHandoff" },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/findingEvidence" } },
+        "fixEvidence": { "type": "array", "items": { "$ref": "#/$defs/fixEvidence" } },
+        "lastRetestFixEvidenceCount": { "type": "integer", "minimum": 0 },
+        "comments": { "type": "array", "items": { "$ref": "#/$defs/comment" } },
+        "history": { "type": "array", "items": { "$ref": "#/$defs/history" } },
+        "rejectionReason": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "enum": ["cannot-reproduce", "as-designed", "duplicate"] }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "round": {
+      "type": "object",
+      "required": ["round", "startedAt", "scope"],
+      "properties": {
+        "round": { "type": "integer", "minimum": 1 },
+        "startedAt": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

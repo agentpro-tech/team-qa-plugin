@@ -1,0 +1,441 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentpro.local/schemas/qa-board-v4.schema.json",
+  "title": "QA_DATA v2/v3/v4",
+  "description": "Canonical schema for inline qa-gui schema 3 boards. Teamwork schemas 4/5/6 use canonical.schema.json and the same semantic gate.",
+  "type": "object",
+  "required": [
+    "boardId",
+    "title",
+    "boardCreated",
+    "cases",
+    "defects",
+    "untested",
+    "release",
+    "rounds",
+    "coverage"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "enum": [3]
+    },
+    "boardId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "boardCreated": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO datetime written ONCE at plan time (verifies plan-before-run without relying on file mtime)."
+    },
+    "charter": {
+      "type": "string"
+    },
+    "obstacles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outlook": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "untested": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/untestedItem"
+          },
+          {
+            "type": "string",
+            "enum": [
+              "baseline pending owner approval"
+            ]
+          }
+        ]
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "defects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/defect"
+      }
+    },
+    "release": {
+      "$ref": "#/$defs/release"
+    },
+    "rounds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/round"
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "vision": {
+      "$ref": "#/$defs/vision"
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "case": {
+      "type": "object",
+      "required": [
+        "id",
+        "desc",
+        "req",
+        "round",
+        "steps",
+        "expected",
+        "status",
+        "kind",
+        "fn",
+        "ui",
+        "visual",
+        "states",
+        "evidence",
+        "comments",
+        "sweeps"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "desc": {
+          "type": "string"
+        },
+        "req": {
+          "type": "string"
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "steps": {
+          "type": "string"
+        },
+        "expected": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "behavioral",
+            "static"
+          ]
+        },
+        "fn": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ui": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visual": {
+          "type": "string"
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comments": {
+          "type": "array",
+          "items": {}
+        },
+        "sweeps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "state"
+            ],
+            "properties": {
+              "state": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "visualEvidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/visualEvidence"
+          }
+        },
+        "stateReceipts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["state", "file"],
+            "properties": {
+              "state": { "type": "string", "minLength": 1 },
+              "file": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "recordingSegments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["file", "startMs", "endMs"],
+            "properties": {
+              "file": { "type": "string", "minLength": 1 },
+              "startMs": { "type": "number", "minimum": 0 },
+              "endMs": { "type": "number", "minimum": 0 }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "defect": {
+      "type": "object",
+      "required": [
+        "id",
+        "rule",
+        "sev",
+        "pri",
+        "caseId",
+        "state",
+        "repro",
+        "expected",
+        "actual",
+        "status",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sev": {
+          "enum": [
+            "critical",
+            "major",
+            "minor"
+          ]
+        },
+        "pri": {
+          "type": "string"
+        },
+        "caseId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "type": "string"
+        },
+        "repro": {
+          "type": "string"
+        },
+        "expected": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "release": {
+      "type": "object",
+      "required": [
+        "verdict",
+        "risks",
+        "by",
+        "ts"
+      ],
+      "properties": {
+        "verdict": {
+          "enum": [
+            "GO",
+            "NO-GO",
+            "GO-WITH-RISKS"
+          ]
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by": {
+          "type": "string"
+        },
+        "ts": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "round": {
+      "type": "object",
+      "required": [
+        "n",
+        "date",
+        "agent",
+        "scope",
+        "delta"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "date": {
+          "type": "string"
+        },
+        "agent": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "delta": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "untestedItem": {
+      "type": "object",
+      "required": [
+        "area",
+        "reason"
+      ],
+      "properties": {
+        "area": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "vision": {
+      "type": "object",
+      "required": [
+        "version",
+        "app",
+        "viewport",
+        "baselineManifest"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "app": {
+          "type": "string",
+          "minLength": 1
+        },
+        "viewport": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineManifest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineMask": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "visualEvidence": {
+      "type": "object",
+      "required": [
+        "state",
+        "viewport",
+        "diffPercent"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "minLength": 1
+        },
+        "viewport": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "string"
+        },
+        "diff": {
+          "type": "string"
+        },
+        "diffPercent": {
+          "type": "number",
+          "minimum": 0
+        },
+        "severity": {
+          "enum": [
+            "major",
+            "minor"
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "PASS",
+            "FAIL"
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

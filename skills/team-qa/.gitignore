@@ -1,0 +1,12 @@
+.DS_Store
+*.log
+test/acceptance/evidence/*.tmp
+.scroll/
+agents/**/.build/
+dist/
+
+# Loop-Up runtime state; never product artifacts.
+LOOP.md
+loop/
+scoreboard.json
+signals.json

@@ -1,0 +1,27 @@
+{
+  "schema": "agentpro/skill-package-files/v1",
+  "skill": "qa-code",
+  "version": "1.11.0",
+  "include": [
+    "SKILL.md",
+    "VERSION",
+    "package-files.json",
+    "contracts",
+    "agents",
+    "launchd",
+    "references",
+    "scripts",
+    "test/native-gate0-integration.test.mjs",
+    "test/native-stack-runners.test.mjs",
+    "test/secret-adjudication.test.mjs",
+    "test/native-adapter.test.mjs",
+    "test/original-source.test.mjs",
+    "test/teamqa-provider-native-packet.test.mjs",
+    "security/publisher-key.json",
+    "test/publisher-signature.test.mjs"
+  ],
+  "non_english": [
+    "test/secret-adjudication.test.mjs",
+    "test/original-source.test.mjs"
+  ]
+}

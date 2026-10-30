@@ -1,0 +1,74 @@
+{
+  "entry_points": [
+    {
+      "name": "Team QA board commands",
+      "description": "Operators initialize, validate, render, apply, synchronize and open an explicit canonical board path."
+    },
+    {
+      "name": "Native board delta",
+      "description": "A doc-colab staging packet requests status, priority, assignee and comment changes."
+    },
+    {
+      "name": "Notion adapter environment",
+      "description": "Explicit command arrays provide probe, push and readback operations for opt-in remote sync."
+    },
+    {
+      "name": "Release B reliability handoff",
+      "description": "A verified Team QA receipt and an immutable Team-code Job Capsule produce one exact case-bound envelope."
+    }
+  ],
+  "trust_boundaries": [
+    {
+      "name": "Team QA to qa-gui",
+      "description": "Canonical validation and mutation remain owned by the external qa-gui child gate."
+    },
+    {
+      "name": "Team QA to doc-colab",
+      "description": "Rendering remains owned by the external native renderer and requires canonical readback equality."
+    },
+    {
+      "name": "Canonical source to Notion",
+      "description": "Remote rows are untrusted until an explicit opt-in operation and full readback comparison succeed."
+    },
+    {
+      "name": "Team QA producer to Team-code consumer",
+      "description": "Receipt bytes, exact SHA, requirements hash and capsule digest are untrusted until contract and integrity readback pass."
+    }
+  ],
+  "sensitive_assets": [
+    {
+      "name": "Canonical QA board",
+      "description": "The source file and revision are the only authority for cases, defects, evidence and release state."
+    },
+    {
+      "name": "QA role transitions",
+      "description": "VERIFIED and CLOSED ownership must be enforced by qa-gui rather than duplicated in Team QA."
+    },
+    {
+      "name": "Independent audit evidence",
+      "description": "SCROLL ledger and gate receipts remain outside the canonical board payload."
+    },
+    {
+      "name": "Handoff and acknowledgement bindings",
+      "description": "Run UUID, task base, source revision, final SHA, requirements and capsule digest must remain exact and sealed."
+    }
+  ],
+  "high_impact_sinks": [
+    {
+      "name": "Child process execution",
+      "description": "Every external child must be explicit, bounded and fail-closed on status, signal or malformed output."
+    },
+    {
+      "name": "Canonical board write",
+      "description": "A mutation is confirmed only after qa-gui validation and independent readback."
+    },
+    {
+      "name": "Notion push",
+      "description": "Remote sync requires renderer opt-in, successful probe, push, readback and zero mismatches."
+    },
+    {
+      "name": "Reliability handoff write",
+      "description": "The envelope is written only after receipt and Job Capsule verification; the Team-code acknowledgement must be independently verified."
+    }
+  ]
+}

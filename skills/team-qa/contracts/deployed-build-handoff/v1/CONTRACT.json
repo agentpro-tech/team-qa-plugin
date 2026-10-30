@@ -1,0 +1,7 @@
+{
+  "schema": "team-qa/deployed-build-handoff-contract/v1",
+  "handoff_schema": "team-qa/handoff/web-v1",
+  "receipt_schema": "team-qa/receipt/web-v1",
+  "target_binding": "target_binding_sha256",
+  "team_code_capsule": "not-applicable"
+}

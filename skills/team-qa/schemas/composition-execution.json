@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "team-qa/composition-execution/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "composition_sha256", "case_id", "target_id", "run_uuid", "targets", "flow_evidence"],
+  "properties": {
+    "schema": {"const": "team-qa/composition-execution/v1"},
+    "composition_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "case_id": {"type": "string", "minLength": 1},
+    "target_id": {"type": "string", "minLength": 1},
+    "run_uuid": {"type": "string", "minLength": 1},
+    "targets": {
+      "type": "array", "minItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "run_uuid", "target", "exact_final_sha"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "run_uuid": {"type": "string", "minLength": 1},
+          "target": {"$ref": "target-composition.json#/$defs/target/properties/target"},
+          "exact_final_sha": {"type": "string", "pattern": "^[a-f0-9]{40}$"}
+        }
+      }
+    },
+    "flow_evidence": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    }
+  }
+}

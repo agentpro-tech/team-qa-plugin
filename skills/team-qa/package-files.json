@@ -1,0 +1,37 @@
+{
+  "schema": "agentpro/skill-package-files/v1",
+  "skill": "team-qa",
+  "version": "1.15.0",
+  "include": [
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    "AGENTS.md",
+    "SKILL.md",
+    "VERSION",
+    "package-files.json",
+    "agents",
+    "contracts",
+    "fixtures",
+    "qa-code.config.json",
+    "references",
+    "roles.json",
+    "schemas",
+    "scripts",
+    "security",
+    "test",
+    "vendor"
+  ],
+  "exclude": [
+    "test/phase-b/evidence/**",
+    "test/acceptance/PHASE-A-WORKLOG.md",
+    "test/roster-contract/archive/freeze-af0d0b554a74f1354f4577868aabb06a6b53690014b94dcb1eb2ffb30281e0a3.mjs.txt",
+    "test/roster-contract/archive/amendment-4fce925d03fd4a3437f6ec8c112002b0e40d9476ccabc9959611a2a7cb98a877.mjs.txt"
+  ],
+  "non_english": [
+    "test/acceptance/evidence/**",
+    "vendor/scroll/lib/audit.js",
+    "vendor/scroll/lib/digest.js",
+    "vendor/scroll/lib/eval.js",
+    "vendor/scroll/lib/runtime.js"
+  ]
+}

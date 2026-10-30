@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/plan-v1.json",
+  "title": "Team QA plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id", "app", "plan_version", "lanes", "tiers", "exit_criteria"],
+  "properties": {
+    "preflight": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "gui", "recording"],
+      "properties": {"code":{"type":"boolean"},"gui":{"type":"boolean"},"recording":{"type":"boolean"}}
+    },
+    "run_id": {"type": "string", "minLength": 1},
+    "app": {"type": "string", "minLength": 1},
+    "plan_version": {"type": "integer", "minimum": 1},
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "scope", "parallel_ok", "vi_sao"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "scope": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "parallel_ok": {"type": "boolean"},
+          "vi_sao": {"type": "string"}
+        }
+      }
+    },
+    "tiers": {"type": "object", "additionalProperties": {"enum": ["FULL", "SMOKE"]}},
+    "exit_criteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["p0_max", "p1_max", "p1_waivers", "coverage_high_pct", "coverage_low_pct"],
+      "properties": {
+        "p0_max": {"type": "integer", "minimum": 0},
+        "p1_max": {"type": "integer", "minimum": 0},
+        "p1_waivers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "coverage_high_pct": {"type": "integer", "minimum": 0, "maximum": 100},
+        "coverage_low_pct": {"type": "integer", "minimum": 0, "maximum": 100}
+      }
+    }
+  }
+}

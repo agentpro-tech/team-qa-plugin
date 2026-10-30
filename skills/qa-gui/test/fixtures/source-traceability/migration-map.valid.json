@@ -1,0 +1,19 @@
+{
+  "migrationVersion": "qa-source-traceability-map/v1",
+  "sourceItems": [
+    {
+      "id": "SRC-LEGACY-1",
+      "kind": "ticket",
+      "sourceSystem": "linear",
+      "externalKey": "LEG-1",
+      "title": "Explicit legacy source",
+      "url": "https://linear.example.test/LEG-1",
+      "origin": "upstream"
+    }
+  ],
+  "caseMappings": [
+    { "caseId": "TC-01", "sourceRefs": ["SRC-LEGACY-1"] },
+    { "caseId": "TC-02", "sourceRefs": ["SRC-LEGACY-1"] },
+    { "caseId": "TC-03", "sourceRefs": ["SRC-LEGACY-1"] }
+  ]
+}

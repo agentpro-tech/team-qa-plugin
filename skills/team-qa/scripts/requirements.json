@@ -1,0 +1,20 @@
+{
+  "schema": "agentpro/skill-requirements/v1",
+  "skill": "team-qa",
+  "platforms": ["darwin"],
+  "node": { "min": "20.0.0" },
+  "dragon": {
+    "bridge": { "min": "1.6.9", "below": "2.0.0" },
+    "extension": { "min": "1.6.9", "below": "2.0.0", "store_ids": ["dmgoldioklileddehbjpbfacojckfkjo"] },
+    "rpc": ["session.create", "openTab", "do", "captureTab", "getTabInfo", "getPageIdentity", "getNetwork", "getConsole", "startRecording", "stopRecording", "assembleRecording"],
+    "store_url": "https://chromewebstore.google.com/detail/dmgoldioklileddehbjpbfacojckfkjo",
+    "runtime": {
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAl+1R6bhJsFHY5COifdKtMuhKgNXjlVXp1xbzod5WGZc=\n-----END PUBLIC KEY-----\n",
+      "fingerprint": "sha256:539511950b8749cc87e4908a10f362f4dfc2095e1663f6948bffb4bb2861ca3d"
+    }
+  },
+  "skills": {
+    "qa-gui": { "min": "2.16.0" },
+    "qa-code": { "min": "1.10.0" }
+  }
+}

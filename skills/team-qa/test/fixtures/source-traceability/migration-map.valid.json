@@ -1,0 +1,49 @@
+{
+  "migrationVersion": "team-qa/source-traceability-map/v1",
+  "sourceItems": [
+    {
+      "id": "SRC-JIRA-42",
+      "kind": "issue",
+      "sourceSystem": "jira",
+      "externalKey": "APP-42",
+      "title": "Save action loses the selected owner",
+      "url": "https://jira.example.test/browse/APP-42",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-SPEC-7",
+      "kind": "spec",
+      "sourceSystem": "github",
+      "externalKey": "SPEC-7",
+      "title": "Owner persistence specification",
+      "url": "https://github.example.test/specs/7",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-QA-EMPTY",
+      "kind": "qa-derived",
+      "sourceSystem": "team-qa",
+      "externalKey": "QA-EMPTY-STATE",
+      "title": "Empty-state regression guardrail",
+      "origin": "qa-derived",
+      "qaDerivedReason": "QA added this guardrail after a repeated empty-state regression."
+    }
+  ],
+  "caseMappings": [
+    {
+      "caseId": "TC-01",
+      "title": "Save preserves the selected owner",
+      "sourceRefs": ["SRC-JIRA-42", "SRC-SPEC-7"]
+    },
+    {
+      "caseId": "TC-02",
+      "title": "Save is stable after refresh",
+      "sourceRefs": ["SRC-JIRA-42"]
+    },
+    {
+      "caseId": "TC-03",
+      "title": "Empty state remains actionable",
+      "sourceRefs": ["SRC-QA-EMPTY"]
+    }
+  ]
+}

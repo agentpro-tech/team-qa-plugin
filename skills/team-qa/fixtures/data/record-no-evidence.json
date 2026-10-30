@@ -1,0 +1,9 @@
+{
+  "case_id": "CASE-LOW",
+  "lane": "lane-low",
+  "verdict": "pass",
+  "evidence": [],
+  "source": "script",
+  "run_id": "fixture-no-proof",
+  "ts": "2026-08-05T00:00:03.000Z"
+}

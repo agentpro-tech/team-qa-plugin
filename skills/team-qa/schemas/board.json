@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/board-record-v1.json",
+  "title": "Team QA board record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id", "lane", "verdict", "evidence", "source", "run_id", "ts",
+    "function_verdict", "ui_visual_verdict",
+    "attempt", "started_at", "ended_at", "timeout_ms"
+  ],
+  "properties": {
+    "case_id": {"type": "string", "minLength": 1},
+    "lane": {"type": "string", "minLength": 1},
+    "verdict": {
+      "description": "Aggregate derived from the two dimensions: fail if one dimension fails, pass only when both pass.",
+      "enum": ["pending", "pass", "fail", "ungraded", "blocked"]
+    },
+    "function_verdict": {
+      "description": "The qa-gui Function dimension, kept separate and never overwritten by the aggregate. Required for a graded verdict in a target-locked run.",
+      "enum": ["pass", "fail", "ungraded"]
+    },
+    "ui_visual_verdict": {
+      "description": "The qa-gui UI+Visual dimension, kept separate and never overwritten by the aggregate. Required for a graded verdict in a target-locked run.",
+      "enum": ["pass", "fail", "ungraded"]
+    },
+    "evidence": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "source": {"enum": ["qa-gui", "qa-code", "script"]},
+    "run_id": {"type": "string", "minLength": 1},
+    "ts": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1},
+    "task_base": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "verification_lane": {"enum": ["code", "gui", "machine", "multi"]},
+    "contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "exact_final_sha": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "attempt_id": {"description": "Unique ID of the attempt. Old records may lack it; Team QA then derives case_id#attempt if it is not a duplicate.", "type": "string", "minLength": 1},
+    "attempt": {
+      "description": "Which attempt of the case in the run, counted from 1. Without this axis, a case that failed three times and passed on the fourth looks exactly like a case that passed at once.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "parent_attempt_id": {
+      "description": "attempt_id of the attempt right before. An old record without attempt_id uses the derived ID case_id#attempt; the first attempt has no parent.",
+      "type": "string",
+      "minLength": 1
+    },
+    "started_at": {
+      "description": "Start timestamp of the attempt, ISO 8601. Without it, the duration cannot be measured and slow cannot be told apart from hung.",
+      "type": "string",
+      "minLength": 1
+    },
+    "ended_at": {
+      "description": "End timestamp of the attempt, ISO 8601, not earlier than started_at.",
+      "type": "string",
+      "minLength": 1
+    },
+    "timeout_ms": {
+      "description": "Time limit of that very attempt, in ms. A duration that reaches the limit means the attempt was cut off midway, so it cannot get a graded verdict.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "target": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["project_id", "preview_url", "version"], "properties": {
+          "project_id": {"type": "string", "minLength": 1}, "preview_url": {"type": "string", "minLength": 1, "pattern": "^https?://"}, "version": {"type": "string", "minLength": 1}
+        }},
+        {"$ref": "deployed-target.json"}
+      ]
+    },
+    "target_kind": {"const": "deployed-build"},
+    "target_binding_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "failure_class": {
+      "description": "Source of the failure: product means the product is wrong, harness means the test runner is wrong, environment means the infrastructure is wrong. Absent on a fail means not yet investigated, so that failure counts toward product; never guess the other way.",
+      "enum": ["product", "harness", "environment"]
+    },
+    "child_verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skill", "verdict", "artifact", "sha256"],
+      "properties": {
+        "skill": {"enum": ["qa-gui", "qa-code"]},
+        "verdict": {"enum": ["pass", "fail", "ungraded"]},
+        "artifact": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

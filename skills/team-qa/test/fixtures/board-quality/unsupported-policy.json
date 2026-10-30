@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 6,
+  "canonicalVersion": "qa-board-teamwork/v2",
+  "boardKind": "team-qa-board",
+  "rev": 0,
+  "boardId": "board-quality-fixture",
+  "title": "Sample cart quantity checks — synthetic review fixture",
+  "boardCreated": "2026-08-11T00:00:00Z",
+  "language": "en",
+  "deepCheck": "unavailable",
+  "app": "Local cart fixture",
+  "envDb": "Local / isolated fixture database",
+  "viewport": "1280x800",
+  "runUuid": "00000000-0000-4000-8000-000000000001",
+  "commit": "0000000000000000000000000000000000000000",
+  "build": "fixture-v1",
+  "env": "local",
+  "db": "synthetic",
+  "role": "guest",
+  "testProfile": "fixture-only",
+  "evidenceManifest": [],
+  "currentRound": 1,
+  "sourceItems": [
+    {
+      "id": "SRC-REQ-01",
+      "kind": "spec",
+      "sourceSystem": "synthetic-spec",
+      "externalKey": "REQ-QTY-01",
+      "title": "Sample cart quantity accepts integers from 1 to 99; reject 100 without changing the cart.",
+      "origin": "upstream"
+    }
+  ],
+  "cases": [
+    {
+      "id": "TC-01",
+      "title": "Check the allowed sample-cart quantity range",
+      "requirement": "REQ-QTY-01",
+      "requirements": [
+        "REQ-QTY-01"
+      ],
+      "sourceRefs": [
+        "SRC-REQ-01"
+      ],
+      "status": "TODO",
+      "priority": "P2",
+      "assignee": "qa-agent",
+      "functionVerdict": "UNGRADED",
+      "uiVerdict": "UNGRADED",
+      "humanSummary": {
+        "function": "Not executed. The isolated item fixture is missing.",
+        "ui": "Not executed. No UI acceptance verdict is available."
+      },
+      "machine": {
+        "rule": "UNGRADED",
+        "selector": "#sample-cart-quantity"
+      },
+      "kind": "static",
+      "states": [],
+      "stateReceipts": [],
+      "results": [],
+      "evidence": [],
+      "comments": [],
+      "history": [],
+      "expected": "Accept quantity 99. Reject quantity 100 and preserve the existing quantity.",
+      "steps": "Open the isolated sample cart, set quantity to 99, then attempt quantity 100."
+    }
+  ],
+  "defects": [
+    {
+      "id": "DF-01",
+      "title": "Isolated cart item needed to run the quantity-boundary check",
+      "caseId": "TC-01",
+      "status": "BLOCKED",
+      "priority": "P2",
+      "assignee": "dev-agent",
+      "createdBy": "qa-agent",
+      "repro": "Prepare an isolated cart item, then execute TC-01 using quantities 99 and 100.",
+      "expected": "A disposable local cart item is available so TC-01 can be executed.",
+      "actual": "TC-01 has not run because this local test environment has no isolated cart item.",
+      "findings": [
+        {
+          "id": "F-INPUT",
+          "rule": "fixture-availability",
+          "severity": "medium",
+          "selector": "#isolated-cart-items",
+          "caption": "The synthetic fixture inventory #isolated-cart-items has no disposable cart item. Provide one local item so QA can run the quantity-boundary check.",
+          "bboxReason": "Synthetic input-availability record; there is no rendered product defect or measured box."
+        }
+      ],
+      "evidence": [
+        {
+          "id": "EV-INPUT",
+          "type": "image",
+          "path": "evidence/synthetic-input-inventory.png",
+          "role": "original",
+          "findingId": "F-INPUT"
+        }
+      ],
+      "fixEvidence": [],
+      "lastRetestFixEvidenceCount": 0,
+      "comments": [],
+      "history": [],
+      "rejectionReason": null,
+      "handoff": {
+        "kind": "input",
+        "problem": "The missing isolated cart item prevents TC-01 from running. Product behavior is still ungraded.",
+        "request": "Change the accepted cart quantity limit from 99 to 999 and remove rejection of quantity 100.",
+        "expected": "QA can run quantities 99 and 100 against that item and record separate Function and UI results."
+      }
+    }
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "startedAt": "2026-08-11T00:00:00Z",
+      "scope": "Synthetic fixture: prepare the sample cart quantity-boundary check."
+    }
+  ],
+  "coverage": [],
+  "untested": [],
+  "release": {
+    "verdict": "NO-GO",
+    "risks": [
+      "Product execution has not started; this board is a synthetic quality-gate fixture."
+    ]
+  }
+}

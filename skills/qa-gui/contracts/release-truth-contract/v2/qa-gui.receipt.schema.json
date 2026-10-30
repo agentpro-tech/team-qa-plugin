@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-code/contracts/release-truth-contract/v2/qa-gui.receipt.schema.json",
+  "title": "qa-gui/receipt/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "run_uuid", "task_base", "source_revision", "exact_final_sha", "requirements_hash", "verification_lane", "execution_status", "semantic_verdict", "atomic_coverage", "evidence_manifest", "created_at", "integrity"],
+  "properties": {
+    "schema": {"const": "qa-gui/receipt/v2"},
+    "contract_sha256": {"$ref": "#/$defs/sha256"},
+    "run_uuid": {"type": "string", "format": "uuid"},
+    "task_base": {"$ref": "#/$defs/sha40"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "exact_final_sha": {"$ref": "#/$defs/sha40"},
+    "requirements_hash": {"$ref": "#/$defs/sha256"},
+    "verification_lane": {"const": "gui"},
+    "execution_status": {"enum": ["completed", "blocked", "failed"]},
+    "semantic_verdict": {"enum": ["PASS", "FAIL", "UNGRADED"]},
+    "atomic_coverage": {"type": "array", "items": {"$ref": "#/$defs/coverage"}},
+    "evidence_manifest": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "integrity": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "coverage": {"type": "object", "additionalProperties": false, "required": ["requirement_id", "assertion_id", "case_id", "evidence_ref", "evidence_sha256", "evidence_type", "result"], "properties": {"requirement_id": {"type": "string", "minLength": 1}, "assertion_id": {"type": "string", "minLength": 1}, "case_id": {"type": "string", "minLength": 1}, "evidence_ref": {"type": "string", "minLength": 1}, "evidence_sha256": {"$ref": "#/$defs/sha256"}, "evidence_type": {"type": "string", "minLength": 1}, "result": {"enum": ["PASS", "FAIL", "UNGRADED"]}}},
+    "evidence": {"type": "object", "additionalProperties": false, "required": ["path", "sha256", "evidence_type", "metadata"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "evidence_type": {"type": "string", "minLength": 1}, "metadata": {"type": "object", "additionalProperties": false, "required": ["run_uuid", "task_base", "commit", "case_id", "state", "captured_at"], "properties": {"run_uuid": {"type": "string", "format": "uuid"}, "task_base": {"$ref": "#/$defs/sha40"}, "commit": {"$ref": "#/$defs/sha40"}, "case_id": {"type": "string", "minLength": 1}, "state": {"type": "string", "minLength": 1}, "captured_at": {"type": "string", "format": "date-time"}}}}}
+  }
+}

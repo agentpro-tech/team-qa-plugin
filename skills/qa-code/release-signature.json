@@ -1,0 +1,14 @@
+{
+  "schema": "agentpro/release-signature/v1",
+  "key_id": "0cf79a5cf736467e17536e403e95fa66d9b901f29457b98d3111452329b3caa8",
+  "signed": {
+    "skill": "qa-code",
+    "version": "1.11.0",
+    "commit": "185283efcf7242e6214c0b3a7e6d7b99e7775772",
+    "tree": "1ef59da0a4b15f9a91a467eaa4489beae48448f2",
+    "repo": "https://github.com/agentpro-tech/qa-code.git",
+    "manifest_sha256": "bf6750f99699a4d26d367c0d17062677aa6e902db01233576ab7df0bc9f6fa75",
+    "package_sha256": "b05d868e06eb5687589b8e30b90e1ff520127a9ad0a0d0889bf83a2ab344d3b0"
+  },
+  "signature": "pAtujZjdQZiym6JZSUfin7oz0kA6iRLnXZThi37Or6mg7WyNZGhz8H0qvpPFwxbaUECMVw0dNqmReuoGO3qeBQ=="
+}

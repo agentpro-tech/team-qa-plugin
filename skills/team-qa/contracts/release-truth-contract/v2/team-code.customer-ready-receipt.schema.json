@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-code/contracts/release-truth-contract/v2/team-code.customer-ready-receipt.schema.json",
+  "title": "team-code/customer-ready-receipt/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "run_uuid", "commit", "task_base", "source_revision", "requirements_hash", "release_receipt_sha256", "decision", "target", "created_at", "integrity"],
+  "properties": {
+    "schema": {"const": "team-code/customer-ready-receipt/v1"},
+    "contract_sha256": {"$ref": "#/$defs/sha256"},
+    "run_uuid": {"type": "string", "format": "uuid"},
+    "commit": {"$ref": "#/$defs/sha40"},
+    "task_base": {"$ref": "#/$defs/sha40"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "requirements_hash": {"$ref": "#/$defs/sha256"},
+    "release_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "decision": {"const": "CUSTOMER_RETEST_READY"},
+    "target": {"type": "object", "additionalProperties": false, "required": ["environment", "version"], "properties": {"environment": {"type": "string", "minLength": 1}, "version": {"type": "string", "minLength": 1}}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "integrity": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

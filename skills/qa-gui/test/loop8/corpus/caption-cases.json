@@ -1,0 +1,142 @@
+[
+  {
+    "id": "valid-vi-selector-and-measure",
+    "expected": "PASS",
+    "language": "vi",
+    "finding": { "selector": "div > a.inline-flex", "detail": "right 287 vs parent right 279", "bbox": { "x": 170.9609375, "y": 438.5, "width": 116.0390625, "height": 44, "dpr": 3 } },
+    "caption": "Liên kết div > a.inline-flex tràn 8 CSS px sang phải (287 so với 279), làm bố cục 320 px bị lệch. Thu gọn chiều rộng hoặc cho phép nội dung xuống dòng."
+  },
+  {
+    "id": "valid-vi-exact-selector-one-sentence",
+    "expected": "PASS",
+    "language": "vi",
+    "finding": { "selector": "#save-button", "bbox": { "x": 20, "y": 30, "width": 90, "height": 44, "dpr": 2 } },
+    "caption": "Selector #save-button bị lớp phủ che nên người dùng không thể lưu; tăng z-index hoặc dời lớp phủ khỏi nút."
+  },
+  {
+    "id": "valid-vi-bbox-number",
+    "expected": "PASS",
+    "language": "vi",
+    "finding": { "selector": ".dialog", "bbox": { "x": -12, "y": 20, "width": 320, "height": 200, "dpr": 3 } },
+    "caption": "Hộp thoại bắt đầu tại x=-12 nên bị cắt mép trái và làm mất nội dung. Kẹp vị trí về mép viewport trước khi hiển thị."
+  },
+  {
+    "id": "valid-en-selector",
+    "expected": "PASS",
+    "language": "en",
+    "finding": { "selector": "button.checkout", "bbox": { "x": 240, "y": 690, "width": 72, "height": 44, "dpr": 3 } },
+    "caption": "The button.checkout control extends beyond the 320 px viewport, so users cannot tap its right edge. Reduce its width or allow the container to wrap."
+  },
+  {
+    "id": "valid-en-detail-number",
+    "expected": "PASS",
+    "language": "en",
+    "finding": { "selector": ".price", "detail": "contrast ratio 3.1 vs required 4.5", "bbox": { "x": 88, "y": 120, "width": 70, "height": 20, "dpr": 1 } },
+    "caption": "The measured contrast ratio is 3.1 instead of 4.5, which makes the price hard to read. Darken the text color until the required ratio is met."
+  },
+  {
+    "id": "valid-ko-selector",
+    "expected": "PASS",
+    "language": "ko",
+    "finding": { "selector": "#submit", "bbox": { "x": 40, "y": 680, "width": 240, "height": 44, "dpr": 3 } },
+    "caption": "#submit 버튼이 y=680 위치에서 키보드에 가려져 제출할 수 없습니다. 키보드가 열리면 버튼이 보이도록 스크롤하세요."
+  },
+  {
+    "id": "valid-ja-selector",
+    "expected": "PASS",
+    "language": "ja",
+    "finding": { "selector": ".menu", "bbox": { "x": 290, "y": 80, "width": 80, "height": 180, "dpr": 3 } },
+    "caption": ".menu が x=290 から右にはみ出し、項目を選べません。表示位置をビューポート内に収めてください。"
+  },
+  {
+    "id": "valid-three-sentences",
+    "expected": "PASS",
+    "language": "vi",
+    "finding": { "selector": "input[name=email]", "detail": "font size 15 vs minimum 16", "bbox": { "x": 41, "y": 300, "width": 238, "height": 44, "dpr": 3 } },
+    "caption": "Cỡ chữ của input[name=email] là 15 px. Khi focus, trang có thể tự phóng to và làm người dùng mất ngữ cảnh. Tăng cỡ chữ lên ít nhất 16 px."
+  },
+  {
+    "id": "valid-fractional-number",
+    "expected": "PASS",
+    "language": "vi",
+    "finding": { "selector": ".hint", "bbox": { "x": 41.5, "y": 500.25, "width": 100.5, "height": 16, "dpr": 2 } },
+    "caption": "Dòng .hint bắt đầu ở y=500.25 nên chạm phần điều khiển phía dưới và làm hai nội dung khó phân biệt. Tăng khoảng cách dọc giữa hai phần tử."
+  },
+  {
+    "id": "valid-dpr-grounding",
+    "expected": "PASS",
+    "language": "vi",
+    "finding": { "selector": ".avatar", "bbox": { "x": 10, "y": 10, "width": 48, "height": 48, "dpr": 3 } },
+    "caption": "Ảnh .avatar được đo ở DPR=3 nhưng bị méo, làm khuôn mặt hiển thị sai tỷ lệ. Giữ nguyên tỷ lệ nguồn bằng object-fit: cover."
+  },
+  {
+    "id": "invalid-empty",
+    "expected": "FAIL",
+    "language": "vi",
+    "finding": { "selector": "#save", "bbox": { "x": 20, "y": 30, "width": 90, "height": 44, "dpr": 2 } },
+    "caption": ""
+  },
+  {
+    "id": "invalid-whitespace",
+    "expected": "FAIL",
+    "language": "en",
+    "finding": { "selector": "#save", "bbox": { "x": 20, "y": 30, "width": 90, "height": 44, "dpr": 2 } },
+    "caption": "   "
+  },
+  {
+    "id": "invalid-no-grounded-selector-or-number",
+    "expected": "FAIL",
+    "language": "vi",
+    "finding": { "selector": "#save", "bbox": { "x": 20, "y": 30, "width": 90, "height": 44, "dpr": 2 } },
+    "caption": "Nút này bị che nên người dùng không lưu được. Hãy dời lớp phủ sang vị trí khác."
+  },
+  {
+    "id": "invalid-unrelated-number",
+    "expected": "FAIL",
+    "language": "vi",
+    "finding": { "selector": "#save", "bbox": { "x": 20, "y": 30, "width": 90, "height": 44, "dpr": 2 } },
+    "caption": "Nút bị che 999 px nên người dùng không lưu được. Hãy dời lớp phủ."
+  },
+  {
+    "id": "invalid-partial-selector",
+    "expected": "FAIL",
+    "language": "en",
+    "finding": { "selector": "button.checkout", "bbox": { "x": 240, "y": 690, "width": 72, "height": 44, "dpr": 3 } },
+    "caption": "The checkout control is clipped and cannot be tapped. Reduce its width."
+  },
+  {
+    "id": "invalid-four-sentences",
+    "expected": "FAIL",
+    "language": "vi",
+    "finding": { "selector": "#save", "bbox": { "x": 20, "y": 30, "width": 90, "height": 44, "dpr": 2 } },
+    "caption": "#save bị che. Người dùng không lưu được. Đây là lỗi nghiêm trọng. Hãy dời lớp phủ."
+  },
+  {
+    "id": "invalid-no-finding-numbers",
+    "expected": "FAIL",
+    "language": "vi",
+    "finding": { "rule": "D3", "detail": "request failed" },
+    "caption": "Yêu cầu trả về 500 nên màn hình không tải được. Hiển thị thông báo và cho phép thử lại."
+  },
+  {
+    "id": "invalid-selector-lookalike",
+    "expected": "FAIL",
+    "language": "en",
+    "finding": { "selector": ".dialog-save", "bbox": { "x": 40, "y": 40, "width": 100, "height": 44, "dpr": 1 } },
+    "caption": "The .dialog control is clipped, preventing the save action. Keep it inside the viewport."
+  },
+  {
+    "id": "invalid-number-from-caption-only",
+    "expected": "FAIL",
+    "language": "ja",
+    "finding": { "selector": ".menu", "detail": "outside viewport", "bbox": { "x": 40, "y": 80, "width": 90, "height": 180, "dpr": 3 } },
+    "caption": "メニューが 777 px はみ出して選択できません。位置を修正してください。"
+  },
+  {
+    "id": "invalid-no-selector-no-number",
+    "expected": "FAIL",
+    "language": "ko",
+    "finding": { "selector": "#submit", "detail": "covered by keyboard", "bbox": { "x": 40, "y": 680, "width": 240, "height": 44, "dpr": 3 } },
+    "caption": "버튼이 키보드에 가려져 제출할 수 없습니다. 화면을 스크롤하세요."
+  }
+]

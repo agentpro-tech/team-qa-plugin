@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-code/contracts/release-truth-contract/v2/requirements.freeze.schema.json",
+  "title": "requirements.freeze/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "repo", "task_base", "source_revision", "gate_policy", "requirements"],
+  "properties": {
+    "schema": {"const": "requirements.freeze/v2"},
+    "contract_sha256": {"$ref": "#/$defs/sha256"},
+    "repo": {"type": "string", "minLength": 1},
+    "task_base": {"$ref": "#/$defs/sha40"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "gate_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coverage_threshold", "required_layers"],
+      "properties": {
+        "coverage_threshold": {"type": "integer", "minimum": 0, "maximum": 100},
+        "required_layers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["code", "gui", "machine", "team-qa"]}}
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/requirement"}
+    }
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "expectation", "requirement_owner", "verification_lane", "risk_dimensions", "acceptance_ids", "evidence_contract"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "expectation": {"type": "string", "minLength": 1},
+        "requirement_owner": {"type": "string", "minLength": 1},
+        "verification_lane": {"enum": ["code", "gui", "machine", "multi"]},
+        "risk_dimensions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["invariant-validation", "live-projection-cache", "user-facing-validation", "stable-identity", "ordered-setup", "surface-parity"]}
+        },
+        "acceptance_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "evidence_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed_types", "atomic", "multi_evidence"],
+          "properties": {
+            "allowed_types": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+            "atomic": {"const": true},
+            "multi_evidence": {"type": "boolean"}
+          }
+        },
+        "waiver": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "reason", "approver"],
+          "properties": {
+            "type": {"enum": ["not-applicable", "external-owner"]},
+            "reason": {"type": "string", "minLength": 1},
+            "approver": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}

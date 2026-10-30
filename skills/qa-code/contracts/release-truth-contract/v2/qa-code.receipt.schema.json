@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-code/contracts/release-truth-contract/v2/qa-code.receipt.schema.json",
+  "title": "qa-code/receipt/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "run_uuid", "repo", "task_base", "source_revision", "head", "requirements_hash", "verification_lane", "execution_status", "semantic_verdict", "tier", "tampering", "skipped_layers", "atomic_coverage", "created_at", "integrity"],
+  "properties": {
+    "schema": {"const": "qa-code/receipt/v2"},
+    "contract_sha256": {"$ref": "#/$defs/sha256"},
+    "run_uuid": {"$ref": "#/$defs/uuid"},
+    "repo": {"type": "string", "minLength": 1},
+    "task_base": {"$ref": "#/$defs/sha40"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "head": {"$ref": "#/$defs/sha40"},
+    "requirements_hash": {"$ref": "#/$defs/sha256"},
+    "verification_lane": {"const": "code"},
+    "execution_status": {"enum": ["completed", "blocked", "failed"]},
+    "semantic_verdict": {"enum": ["PASS", "FAIL", "UNGRADED"]},
+    "tier": {"enum": ["ZERO", "LITE", "FULL"]},
+    "tampering": {"type": "boolean"},
+    "skipped_layers": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["layer", "reason"], "properties": {"layer": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}}}},
+    "atomic_coverage": {"type": "array", "items": {"$ref": "#/$defs/coverage"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "integrity": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "uuid": {"type": "string", "format": "uuid"},
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement_id", "assertion_id", "case_id", "test_or_check", "evidence_ref", "evidence_sha256", "result"],
+      "properties": {
+        "requirement_id": {"type": "string", "minLength": 1},
+        "assertion_id": {"type": "string", "minLength": 1},
+        "case_id": {"type": "string", "minLength": 1},
+        "test_or_check": {"type": "string", "minLength": 1},
+        "evidence_ref": {"type": "string", "minLength": 1},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "result": {"enum": ["PASS", "FAIL", "UNGRADED"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,980 @@
+{
+  "feature": "V6.2",
+  "version": 1,
+  "frozen": true,
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "liveTarget": {
+    "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+    "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+    "status": "draft",
+    "published": false,
+    "gitConnected": false,
+    "databaseEnabled": false
+  },
+  "categoryCoverage": {
+    "app-map-only": ["V62-H-01", "V62-H-02"],
+    "ba-only": ["V62-H-03", "V62-H-04"],
+    "combined": ["V62-H-05", "V62-H-06", "V62-H-07"],
+    "conflict": ["V62-H-08", "V62-H-09", "V62-H-10"],
+    "unknown-source": ["V62-H-11", "V62-H-12", "V62-H-13"],
+    "modal-state": ["V62-H-14", "V62-H-15"],
+    "auth": ["V62-H-16", "V62-H-17", "V62-H-18"],
+    "negative-property": ["V62-H-19", "V62-H-20"],
+    "multi-source-trace": ["V62-H-21", "V62-H-22", "V62-H-23"],
+    "target-guard": ["V62-H-24", "V62-H-25", "V62-H-26", "V62-H-27", "V62-H-28"]
+  },
+  "hard": [
+    {
+      "id": "V62-H-01-modal-open-from-appmap",
+      "category": "app-map-only",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal", "opensOn": "click:New Order", "closesOn": ["submit:valid", "click:Cancel"] }
+        ],
+        "edges": [
+          { "id": "edge:orders-list-open-new-order", "from": "screen:orders-list", "to": "dialog:new-order-modal", "trigger": "click:New Order" }
+        ]
+      },
+      "baRequirements": [],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:orders-list", "dialog:new-order-modal", "edge:orders-list-open-new-order"], "baCodes": [] },
+          "P": "screen:orders-list đang hiển thị và dialog:new-order-modal đang đóng",
+          "I": "click nút 'New Order' trên screen:orders-list",
+          "Q": "dialog:new-order-modal chuyển sang trạng thái mở, che screen:orders-list"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-02-delete-confirm-nav-from-appmap",
+      "category": "app-map-only",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:order-detail", "type": "screen", "route": "/orders/:id", "label": "Order Detail" },
+          { "id": "dialog:delete-confirm", "type": "dialog", "parent": "screen:order-detail", "label": "Delete Confirm Dialog", "opensOn": "click:Delete", "closesOn": ["click:Confirm", "click:Cancel"] },
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" }
+        ],
+        "edges": [
+          { "id": "edge:order-detail-open-delete", "from": "screen:order-detail", "to": "dialog:delete-confirm", "trigger": "click:Delete" },
+          { "id": "edge:delete-confirm-confirm", "from": "dialog:delete-confirm", "to": "screen:orders-list", "trigger": "click:Confirm" }
+        ]
+      },
+      "baRequirements": [],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["dialog:delete-confirm", "edge:delete-confirm-confirm", "screen:orders-list"], "baCodes": [] },
+          "P": "dialog:delete-confirm đang mở trên screen:order-detail",
+          "I": "click 'Confirm' trong dialog:delete-confirm",
+          "Q": "app điều hướng về screen:orders-list và dialog:delete-confirm đóng"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-03-login-wrong-password-ba-only",
+      "category": "ba-only",
+      "appMap": { "nodes": [], "edges": [] },
+      "baRequirements": [
+        {
+          "code": "AUTH-1",
+          "title": "Login",
+          "doneWhen": [
+            "submit sai mật khẩu thì ở lại /login và hiện lỗi 'Sai email hoặc mật khẩu'",
+            "submit đúng thì chuyển sang /dashboard và menu người dùng hiện tên tài khoản"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": [], "baCodes": ["AUTH-1"] },
+          "P": "đang ở /login, đã nhập email hợp lệ và mật khẩu sai",
+          "I": "submit form login",
+          "Q": "vẫn ở /login và hiện lỗi 'Sai email hoặc mật khẩu'"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-04-export-cancel-no-download-ba-only",
+      "category": "ba-only",
+      "appMap": { "nodes": [], "edges": [] },
+      "baRequirements": [
+        {
+          "code": "DASH-1",
+          "title": "Export",
+          "doneWhen": [
+            "bấm Export trên dashboard mở modal chọn định dạng file",
+            "chọn CSV và xác nhận thì trình duyệt tải file .csv",
+            "đóng modal bằng Cancel thì không có request tải file nào được gửi"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": [], "baCodes": ["DASH-1"] },
+          "P": "modal Export đang mở với định dạng CSV được chọn",
+          "I": "bấm nút 'Cancel' trong modal Export",
+          "Q": "modal Export đóng và không có request tải file nào được gửi"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-05-new-order-valid-submit-combined",
+      "category": "combined",
+      "appMap": {
+        "nodes": [
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal" },
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" }
+        ],
+        "edges": [
+          { "id": "edge:new-order-submit-valid", "from": "dialog:new-order-modal", "to": "screen:orders-list", "trigger": "submit:valid" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "ORD-1",
+          "title": "New Order modal validation & creation",
+          "doneWhen": [
+            "mở modal New Order thấy field khách hàng, sản phẩm và số lượng đều bắt buộc",
+            "submit thiếu field bắt buộc thì modal vẫn mở và hiện lỗi đỏ dưới từng field thiếu",
+            "submit hợp lệ tạo order mới, đóng modal và order vừa tạo xuất hiện ở đầu danh sách orders"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["dialog:new-order-modal", "edge:new-order-submit-valid", "screen:orders-list"], "baCodes": ["ORD-1"] },
+          "P": "dialog:new-order-modal đang mở và đã điền đủ khách hàng, sản phẩm, số lượng hợp lệ",
+          "I": "submit form trong dialog:new-order-modal",
+          "Q": "dialog:new-order-modal đóng, quay về screen:orders-list và order mới xuất hiện ở đầu danh sách"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-06-session-guard-combined",
+      "category": "combined",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "screen:login", "type": "screen", "route": "/login", "label": "Login" }
+        ],
+        "edges": [
+          { "id": "edge:guest-orders-redirect", "from": "screen:orders-list", "to": "screen:login", "trigger": "unauthenticated-access" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "AUTH-2",
+          "title": "Session guard",
+          "doneWhen": [
+            "người dùng chưa đăng nhập mở trực tiếp /orders thì bị chuyển hướng về /login",
+            "đăng nhập thành công từ trang chuyển hướng đó thì quay lại /orders"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:orders-list", "screen:login", "edge:guest-orders-redirect"], "baCodes": ["AUTH-2"] },
+          "P": "chưa đăng nhập và gõ thẳng URL /orders",
+          "I": "tải trang /orders",
+          "Q": "app điều hướng về screen:login trước khi render screen:orders-list"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-07-settings-save-combined",
+      "category": "combined",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:settings", "type": "screen", "route": "/settings", "label": "Settings" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        {
+          "code": "SET-1",
+          "title": "Settings save",
+          "doneWhen": [
+            "đổi tên hiển thị và bấm Save thì hiện toast 'Đã lưu' và tên mới xuất hiện ở góc trên bên phải",
+            "bấm Cancel thì tên hiển thị quay lại giá trị cũ và không có request PATCH nào được gửi"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:settings"], "baCodes": ["SET-1"] },
+          "P": "đang ở screen:settings, đã đổi tên hiển thị sang giá trị mới",
+          "I": "bấm nút 'Save'",
+          "Q": "toast 'Đã lưu' hiện ra và tên mới xuất hiện ở góc trên bên phải"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-08-conflict-delete-nav-target",
+      "category": "conflict",
+      "appMap": {
+        "nodes": [
+          { "id": "dialog:delete-confirm", "type": "dialog", "parent": "screen:order-detail", "label": "Delete Confirm Dialog" },
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" }
+        ],
+        "edges": [
+          { "id": "edge:delete-confirm-confirm", "from": "dialog:delete-confirm", "to": "screen:orders-list", "trigger": "click:Confirm" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "ORD-2",
+          "title": "Delete order",
+          "doneWhen": [
+            "bấm Delete trên order-detail mở dialog xác nhận xoá",
+            "xác nhận xoá thì order biến mất và app điều hướng về /dashboard"
+          ]
+        }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "conflicting source: app-map edge:delete-confirm-confirm trỏ về screen:orders-list nhưng ORD-2 'Xong khi' nói điều hướng về /dashboard",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-H-09-conflict-modal-close-on-invalid",
+      "category": "conflict",
+      "appMap": {
+        "nodes": [
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal", "closesOn": ["submit:invalid", "submit:valid", "click:Cancel"] }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        {
+          "code": "ORD-1",
+          "title": "New Order modal validation & creation",
+          "doneWhen": [
+            "mở modal New Order thấy field khách hàng, sản phẩm và số lượng đều bắt buộc",
+            "submit thiếu field bắt buộc thì modal vẫn mở và hiện lỗi đỏ dưới từng field thiếu"
+          ]
+        }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "conflicting source: app-map nói dialog:new-order-modal đóng cả khi submit:invalid nhưng ORD-1 'Xong khi' nói modal vẫn mở và hiện lỗi khi submit thiếu field",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-H-10-conflict-auth-redirect-target",
+      "category": "conflict",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "screen:dashboard", "type": "screen", "route": "/dashboard", "label": "Dashboard" }
+        ],
+        "edges": [
+          { "id": "edge:guest-orders-redirect-v2", "from": "screen:orders-list", "to": "screen:dashboard", "trigger": "unauthenticated-access" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "AUTH-2",
+          "title": "Session guard",
+          "doneWhen": [
+            "người dùng chưa đăng nhập mở trực tiếp /orders thì bị chuyển hướng về /login"
+          ]
+        }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "conflicting source: app-map edge:guest-orders-redirect-v2 chuyển hướng unauthenticated-access tới screen:dashboard nhưng AUTH-2 'Xong khi' nói chuyển hướng về /login",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-H-11-unknown-source-phantom-node",
+      "category": "unknown-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List", "state": "static-no-realtime-contract" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "no actionable source: chỉ có 1 node tĩnh screen:orders-list, không có edge hay BA nào mô tả hành vi để lập P/I/Q",
+      "expectedProperties": [],
+      "forbiddenProperties": [
+        {
+          "claimedSourceRef": { "appMapNodes": ["dialog:bulk-export-modal"], "baCodes": [] },
+          "P": "screen:orders-list đang hiển thị",
+          "I": "chọn nhiều order rồi bấm 'Bulk Export'",
+          "Q": "dialog:bulk-export-modal mở ra",
+          "reason": "dialog:bulk-export-modal không tồn tại trong appMap.nodes của bundle này — nguồn bịa, không được sinh property này"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-12-unknown-source-phantom-bacode",
+      "category": "unknown-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:settings", "type": "screen", "route": "/settings", "label": "Settings" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        {
+          "code": "SET-1",
+          "title": "Settings save",
+          "doneWhen": [
+            "bấm Cancel thì tên hiển thị quay lại giá trị cũ và không có request PATCH nào được gửi"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:settings"], "baCodes": ["SET-1"] },
+          "P": "đang ở screen:settings, tên hiển thị đã bị đổi tạm thời trong ô input nhưng chưa Save",
+          "I": "bấm nút 'Cancel'",
+          "Q": "tên hiển thị quay lại giá trị cũ và không có request PATCH nào được gửi"
+        }
+      ],
+      "forbiddenProperties": [
+        {
+          "claimedSourceRef": { "appMapNodes": [], "baCodes": ["ORD-9"] },
+          "P": "đang ở screen:settings",
+          "I": "bấm nút 'Delete Account'",
+          "Q": "tài khoản bị xoá ngay lập tức",
+          "reason": "mã BA 'ORD-9' không tồn tại trong baRequirements của bundle này — nguồn bịa, không được sinh property này"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-13-unknown-source-no-basis-inferred",
+      "category": "unknown-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "no actionable source: chỉ có 1 node tĩnh, không có edge hay BA nào mô tả hành vi",
+      "expectedProperties": [],
+      "forbiddenProperties": [
+        {
+          "claimedSourceRef": null,
+          "P": "danh sách orders tự sắp xếp lại theo thời gian thực khi có order mới từ user khác",
+          "I": "chờ 5 giây trên screen:orders-list",
+          "Q": "thứ tự orders thay đổi tự động",
+          "reason": "hành vi suy diễn, không có sourceRef nào trong appMap hoặc BA của bundle này chứng minh — không được sinh property này"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-14-modal-state-export-cancel",
+      "category": "modal-state",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:dashboard", "type": "screen", "route": "/dashboard", "label": "Dashboard" },
+          { "id": "dialog:export-modal", "type": "dialog", "parent": "screen:dashboard", "label": "Export Modal", "opensOn": "click:Export", "closesOn": ["confirm:download", "click:Cancel"] }
+        ],
+        "edges": [
+          { "id": "edge:dashboard-open-export", "from": "screen:dashboard", "to": "dialog:export-modal", "trigger": "click:Export" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "DASH-1",
+          "title": "Export",
+          "doneWhen": [
+            "đóng modal bằng Cancel thì không có request tải file nào được gửi"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["dialog:export-modal"], "baCodes": ["DASH-1"] },
+          "P": "dialog:export-modal đang mở, định dạng CSV đã được chọn",
+          "I": "bấm 'Cancel' trong dialog:export-modal",
+          "Q": "dialog:export-modal chuyển sang trạng thái đóng và screen:dashboard hiện lại đầy đủ, không có request tải file nào được gửi"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-15-modal-state-delete-confirm-cancel",
+      "category": "modal-state",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:order-detail", "type": "screen", "route": "/orders/:id", "label": "Order Detail" },
+          { "id": "dialog:delete-confirm", "type": "dialog", "parent": "screen:order-detail", "label": "Delete Confirm Dialog", "opensOn": "click:Delete", "closesOn": ["click:Confirm", "click:Cancel"] }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        {
+          "code": "ORD-2",
+          "title": "Delete order",
+          "doneWhen": [
+            "bấm Cancel trên dialog thì order-detail giữ nguyên dữ liệu, không có request DELETE nào được gửi"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["dialog:delete-confirm", "screen:order-detail"], "baCodes": ["ORD-2"] },
+          "P": "dialog:delete-confirm đang mở trên screen:order-detail",
+          "I": "bấm 'Cancel' trong dialog:delete-confirm",
+          "Q": "dialog:delete-confirm đóng, screen:order-detail giữ nguyên dữ liệu order và không có request DELETE nào được gửi"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-16-auth-login-success",
+      "category": "auth",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:login", "type": "screen", "route": "/login", "label": "Login" },
+          { "id": "screen:dashboard", "type": "screen", "route": "/dashboard", "label": "Dashboard" }
+        ],
+        "edges": [
+          { "id": "edge:login-success", "from": "screen:login", "to": "screen:dashboard", "trigger": "submit:valid-credentials" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "AUTH-1",
+          "title": "Login",
+          "doneWhen": [
+            "submit đúng thì chuyển sang /dashboard và menu người dùng hiện tên tài khoản"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:login", "screen:dashboard", "edge:login-success"], "baCodes": ["AUTH-1"] },
+          "P": "đang ở screen:login, đã nhập email và mật khẩu đúng",
+          "I": "submit form login",
+          "Q": "app điều hướng sang screen:dashboard và menu người dùng hiện tên tài khoản"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-17-auth-session-guard-roundtrip",
+      "category": "auth",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "screen:login", "type": "screen", "route": "/login", "label": "Login" }
+        ],
+        "edges": [
+          { "id": "edge:guest-orders-redirect", "from": "screen:orders-list", "to": "screen:login", "trigger": "unauthenticated-access" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "AUTH-2",
+          "title": "Session guard",
+          "doneWhen": [
+            "đăng nhập thành công từ trang chuyển hướng đó thì quay lại /orders"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:orders-list", "screen:login", "edge:guest-orders-redirect"], "baCodes": ["AUTH-2"] },
+          "P": "chưa đăng nhập, vừa bị chuyển hướng từ /orders về screen:login",
+          "I": "đăng nhập thành công tại screen:login",
+          "Q": "app điều hướng quay lại screen:orders-list thay vì màn mặc định sau đăng nhập"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-18-auth-logged-in-hides-login-link",
+      "category": "auth",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:dashboard", "type": "screen", "route": "/dashboard", "label": "Dashboard", "authStates": ["logged-in: header shows account name", "logged-out: header shows 'Đăng nhập' link"] }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        {
+          "code": "AUTH-3",
+          "title": "Header auth state",
+          "doneWhen": [
+            "đăng nhập rồi thì header hiện tên tài khoản thay vì link 'Đăng nhập'"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:dashboard"], "baCodes": ["AUTH-3"] },
+          "P": "đã đăng nhập và đang ở screen:dashboard",
+          "I": "nhìn vào header của trang",
+          "Q": "header hiện tên tài khoản, không hiện link 'Đăng nhập'"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-19-negative-export-cancel-no-request",
+      "category": "negative-property",
+      "appMap": {
+        "nodes": [
+          { "id": "dialog:export-modal", "type": "dialog", "parent": "screen:dashboard", "label": "Export Modal" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        {
+          "code": "DASH-1",
+          "title": "Export",
+          "doneWhen": [
+            "đóng modal bằng Cancel thì không có request tải file nào được gửi"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["dialog:export-modal"], "baCodes": ["DASH-1"] },
+          "P": "dialog:export-modal đang mở",
+          "I": "bấm 'Cancel'",
+          "Q": "KHÔNG có network request GET hoặc POST nào liên quan tới export/download được gửi"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-20-negative-settings-cancel-no-patch",
+      "category": "negative-property",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:settings", "type": "screen", "route": "/settings", "label": "Settings" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        {
+          "code": "SET-1",
+          "title": "Settings save",
+          "doneWhen": [
+            "sau khi sửa tạm tên hiển thị nhưng chưa Save, bấm Cancel thì không gửi PATCH /settings và giá trị đã lưu hiện tại không đổi"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:settings"], "baCodes": ["SET-1"] },
+          "P": "tên hiển thị trong ô input đã bị sửa tạm thời nhưng chưa Save",
+          "I": "bấm 'Cancel'",
+          "Q": "KHÔNG có request PATCH /settings nào được gửi và tên hiển thị hiện tại không đổi"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-21-multi-source-new-order-detail-reflect",
+      "category": "multi-source-trace",
+      "appMap": {
+        "nodes": [
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal" },
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "screen:order-detail", "type": "screen", "route": "/orders/:id", "label": "Order Detail" }
+        ],
+        "edges": [
+          { "id": "edge:new-order-submit-valid", "from": "dialog:new-order-modal", "to": "screen:orders-list", "trigger": "submit:valid" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "ORD-1",
+          "title": "New Order modal validation & creation",
+          "doneWhen": [
+            "submit hợp lệ tạo order mới, đóng modal và order vừa tạo xuất hiện ở đầu danh sách orders"
+          ]
+        },
+        {
+          "code": "ORD-3",
+          "title": "Order detail reflects new order",
+          "doneWhen": [
+            "mở order-detail của order vừa tạo từ modal New Order thấy đúng khách hàng, sản phẩm và số lượng vừa nhập"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["dialog:new-order-modal", "screen:orders-list", "screen:order-detail", "edge:new-order-submit-valid"], "baCodes": ["ORD-1", "ORD-3"] },
+          "P": "vừa submit hợp lệ dialog:new-order-modal và order mới đã xuất hiện đầu screen:orders-list",
+          "I": "click vào order vừa tạo để mở screen:order-detail",
+          "Q": "screen:order-detail hiện đúng khách hàng, sản phẩm và số lượng vừa nhập trong dialog:new-order-modal"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-22-multi-source-auth-roundtrip",
+      "category": "multi-source-trace",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "screen:login", "type": "screen", "route": "/login", "label": "Login" },
+          { "id": "screen:dashboard", "type": "screen", "route": "/dashboard", "label": "Dashboard" }
+        ],
+        "edges": [
+          { "id": "edge:guest-orders-redirect", "from": "screen:orders-list", "to": "screen:login", "trigger": "unauthenticated-access" },
+          { "id": "edge:login-success", "from": "screen:login", "to": "screen:dashboard", "trigger": "submit:valid-credentials" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "AUTH-1",
+          "title": "Login",
+          "doneWhen": [
+            "submit đúng thì chuyển sang /dashboard và menu người dùng hiện tên tài khoản"
+          ]
+        },
+        {
+          "code": "AUTH-2",
+          "title": "Session guard",
+          "doneWhen": [
+            "người dùng chưa đăng nhập mở trực tiếp /orders thì bị chuyển hướng về /login",
+            "đăng nhập thành công từ trang chuyển hướng đó thì quay lại /orders"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:orders-list", "screen:login", "edge:guest-orders-redirect", "edge:login-success"], "baCodes": ["AUTH-1", "AUTH-2"] },
+          "P": "chưa đăng nhập, mở thẳng /orders và bị chuyển hướng về screen:login",
+          "I": "nhập đúng email/mật khẩu và submit",
+          "Q": "app điều hướng về lại screen:orders-list (không phải screen:dashboard mặc định của edge:login-success) vì AUTH-2 yêu cầu quay lại trang gốc"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-23-multi-source-delete-then-list-state",
+      "category": "multi-source-trace",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:order-detail", "type": "screen", "route": "/orders/:id", "label": "Order Detail" },
+          { "id": "dialog:delete-confirm", "type": "dialog", "parent": "screen:order-detail", "label": "Delete Confirm Dialog" },
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" }
+        ],
+        "edges": [
+          { "id": "edge:order-detail-open-delete", "from": "screen:order-detail", "to": "dialog:delete-confirm", "trigger": "click:Delete" },
+          { "id": "edge:delete-confirm-confirm", "from": "dialog:delete-confirm", "to": "screen:orders-list", "trigger": "click:Confirm" }
+        ]
+      },
+      "baRequirements": [
+        {
+          "code": "ORD-2",
+          "title": "Delete order",
+          "doneWhen": [
+            "bấm Delete trên order-detail mở dialog xác nhận xoá",
+            "xác nhận xoá thì order biến mất khỏi danh sách orders và điều hướng về /orders"
+          ]
+        }
+      ],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:order-detail", "dialog:delete-confirm", "screen:orders-list", "edge:order-detail-open-delete", "edge:delete-confirm-confirm"], "baCodes": ["ORD-2"] },
+          "P": "screen:order-detail của một order đang mở",
+          "I": "bấm 'Delete' rồi bấm 'Confirm' trong dialog:delete-confirm",
+          "Q": "order đó biến mất khỏi screen:orders-list và app điều hướng về screen:orders-list"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-24-guard-correct-target",
+      "category": "target-guard",
+      "envPin": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal" }
+        ],
+        "edges": [
+          { "id": "edge:orders-list-open-new-order", "from": "screen:orders-list", "to": "dialog:new-order-modal", "trigger": "click:New Order" }
+        ]
+      },
+      "baRequirements": [],
+      "expectedVerdict": "GRADED",
+      "ungradedReason": null,
+      "expectedProperties": [
+        {
+          "sourceRef": { "appMapNodes": ["screen:orders-list", "dialog:new-order-modal", "edge:orders-list-open-new-order"], "baCodes": [] },
+          "P": "screen:orders-list đang hiển thị, envPin khớp đúng live target đã pin (project, preview URL, draft, chưa publish/Git, database disabled)",
+          "I": "click nút 'New Order'",
+          "Q": "dialog:new-order-modal mở; property engine xử lý bình thường vì HR2 pin hợp lệ"
+        }
+      ]
+    },
+    {
+      "id": "V62-H-25-guard-wrong-project",
+      "category": "target-guard",
+      "envPin": {
+        "projectId": "a11fc9d2-0000-4bb2-b130-4930af6fa999",
+        "previewUrl": "https://id-preview--a11fc9d2-0000-4bb2-b130-4930af6fa999.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal" }
+        ],
+        "edges": [
+          { "id": "edge:orders-list-open-new-order", "from": "screen:orders-list", "to": "dialog:new-order-modal", "trigger": "click:New Order" }
+        ]
+      },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "HR2 pin missing: envPin.projectId khác project đã pin ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-H-26-guard-official-published",
+      "category": "target-guard",
+      "envPin": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "previewUrl": "https://sampleshop.example.com",
+        "status": "official",
+        "published": true,
+        "gitConnected": false,
+        "databaseEnabled": false
+      },
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal" }
+        ],
+        "edges": [
+          { "id": "edge:orders-list-open-new-order", "from": "screen:orders-list", "to": "dialog:new-order-modal", "trigger": "click:New Order" }
+        ]
+      },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "HR2 pin missing: target đã publish/official (published=true, status=official), không phải bản remix TEST draft đã pin",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-H-27-guard-git-connected",
+      "category": "target-guard",
+      "envPin": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "draft",
+        "published": false,
+        "gitConnected": true,
+        "databaseEnabled": false
+      },
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal" }
+        ],
+        "edges": [
+          { "id": "edge:orders-list-open-new-order", "from": "screen:orders-list", "to": "dialog:new-order-modal", "trigger": "click:New Order" }
+        ]
+      },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "HR2 pin missing: envPin.gitConnected=true, live target đã pin yêu cầu chưa nối GitHub/GitLab",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-H-28-guard-production-database",
+      "category": "target-guard",
+      "envPin": {
+        "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+        "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+        "status": "production",
+        "published": true,
+        "gitConnected": false,
+        "databaseEnabled": true
+      },
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" },
+          { "id": "dialog:new-order-modal", "type": "dialog", "parent": "screen:orders-list", "label": "New Order Modal" }
+        ],
+        "edges": [
+          { "id": "edge:orders-list-open-new-order", "from": "screen:orders-list", "to": "dialog:new-order-modal", "trigger": "click:New Order" }
+        ]
+      },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "HR2 pin missing: envPin.databaseEnabled=true và status=production, live target đã pin yêu cầu database disabled và không được là Production",
+      "expectedProperties": []
+    }
+  ],
+  "ordinary": [
+    {
+      "id": "V62-O-01-empty-all",
+      "category": "insufficient-source",
+      "appMap": { "nodes": [], "edges": [] },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "no source at all: appMap rỗng và baRequirements rỗng",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-02-ba-missing-code",
+      "category": "insufficient-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:settings", "type": "screen", "route": "/settings", "label": "Settings" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        { "code": null, "title": "Settings save", "doneWhen": ["đổi tên hiển thị và bấm Save thì hiện toast 'Đã lưu'"] }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "invalid ba-pro source: dòng BA thiếu mã (code=null)",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-03-ba-missing-donewhen",
+      "category": "insufficient-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:settings", "type": "screen", "route": "/settings", "label": "Settings" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        { "code": "SET-2", "title": "Settings avatar upload", "doneWhen": [] }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "invalid ba-pro source: mã SET-2 thiếu dòng 'Xong khi'",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-04-appmap-node-missing-id",
+      "category": "insufficient-source",
+      "appMap": {
+        "nodes": [
+          { "type": "dialog", "label": "Bulk Action Modal" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "app-map node không có id, không thể tạo sourceRef trỏ về node đó",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-05-ba-unresolved-draft-line",
+      "category": "insufficient-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        { "code": "ORD-4", "title": "Bulk export orders", "doneWhen": ["[CHƯA CHỐT] chọn nhiều order rồi export — chưa quyết định định dạng file"] }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "câu 'Xong khi' của ORD-4 còn đánh dấu [CHƯA CHỐT], chưa phải nguồn đã chốt",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-06-appmap-denominator-unknown",
+      "category": "insufficient-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "route": "/orders", "label": "Orders List" }
+        ],
+        "edges": [],
+        "crawlStatus": "incomplete",
+        "totalNodesKnown": false
+      },
+      "baRequirements": [
+        { "code": "ORD-5", "title": "Orders pagination", "doneWhen": ["cuộn xuống cuối danh sách orders thì tải thêm trang tiếp theo"] }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "app-map denominator unknown: crawlStatus=incomplete, chưa xác định đủ node liên quan tới ORD-5 để trace",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-07-cross-ref-no-match",
+      "category": "insufficient-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:dashboard", "type": "screen", "route": "/dashboard", "label": "Dashboard" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        { "code": "INV-1", "title": "Invoice screen", "doneWhen": ["mở /invoices thấy danh sách hoá đơn"] }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "không tìm thấy app-map node nào khớp route /invoices trong INV-1, cũng không có node nào khác đủ để lập property",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-08-ba-empty-string-donewhen",
+      "category": "insufficient-source",
+      "appMap": {
+        "nodes": [
+          { "id": "screen:settings", "type": "screen", "route": "/settings", "label": "Settings" }
+        ],
+        "edges": []
+      },
+      "baRequirements": [
+        { "code": "SET-3", "title": "Settings theme toggle", "doneWhen": ["   ", ""] }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "invalid ba-pro source: các dòng 'Xong khi' của SET-3 chỉ chứa khoảng trắng/rỗng",
+      "expectedProperties": []
+    },
+    {
+      "id": "V62-O-09-appmap-null-and-ba-thin",
+      "category": "insufficient-source",
+      "appMap": null,
+      "baRequirements": [
+        { "code": "ORD-6", "title": "Order search", "doneWhen": [] }
+      ],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "app-map vắng mặt hoàn toàn (null) và ORD-6 cũng thiếu 'Xong khi' — không còn nguồn nào để sinh property",
+      "expectedProperties": []
+    }
+  ]
+}

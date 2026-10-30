@@ -1,0 +1,10 @@
+{
+  "schema": "team-qa/deployed-build-contract/v1",
+  "identity_hash": "sha256(stableJson(identity excluding target_binding_sha256 and identity_proof))",
+  "binding_schema": "team-qa/web-binding/v1",
+  "target_schema": "team-qa/deployed-target/v1",
+  "team_qa_receipt_schema": "team-qa/receipt/web-v1",
+  "qa_gui_receipt_schema": "qa-gui/receipt/web-v1",
+  "code_scope": false,
+  "gui_scope": true
+}

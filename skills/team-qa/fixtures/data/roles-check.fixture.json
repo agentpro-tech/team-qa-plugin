@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "roles": [
+    {"role":"test_manager","engine":"session-main-fable","fallback":"fable-consultant","tool_bound":false},
+    {"role":"analyst","engine":"codex-terra","fallback":"haiku","tool_bound":false},
+    {"role":"designer","engine":"sonnet-5","fallback":"codex-sol","tool_bound":false},
+    {"role":"executor_gui","engine":"claude-qa-gui","fallback":null,"tool_bound":true},
+    {"role":"executor_code","engine":"qa-code-runtime","fallback":"qa-code-runtime","tool_bound":true},
+    {"role":"coverage_gate","engine":"node-stdlib","fallback":null,"tool_bound":false}
+  ],
+  "engines": {
+    "session-main-fable":{"tools":["fs.read","fs.write","shell.exec"]},
+    "fable-consultant":{"tools":["fs.read"]},
+    "codex-terra":{"tools":["fs.read"]},
+    "haiku":{"tools":["fs.read"]},
+    "sonnet-5":{"tools":["fs.read","fs.write"]},
+    "codex-sol":{"tools":["fs.read","fs.write"]},
+    "claude-qa-gui":{"tools":["dragon","qa-gui"]},
+    "qa-code-runtime":{"tools":["qa-code"]},
+    "node-stdlib":{"tools":["fs.read","fs.write"]}
+  },
+  "role_tools": {"executor_gui":["dragon","qa-gui"],"executor_code":["qa-code"]},
+  "mirror": {
+    "notion": {
+      "probe": ["node", "fixtures/support/mirror-adapter.mjs", "probe-fail"],
+      "publish": ["node", "fixtures/support/mirror-adapter.mjs", "publish"],
+      "readback": ["node", "fixtures/support/mirror-adapter.mjs", "readback"]
+    },
+    "doc_colab": {
+      "publish": ["node", "fixtures/support/mirror-adapter.mjs", "publish"],
+      "readback": ["node", "fixtures/support/mirror-adapter.mjs", "readback"]
+    }
+  },
+  "skills": {
+    "qa-gui": {"verdict_schema":"skill-schemas/qa-gui.json","supported_major":1,"receipt_schema":"skill-schemas/qa-gui-receipt-v2.json","supported_receipt_major":2,"commands":{"gate":["node","fixtures/support/child-gate-stub.mjs","qa-gui"]}},
+    "qa-code": {"verdict_schema":"skill-schemas/qa-code.json","supported_major":1,"receipt_schema":"skill-schemas/qa-code-receipt-v2.json","supported_receipt_major":2,"commands":{"gate0":["node","fixtures/support/child-gate-stub.mjs","qa-code"]}}
+  },
+  "scroll": {"root":".","ledger":"local://runs/{run_id}/ledger.csv"}
+}

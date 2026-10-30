@@ -1,0 +1,15 @@
+{
+  "schema": "team-qa/model-catalog/v1",
+  "collected_at": "2026-10-02T01:00:00.000Z",
+  "source": { "kind": "fixture", "reference": "acceptance-catalog-openai-v2" },
+  "harnesses": [
+    { "id": "codex", "version": "0.152.0", "bin": "stub-codex.mjs" },
+    { "id": "claude", "version": "2.1.284", "bin": "stub-claude.mjs" }
+  ],
+  "models": [
+    { "id": "gpt-6.2-sol", "provider": "openai", "harness": "codex", "efforts": ["low", "medium", "high", "max"], "tools": ["fs.read", "dragon", "qa-gui", "qa-code"], "roles": ["test_manager", "designer", "executor_gui", "executor_code"], "tier": "general", "status": "available" },
+    { "id": "gpt-6-luna", "provider": "openai", "harness": "codex", "efforts": ["low", "medium", "high"], "tools": ["fs.read"], "roles": ["analyst"], "tier": "small", "status": "available" },
+    { "id": "claude-sonnet-5-5", "provider": "anthropic", "harness": "claude", "efforts": ["low", "medium", "high"], "tools": ["fs.read", "dragon", "qa-gui"], "roles": ["test_manager", "analyst", "designer", "executor_gui"], "tier": "general", "status": "available", "min_harness_version": "2.1.284" },
+    { "id": "claude-opus-5-5", "provider": "anthropic", "harness": "claude", "efforts": ["medium", "high"], "tools": ["fs.read", "qa-code"], "roles": ["executor_code"], "tier": "reasoning", "status": "available", "min_harness_version": "2.1.280" }
+  ]
+}

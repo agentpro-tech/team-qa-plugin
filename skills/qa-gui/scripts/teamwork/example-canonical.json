@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 6,
+  "canonicalVersion": "qa-board-teamwork/v2",
+  "boardKind": "team-qa-board",
+  "rev": 0,
+  "boardId": "replace-with-round-id",
+  "title": "Vòng QA teamwork mẫu",
+  "boardCreated": "2026-08-11T00:00:00Z",
+  "language": "vi",
+  "deepCheck": "available",
+  "app": "replace-with-app",
+  "envDb": "replace-with-exact-env-and-db",
+  "viewport": "1280x800",
+  "runUuid": "00000000-0000-4000-8000-000000000001",
+  "commit": "0000000000000000000000000000000000000000",
+  "build": "UNVERIFIED-PLAN",
+  "env": "LOCAL",
+  "db": "not-applicable",
+  "role": "qa-agent",
+  "testProfile": "plan-not-run",
+  "evidenceManifest": [],
+  "currentRound": 1,
+  "sourceItems": [
+    {
+      "id": "SRC-REQ-01",
+      "kind": "spec",
+      "sourceSystem": "example-spec",
+      "externalKey": "REQ-01",
+      "title": "Hành vi nguồn cần được kiểm chứng",
+      "origin": "upstream"
+    }
+  ],
+  "cases": [
+    {
+      "id": "TC-01",
+      "title": "Thay bằng hành vi có thể kiểm chứng",
+      "requirement": "REQ-01",
+      "requirements": ["REQ-01"],
+      "sourceRefs": ["SRC-REQ-01"],
+      "status": "TODO",
+      "priority": "P2",
+      "assignee": "qa-agent",
+      "functionVerdict": "UNGRADED",
+      "uiVerdict": "UNGRADED",
+      "humanSummary": {
+        "function": "Chưa chạy.",
+        "ui": "Chưa chạy."
+      },
+      "machine": {
+        "rule": "UNGRADED",
+        "selector": "replace-with-selector"
+      },
+      "kind": "static",
+      "states": [],
+      "stateReceipts": [],
+      "results": [],
+      "evidence": [],
+      "comments": [],
+      "history": []
+    }
+  ],
+  "defects": [
+    {
+      "id": "DF-01",
+      "title": "Thay bằng tiêu đề lỗi",
+      "caseId": "TC-01",
+      "status": "TODO",
+      "priority": "P2",
+      "assignee": "dev-agent",
+      "createdBy": "qa-agent",
+      "repro": "Thay bằng các bước tái hiện lỗi.",
+      "expected": "Thay bằng hành vi đúng mong đợi.",
+      "actual": "Thay bằng hành vi lỗi đã quan sát.",
+      "findings": [
+        {
+          "id": "F-01",
+          "rule": "replace-with-rule",
+          "severity": "high",
+          "selector": "#replace-with-selector",
+          "caption": "Nút #replace-with-selector vượt mép phải 9 px, khiến người dùng khó thao tác; hãy cho nội dung co giãn theo chiều rộng.",
+          "bbox": { "x": 0, "y": 0, "width": 1, "height": 1, "dpr": 1 }
+        }
+      ],
+      "evidence": [
+        {
+          "id": "EV-ORIGINAL",
+          "type": "image",
+          "path": "evidence/replace-with-capture.png",
+          "role": "original",
+          "findingId": "F-01"
+        },
+        {
+          "id": "EV-ANNOTATED",
+          "type": "image",
+          "path": "evidence/replace-with-capture.annotated.png",
+          "role": "annotated",
+          "findingId": "F-01"
+        }
+      ],
+      "fixEvidence": [],
+      "lastRetestFixEvidenceCount": 0,
+      "comments": [],
+      "history": [],
+      "rejectionReason": null
+    }
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "startedAt": "2026-08-11T00:00:00Z",
+      "scope": "Phạm vi QA ban đầu"
+    }
+  ],
+  "coverage": [],
+  "untested": [],
+  "release": {
+    "verdict": "NO-GO",
+    "risks": ["QA chưa được chạy."]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "_comment": "Example payload for qa_do.mjs — the page-state recipe (a sub-tab + filter must survive leaving/returning to the tab). Replace tabId + selectors/text for the app under test. Run: node qa_do.mjs example-payload.json",
+  "tabId": 0,
+  "snapshot": false,
+  "timeout": 35000,
+  "steps": [
+    { "waitFor": { "text": "Active", "timeoutMs": 8000 } },
+    { "click": "Active" },
+    { "wait": 600 },
+    { "fill": { "selector": "input[name='q']", "value": "test" } },
+    { "read": "const t=document.querySelector('[role=tab][aria-selected=true]');const i=document.querySelector(\"input[name='q']\");return JSON.stringify({tab:t?t.innerText.trim():null,filter:i?i.value:null})", "as": "baseline" },
+    { "focusCycle": 1200 },
+    { "wait": 800 },
+    { "read": "const t=document.querySelector('[role=tab][aria-selected=true]');const i=document.querySelector(\"input[name='q']\");return JSON.stringify({tab:t?t.innerText.trim():null,filter:i?i.value:null})", "as": "after" }
+  ]
+}

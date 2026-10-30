@@ -1,0 +1,10 @@
+{
+  "schema": "agentpro/reliability-handoff-contract/v1",
+  "version": 1,
+  "contract_sha256": "e4599c02ee84591b3e20ec8902fb902b97281312192bd24a62c6f2c57116106f",
+  "schemas": {
+    "job-capsule.schema.json": "7785d5c1e02295be60c20169923317212ca988bfc546c4a7261bf5a30ba8f61f",
+    "team-code.handoff-ack.schema.json": "8067f0db39389a270b319f4a107864c6976a2e219e6ad54b9db180093bfe85b2",
+    "team-qa.handoff.schema.json": "ec1465e3ced4e98e023181c8ece119511afdbf48089b986503f294eb9a623cea"
+  }
+}

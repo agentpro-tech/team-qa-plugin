@@ -1,0 +1,28 @@
+{
+  "schema": "agentpro/release-a-mutation-registry/v1",
+  "release": "Release A - Truth Chain",
+  "component": "qa-code",
+  "frozen_at": "2026-09-01T00:00:00.000Z",
+  "acceptance": [
+    {
+      "id": "A1-CASE-BINDING",
+      "test": "Release A A1: producer and verifier bind every atomic row to a canonical case",
+      "positive": "producer emits case_id from the frozen requirement acceptance_ids and the receipt verifies",
+      "negative": "a foreign case_id is rejected with ATOMIC_CASE_NOT_IN_REQUIREMENT"
+    },
+    {
+      "id": "M15-GRAPH-DENOMINATOR",
+      "test": "I2/QCa: graph denominator is 22 code-lane requirements and umbrella IDs are rejected",
+      "positive": "the full frozen graph is the denominator",
+      "negative": "partial config cannot lower the denominator"
+    }
+  ],
+  "mutations": [
+    "Release A producer cannot drop case binding",
+    "Release A verifier cannot accept a foreign case",
+    "I2 denominator cannot absorb gui requirements",
+    "I8 frozen threshold cannot be lowered",
+    "I7 stale receipt cannot verify against a newer HEAD",
+    "I18 atomic coverage cannot be omitted"
+  ]
+}

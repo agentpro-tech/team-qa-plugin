@@ -1,0 +1,317 @@
+{
+  "feature": "V6.8",
+  "version": 1,
+  "frozen": true,
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "hard": [
+    {
+      "id": "v68-h-text-minlength",
+      "fields": [ { "name": "username", "type": "text", "minlength": 4 } ],
+      "expectedProbes": [
+        { "field": "username", "kind": "BVA", "value": "abc", "expected": "invalid" },
+        { "field": "username", "kind": "BVA", "value": "abcd", "expected": "valid" },
+        { "field": "username", "kind": "EP", "value": "abcdefghij", "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-text-maxlength",
+      "fields": [ { "name": "bio", "type": "text", "maxlength": 20 } ],
+      "expectedProbes": [
+        { "field": "bio", "kind": "BVA", "value": "12345678901234567890", "expected": "valid" },
+        { "field": "bio", "kind": "BVA", "value": "123456789012345678901", "expected": "invalid" },
+        { "field": "bio", "kind": "EP", "value": "short", "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-text-min-and-maxlength-combo",
+      "fields": [ { "name": "nickname", "type": "text", "minlength": 3, "maxlength": 12 } ],
+      "expectedProbes": [
+        { "field": "nickname", "kind": "BVA", "value": "ab", "expected": "invalid" },
+        { "field": "nickname", "kind": "BVA", "value": "abc", "expected": "valid" },
+        { "field": "nickname", "kind": "BVA", "value": "abcdefghijkl", "expected": "valid" },
+        { "field": "nickname", "kind": "BVA", "value": "abcdefghijklm", "expected": "invalid" },
+        { "field": "nickname", "kind": "EP", "value": "midsize", "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-number-min-max",
+      "fields": [ { "name": "quantity", "type": "number", "min": 1, "max": 10 } ],
+      "expectedProbes": [
+        { "field": "quantity", "kind": "BVA", "value": 0, "expected": "invalid" },
+        { "field": "quantity", "kind": "BVA", "value": 1, "expected": "valid" },
+        { "field": "quantity", "kind": "BVA", "value": 10, "expected": "valid" },
+        { "field": "quantity", "kind": "BVA", "value": 11, "expected": "invalid" },
+        { "field": "quantity", "kind": "EP", "value": 5, "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-number-step",
+      "fields": [ { "name": "increment", "type": "number", "min": 0, "max": 100, "step": 5 } ],
+      "expectedProbes": [
+        { "field": "increment", "kind": "BVA", "value": 0, "expected": "valid" },
+        { "field": "increment", "kind": "BVA", "value": 100, "expected": "valid" },
+        { "field": "increment", "kind": "EP", "value": 50, "expected": "valid" },
+        { "field": "increment", "kind": "EP", "value": 3, "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-number-negative-min",
+      "fields": [ { "name": "adjustment", "type": "number", "min": -50, "max": 50, "step": 1 } ],
+      "expectedProbes": [
+        { "field": "adjustment", "kind": "BVA", "value": -51, "expected": "invalid" },
+        { "field": "adjustment", "kind": "BVA", "value": -50, "expected": "valid" },
+        { "field": "adjustment", "kind": "BVA", "value": 50, "expected": "valid" },
+        { "field": "adjustment", "kind": "BVA", "value": 51, "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-number-decimal-step",
+      "fields": [ { "name": "price", "type": "number", "min": 0, "max": 1000, "step": 0.01 } ],
+      "expectedProbes": [
+        { "field": "price", "kind": "BVA", "value": 0, "expected": "valid" },
+        { "field": "price", "kind": "BVA", "value": -0.01, "expected": "invalid" },
+        { "field": "price", "kind": "BVA", "value": 1000, "expected": "valid" },
+        { "field": "price", "kind": "BVA", "value": 1000.01, "expected": "invalid" },
+        { "field": "price", "kind": "EP", "value": 99.99, "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-date-range",
+      "fields": [ { "name": "eventDate", "type": "date", "min": "2026-08-01", "max": "2026-08-31" } ],
+      "expectedProbes": [
+        { "field": "eventDate", "kind": "BVA", "value": "2026-07-31", "expected": "invalid" },
+        { "field": "eventDate", "kind": "BVA", "value": "2026-08-01", "expected": "valid" },
+        { "field": "eventDate", "kind": "BVA", "value": "2026-08-31", "expected": "valid" },
+        { "field": "eventDate", "kind": "BVA", "value": "2026-09-01", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-date-range-single-day",
+      "fields": [ { "name": "specialOfferDate", "type": "date", "min": "2026-08-15", "max": "2026-08-15" } ],
+      "expectedProbes": [
+        { "field": "specialOfferDate", "kind": "BVA", "value": "2026-08-14", "expected": "invalid" },
+        { "field": "specialOfferDate", "kind": "BVA", "value": "2026-08-15", "expected": "valid" },
+        { "field": "specialOfferDate", "kind": "BVA", "value": "2026-08-16", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-required-text",
+      "fields": [ { "name": "fullName", "type": "text", "required": true } ],
+      "expectedProbes": [
+        { "field": "fullName", "kind": "EP", "value": "", "expected": "invalid" },
+        { "field": "fullName", "kind": "EP", "value": "Nguyen Van A", "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-required-checkbox",
+      "fields": [ { "name": "acceptTerms", "type": "checkbox", "required": true } ],
+      "expectedProbes": [
+        { "field": "acceptTerms", "kind": "EP", "value": false, "expected": "invalid" },
+        { "field": "acceptTerms", "kind": "EP", "value": true, "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-pattern-alphanumeric-coupon",
+      "fields": [ { "name": "couponCode", "type": "text", "pattern": "^[A-Z0-9]{6}$" } ],
+      "expectedProbes": [
+        { "field": "couponCode", "kind": "EP", "value": "ABC123", "expected": "valid" },
+        { "field": "couponCode", "kind": "EP", "value": "abc123", "expected": "invalid" },
+        { "field": "couponCode", "kind": "EP", "value": "AB12", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-pattern-phone",
+      "fields": [ { "name": "phone", "type": "text", "pattern": "^0[0-9]{9}$" } ],
+      "expectedProbes": [
+        { "field": "phone", "kind": "EP", "value": "0912345678", "expected": "valid" },
+        { "field": "phone", "kind": "EP", "value": "912345678", "expected": "invalid" },
+        { "field": "phone", "kind": "EP", "value": "09123456789", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-email-basic",
+      "fields": [ { "name": "email", "type": "email" } ],
+      "expectedProbes": [
+        { "field": "email", "kind": "EP", "value": "user@example.com", "expected": "valid" },
+        { "field": "email", "kind": "EP", "value": "user@example", "expected": "invalid" },
+        { "field": "email", "kind": "EP", "value": "userexample.com", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-email-with-maxlength",
+      "fields": [ { "name": "contactEmail", "type": "email", "maxlength": 30 } ],
+      "expectedProbes": [
+        { "field": "contactEmail", "kind": "EP", "value": "short@ex.com", "expected": "valid" },
+        { "field": "contactEmail", "kind": "BVA", "value": "aaaaaaaaaaaaaaaaaa@example.com", "expected": "valid" },
+        { "field": "contactEmail", "kind": "BVA", "value": "aaaaaaaaaaaaaaaaaaa@example.com", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-select-basic-required",
+      "fields": [ { "name": "country", "type": "select", "options": ["VN", "US", "JP"], "required": true } ],
+      "expectedProbes": [
+        { "field": "country", "kind": "EP", "value": "VN", "expected": "valid" },
+        { "field": "country", "kind": "EP", "value": "", "expected": "invalid" },
+        { "field": "country", "kind": "EP", "value": "XX", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-select-with-disabled-option",
+      "fields": [ { "name": "shippingMethod", "type": "select", "options": [
+        { "value": "standard", "disabled": false },
+        { "value": "express", "disabled": false },
+        { "value": "sameday", "disabled": true }
+      ] } ],
+      "expectedProbes": [
+        { "field": "shippingMethod", "kind": "EP", "value": "standard", "expected": "valid" },
+        { "field": "shippingMethod", "kind": "EP", "value": "sameday", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-checkbox-group-min-selection",
+      "fields": [ { "name": "interests", "type": "checkbox-group", "options": ["sports", "music", "tech"], "minSelected": 1 } ],
+      "expectedProbes": [
+        { "field": "interests", "kind": "EP", "value": [], "expected": "invalid" },
+        { "field": "interests", "kind": "EP", "value": ["tech"], "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-radio-group-required",
+      "fields": [ { "name": "gender", "type": "radio", "options": ["male", "female", "other"], "required": true } ],
+      "expectedProbes": [
+        { "field": "gender", "kind": "EP", "value": null, "expected": "invalid" },
+        { "field": "gender", "kind": "EP", "value": "other", "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-radio-group-disabled-option",
+      "fields": [ { "name": "plan", "type": "radio", "options": [
+        { "value": "free", "disabled": false },
+        { "value": "pro", "disabled": false },
+        { "value": "enterprise", "disabled": true }
+      ] } ],
+      "expectedProbes": [
+        { "field": "plan", "kind": "EP", "value": "pro", "expected": "valid" },
+        { "field": "plan", "kind": "EP", "value": "enterprise", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-textarea-maxlength-with-newlines",
+      "fields": [ { "name": "comment", "type": "textarea", "maxlength": 100 } ],
+      "expectedProbes": [
+        { "field": "comment", "kind": "BVA", "value": "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678\n\n", "expected": "valid" },
+        { "field": "comment", "kind": "BVA", "value": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789\n\n", "expected": "invalid" },
+        { "field": "comment", "kind": "EP", "value": "short comment\nwith one newline", "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-disabled-field-no-probes",
+      "fields": [ { "name": "accountId", "type": "text", "disabled": true, "value": "ACC-1029" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-h-readonly-field-no-probes",
+      "fields": [ { "name": "orderId", "type": "text", "readonly": true, "value": "ORD-5521" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-h-custom-widget-unknown-constraints",
+      "fields": [ { "name": "colorPicker", "type": "custom", "widget": "react-color-swatch-picker", "constraintsReadable": false } ],
+      "expectedProbes": [],
+      "expectedUntested": [ { "field": "colorPicker", "reason": "custom widget constraints not readable from DOM" } ]
+    },
+    {
+      "id": "v68-h-text-required-and-pattern-combo",
+      "fields": [ { "name": "username", "type": "text", "required": true, "pattern": "^[a-z0-9_]{3,15}$" } ],
+      "expectedProbes": [
+        { "field": "username", "kind": "EP", "value": "", "expected": "invalid" },
+        { "field": "username", "kind": "EP", "value": "john_doe1", "expected": "valid" },
+        { "field": "username", "kind": "EP", "value": "John Doe!", "expected": "invalid" },
+        { "field": "username", "kind": "BVA", "value": "ab", "expected": "invalid" },
+        { "field": "username", "kind": "BVA", "value": "abc", "expected": "valid" },
+        { "field": "username", "kind": "BVA", "value": "abc456789012345", "expected": "valid" },
+        { "field": "username", "kind": "BVA", "value": "abc4567890123456", "expected": "invalid" }
+      ]
+    },
+    {
+      "id": "v68-h-number-min-only-no-max",
+      "fields": [ { "name": "age", "type": "number", "min": 18 } ],
+      "expectedProbes": [
+        { "field": "age", "kind": "BVA", "value": 17, "expected": "invalid" },
+        { "field": "age", "kind": "BVA", "value": 18, "expected": "valid" },
+        { "field": "age", "kind": "EP", "value": 45, "expected": "valid" }
+      ]
+    },
+    {
+      "id": "v68-h-number-max-only-no-min",
+      "fields": [ { "name": "discountPercent", "type": "number", "max": 100 } ],
+      "expectedProbes": [
+        { "field": "discountPercent", "kind": "BVA", "value": 100, "expected": "valid" },
+        { "field": "discountPercent", "kind": "BVA", "value": 101, "expected": "invalid" },
+        { "field": "discountPercent", "kind": "EP", "value": 50, "expected": "valid" }
+      ]
+    }
+  ],
+  "ordinary": [
+    {
+      "id": "v68-o-text-unconstrained-nickname",
+      "fields": [ { "name": "displayNickname", "type": "text" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-text-unconstrained-notes",
+      "fields": [ { "name": "internalNotes", "type": "text" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-checkbox-optional-newsletter",
+      "fields": [ { "name": "subscribeNewsletter", "type": "checkbox" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-select-optional-referral-source",
+      "fields": [ { "name": "referralSource", "type": "select", "options": ["Google", "Friend", "Ad", "Other"] } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-textarea-unconstrained-feedback",
+      "fields": [ { "name": "feedback", "type": "textarea" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-radio-optional-contact-preference",
+      "fields": [ { "name": "contactPreference", "type": "radio", "options": ["email", "phone"] } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-number-unconstrained-referralCount",
+      "fields": [ { "name": "referralCount", "type": "number" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-date-unconstrained-birthday",
+      "fields": [ { "name": "birthday", "type": "date" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-checkbox-group-unconstrained-tags",
+      "fields": [ { "name": "tags", "type": "checkbox-group", "options": ["urgent", "low-priority"] } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-text-optional-middlename",
+      "fields": [ { "name": "middleName", "type": "text" } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-select-optional-timezone",
+      "fields": [ { "name": "timezone", "type": "select", "options": ["UTC", "UTC+7", "UTC-5"] } ],
+      "expectedProbes": []
+    },
+    {
+      "id": "v68-o-static-display-field",
+      "fields": [ { "name": "accountCreatedAt", "type": "static-display", "value": "2026-01-15" } ],
+      "expectedProbes": []
+    }
+  ]
+}

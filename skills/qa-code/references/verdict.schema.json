@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/qa-code/references/verdict.schema.json",
+  "title": "qa-code verdict v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "verdict",
+    "mode",
+    "engine",
+    "commit",
+    "findings",
+    "sweep"
+  ],
+  "properties": {
+    "schema": {
+      "const": "qa-code/verdict/v1"
+    },
+    "verdict": {
+      "enum": ["PASS", "PASS-STATIC", "FAIL", "UNGRADED"]
+    },
+    "mode": {
+      "enum": ["tools", "static"]
+    },
+    "engine": {
+      "type": "string",
+      "minLength": 1
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{7,40}$"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "defect_type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": ["A", "B", "C"]
+          },
+          "defect_type": {
+            "enum": [
+              "assignment",
+              "checking",
+              "algorithm",
+              "timing",
+              "interface",
+              "function",
+              "build",
+              "documentation"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "^[^\\r\\n]+(?:\\r?\\n[^\\r\\n]+){0,2}$"
+          },
+          "pre_existing": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "severity": {
+                  "enum": ["A", "B"]
+                }
+              },
+              "required": ["severity"]
+            },
+            "then": {
+              "required": ["file", "line", "evidence"]
+            }
+          }
+        ]
+      }
+    },
+    "concerns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "proposed_tests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "totals": {
+      "type": "object",
+      "properties": {
+        "invalid": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "mutated_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "candidate_tests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sweep": {
+      "type": "object",
+      "required": ["S1", "S2", "S3", "S4", "S5"],
+      "properties": {
+        "S1": {
+          "enum": ["PASS", "DEFECT", "NOT_APPLICABLE"]
+        },
+        "S2": {
+          "enum": ["PASS", "DEFECT", "NOT_APPLICABLE"]
+        },
+        "S3": {
+          "enum": ["PASS", "DEFECT", "NOT_APPLICABLE"]
+        },
+        "S4": {
+          "enum": ["PASS", "DEFECT", "NOT_APPLICABLE"]
+        },
+        "S5": {
+          "enum": ["PASS", "DEFECT", "NOT_APPLICABLE"]
+        }
+      }
+    },
+    "sweep_explanations": {
+      "type": "object",
+      "properties": {
+        "S1": { "type": "string", "minLength": 1 },
+        "S2": { "type": "string", "minLength": 1 },
+        "S3": { "type": "string", "minLength": 1 },
+        "S4": { "type": "string", "minLength": 1 },
+        "S5": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "agentpro/release-c-mutation-registry/v1",
+  "component": "team-qa",
+  "mutations": [
+    {
+      "id": "C3-LAYER-TRACE",
+      "pattern": "affected layers without a tracked regression binding",
+      "anchor": "if (canonical(boundLayers) !== canonical(affectedLayers))",
+      "replacement": "if (false)"
+    },
+    {
+      "id": "C3-SOURCE-CASE-TRACE",
+      "pattern": "source to case trace cannot be detached",
+      "anchor": "if (compiledCase.sourceRefs.length !== 1 || compiledCase.sourceRefs[0] !== sourceId)",
+      "replacement": "if (false)"
+    },
+    {
+      "id": "C3-OUTPUT-BYTES",
+      "pattern": "receipt cannot verify against changed tracked-plan bytes",
+      "anchor": "if (receipt.tracked_output_sha256 !== sha256(trackedOutputBytes))",
+      "replacement": "if (false)"
+    }
+  ]
+}

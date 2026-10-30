@@ -1,0 +1,457 @@
+{
+  "feature": "V6.1",
+  "version": 1,
+  "frozen": true,
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "hard": [
+    {
+      "id": "v61-h-route-normal-flow",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Orders", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 3, "action": "click", "target": "button:New Order", "resultRoute": "/orders/new", "node": "screen:order-new" },
+        { "step": 4, "action": "click", "target": "button:Cancel", "resultRoute": "/orders", "node": "screen:orders-list" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:orders-list", "type": "screen", "label": "Orders" },
+          { "id": "screen:order-new", "type": "screen", "label": "New Order" }
+        ],
+        "edges": [
+          { "id": "e:home->orders-list", "from": "screen:home", "to": "screen:orders-list", "trigger": "click:nav-orders" },
+          { "id": "e:orders-list->order-new", "from": "screen:orders-list", "to": "screen:order-new", "trigger": "click:New Order" },
+          { "id": "e:order-new->orders-list", "from": "screen:order-new", "to": "screen:orders-list", "trigger": "click:Cancel" }
+        ],
+        "visited": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "v61-h-hash-route-settings",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Settings", "resultHash": "#/settings", "node": "route:#/settings" },
+        { "step": 3, "action": "click", "target": "tab:Profile", "resultHash": "#/settings/profile", "node": "route:#/settings/profile" },
+        { "step": 4, "action": "navBack", "resultHash": "#/settings", "node": "route:#/settings" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "route:#/settings", "type": "route", "label": "Settings" },
+          { "id": "route:#/settings/profile", "type": "route", "label": "Settings > Profile" }
+        ],
+        "edges": [
+          { "id": "e:home->settings", "from": "screen:home", "to": "route:#/settings", "trigger": "click:Settings" },
+          { "id": "e:settings->settings-profile", "from": "route:#/settings", "to": "route:#/settings/profile", "trigger": "click:Profile" },
+          { "id": "e:settings-profile->settings", "from": "route:#/settings/profile", "to": "route:#/settings", "trigger": "nav:back" }
+        ],
+        "visited": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "v61-h-modal-single-level",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/orders", "readyState": "settled", "node": "screen:orders-list" },
+        { "step": 2, "action": "click", "target": "button:New Order", "resultOverlay": "dialog:new-order", "node": "dialog:new-order" },
+        { "step": 3, "action": "click", "target": "button:Close", "resultOverlay": null, "node": "screen:orders-list" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "label": "Orders" },
+          { "id": "dialog:new-order", "type": "dialog", "label": "New Order" }
+        ],
+        "edges": [
+          { "id": "e:orders-list->dialog-new-order", "from": "screen:orders-list", "to": "dialog:new-order", "trigger": "click:New Order" },
+          { "id": "e:dialog-new-order->orders-list", "from": "dialog:new-order", "to": "screen:orders-list", "trigger": "click:Close" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-h-nested-modal-delete-confirm",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/orders/1001", "readyState": "settled", "node": "screen:order-detail" },
+        { "step": 2, "action": "click", "target": "button:Edit", "resultOverlay": "dialog:edit-order", "node": "dialog:edit-order" },
+        { "step": 3, "action": "click", "target": "button:Delete", "resultOverlay": "dialog:confirm-delete-nested", "node": "dialog:confirm-delete-nested" },
+        { "step": 4, "action": "click", "target": "button:Confirm", "resultOverlay": null, "node": "screen:order-detail" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:order-detail", "type": "screen", "label": "Order Detail" },
+          { "id": "dialog:edit-order", "type": "dialog", "label": "Edit Order" },
+          { "id": "dialog:confirm-delete-nested", "type": "dialog", "label": "Confirm Delete" }
+        ],
+        "edges": [
+          { "id": "e:order-detail->dialog-edit-order", "from": "screen:order-detail", "to": "dialog:edit-order", "trigger": "click:Edit" },
+          { "id": "e:dialog-edit-order->dialog-confirm-delete-nested", "from": "dialog:edit-order", "to": "dialog:confirm-delete-nested", "trigger": "click:Delete" },
+          { "id": "e:dialog-confirm-delete-nested->order-detail", "from": "dialog:confirm-delete-nested", "to": "screen:order-detail", "trigger": "click:Confirm" }
+        ],
+        "visited": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "v61-h-tab-state-orders",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Orders", "resultRoute": "/orders", "node": "tab:orders/active" },
+        { "step": 3, "action": "click", "target": "tab:Completed", "resultRoute": "/orders", "node": "tab:orders/completed" },
+        { "step": 4, "action": "click", "target": "tab:Active", "resultRoute": "/orders", "node": "tab:orders/active" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "tab:orders/active", "type": "tab", "label": "Orders > Active" },
+          { "id": "tab:orders/completed", "type": "tab", "label": "Orders > Completed" }
+        ],
+        "edges": [
+          { "id": "e:home->orders-active", "from": "screen:home", "to": "tab:orders/active", "trigger": "click:nav-orders" },
+          { "id": "e:orders-active->orders-completed", "from": "tab:orders/active", "to": "tab:orders/completed", "trigger": "click:Completed-tab" },
+          { "id": "e:orders-completed->orders-active", "from": "tab:orders/completed", "to": "tab:orders/active", "trigger": "click:Active-tab" }
+        ],
+        "visited": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "v61-h-duplicate-label-edit",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Orders", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 3, "action": "click", "target": "[data-testid=edit-order-row]:text=Edit", "resultRoute": "/orders/1001/edit", "node": "screen:edit-order" },
+        { "step": 4, "action": "navBack", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 5, "action": "click", "target": "nav:Profile", "resultRoute": "/profile", "node": "screen:profile" },
+        { "step": 6, "action": "click", "target": "[data-testid=edit-profile-btn]:text=Edit", "resultRoute": "/profile/edit", "node": "screen:edit-profile" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:orders-list", "type": "screen", "label": "Orders" },
+          { "id": "screen:edit-order", "type": "screen", "label": "Edit Order" },
+          { "id": "screen:profile", "type": "screen", "label": "Profile" },
+          { "id": "screen:edit-profile", "type": "screen", "label": "Edit Profile" }
+        ],
+        "edges": [
+          { "id": "e:home->orders-list", "from": "screen:home", "to": "screen:orders-list", "trigger": "click:nav-orders" },
+          { "id": "e:home->profile", "from": "screen:home", "to": "screen:profile", "trigger": "click:nav-profile" },
+          { "id": "e:orders-list->edit-order", "from": "screen:orders-list", "to": "screen:edit-order", "trigger": "click:[data-testid=edit-order-row] (label 'Edit')" },
+          { "id": "e:profile->edit-profile", "from": "screen:profile", "to": "screen:edit-profile", "trigger": "click:[data-testid=edit-profile-btn] (label 'Edit')" }
+        ],
+        "visited": 5,
+        "total": 5
+      }
+    },
+    {
+      "id": "v61-h-redirect-old-orders-url",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "goto", "url": "/orders-old", "redirectedTo": "/orders", "readyState": "settled", "node": "screen:orders-list" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:orders-list", "type": "screen", "label": "Orders" }
+        ],
+        "edges": [
+          { "id": "e:home->orders-list-redirect", "from": "screen:home", "to": "screen:orders-list", "trigger": "goto:/orders-old", "redirect": true, "redirectFrom": "/orders-old", "redirectTo": "/orders" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-h-404-unknown-route",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "goto", "url": "/nonexistent-page-xyz", "readyState": "settled", "node": "screen:not-found", "httpLikeStatus": 404 }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:not-found", "type": "error", "label": "404 Not Found" }
+        ],
+        "edges": [
+          { "id": "e:home->not-found", "from": "screen:home", "to": "screen:not-found", "trigger": "goto:/nonexistent-page-xyz" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-h-loading-then-settle-dashboard",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Dashboard", "resultRoute": "/dashboard", "readAt": "50ms", "readyState": "loading", "note": "skeleton visible, transient, not a distinct node" },
+        { "step": 3, "action": "read", "resultRoute": "/dashboard", "readAt": "800ms", "readyState": "settled", "node": "screen:dashboard" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:dashboard", "type": "screen", "label": "Dashboard" }
+        ],
+        "edges": [
+          { "id": "e:home->dashboard", "from": "screen:home", "to": "screen:dashboard", "trigger": "click:nav-dashboard" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-h-dynamic-id-order-detail",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/orders", "readyState": "settled", "node": "screen:orders-list" },
+        { "step": 2, "action": "click", "target": "row:order-1001", "resultRoute": "/orders/1001", "node": "route:/orders/:id" },
+        { "step": 3, "action": "navBack", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 4, "action": "click", "target": "row:order-1002", "resultRoute": "/orders/1002", "node": "route:/orders/:id" },
+        { "step": 5, "action": "navBack", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 6, "action": "click", "target": "row:order-1003", "resultRoute": "/orders/1003", "node": "route:/orders/:id" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:orders-list", "type": "screen", "label": "Orders" },
+          { "id": "route:/orders/:id", "type": "route", "label": "Order Detail (templated)" }
+        ],
+        "edges": [
+          { "id": "e:orders-list->order-detail-templated", "from": "screen:orders-list", "to": "route:/orders/:id", "trigger": "click:order-row" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-h-cycle-home-orders-detail",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Orders", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 3, "action": "click", "target": "row:order-1001", "resultRoute": "/orders/1001", "node": "screen:order-detail" },
+        { "step": 4, "action": "click", "target": "breadcrumb:Orders", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 5, "action": "click", "target": "logo", "resultRoute": "/", "node": "screen:home" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:orders-list", "type": "screen", "label": "Orders" },
+          { "id": "screen:order-detail", "type": "screen", "label": "Order Detail" }
+        ],
+        "edges": [
+          { "id": "e:home->orders-list", "from": "screen:home", "to": "screen:orders-list", "trigger": "click:nav-orders" },
+          { "id": "e:orders-list->order-detail", "from": "screen:orders-list", "to": "screen:order-detail", "trigger": "click:order-row" },
+          { "id": "e:order-detail->orders-list", "from": "screen:order-detail", "to": "screen:orders-list", "trigger": "click:breadcrumb-orders" },
+          { "id": "e:orders-list->home", "from": "screen:orders-list", "to": "screen:home", "trigger": "click:logo" }
+        ],
+        "visited": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "v61-h-unknown-denominator-timeout",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Orders", "resultRoute": "/orders", "node": "screen:orders-list" },
+        { "step": 3, "action": "click", "target": "nav:Profile", "resultRoute": "/profile", "node": "screen:profile" },
+        { "step": 4, "action": "click", "target": "nav:Settings", "resultRoute": "/settings", "node": "screen:settings" },
+        { "step": 5, "action": "note", "detail": "nav:Reports link visible but not yet clicked; crawl budget exhausted before it could be explored; unknown how many further links Reports leads to" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:orders-list", "type": "screen", "label": "Orders" },
+          { "id": "screen:profile", "type": "screen", "label": "Profile" },
+          { "id": "screen:settings", "type": "screen", "label": "Settings" }
+        ],
+        "edges": [
+          { "id": "e:home->orders-list", "from": "screen:home", "to": "screen:orders-list", "trigger": "click:nav-orders" },
+          { "id": "e:home->profile", "from": "screen:home", "to": "screen:profile", "trigger": "click:nav-profile" },
+          { "id": "e:home->settings", "from": "screen:home", "to": "screen:settings", "trigger": "click:nav-settings" }
+        ],
+        "visited": 4,
+        "total": null,
+        "denominatorReason": "crawl-timeout: nav:Reports discovered but not crawled before budget exhausted"
+      }
+    },
+    {
+      "id": "v61-h-dynamic-query-param-search",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "submit", "target": "form:search", "value": "laptop", "resultRoute": "/search?q=laptop", "node": "route:/search" },
+        { "step": 3, "action": "submit", "target": "form:search", "value": "phone", "resultRoute": "/search?q=phone", "node": "route:/search" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "route:/search", "type": "route", "label": "Search Results (templated by q)" }
+        ],
+        "edges": [
+          { "id": "e:home->search", "from": "screen:home", "to": "route:/search", "trigger": "submit:search-form" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-h-tab-and-modal-shared-dialog",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/orders", "readyState": "settled", "node": "tab:orders/active" },
+        { "step": 2, "action": "click", "target": "tab:Completed", "node": "tab:orders/completed" },
+        { "step": 3, "action": "click", "target": "button:Filter", "resultOverlay": "dialog:filter", "node": "dialog:filter" },
+        { "step": 4, "action": "click", "target": "button:Close", "resultOverlay": null, "node": "tab:orders/completed" },
+        { "step": 5, "action": "click", "target": "tab:Active", "node": "tab:orders/active" },
+        { "step": 6, "action": "click", "target": "button:Filter", "resultOverlay": "dialog:filter", "node": "dialog:filter" },
+        { "step": 7, "action": "click", "target": "button:Close", "resultOverlay": null, "node": "tab:orders/active" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "tab:orders/active", "type": "tab", "label": "Orders > Active" },
+          { "id": "tab:orders/completed", "type": "tab", "label": "Orders > Completed" },
+          { "id": "dialog:filter", "type": "dialog", "label": "Filter" }
+        ],
+        "edges": [
+          { "id": "e:orders-active->orders-completed", "from": "tab:orders/active", "to": "tab:orders/completed", "trigger": "click:Completed-tab" },
+          { "id": "e:orders-completed->dialog-filter", "from": "tab:orders/completed", "to": "dialog:filter", "trigger": "click:Filter" },
+          { "id": "e:dialog-filter->orders-completed", "from": "dialog:filter", "to": "tab:orders/completed", "trigger": "click:Close" },
+          { "id": "e:orders-completed->orders-active", "from": "tab:orders/completed", "to": "tab:orders/active", "trigger": "click:Active-tab" },
+          { "id": "e:orders-active->dialog-filter", "from": "tab:orders/active", "to": "dialog:filter", "trigger": "click:Filter" },
+          { "id": "e:dialog-filter->orders-active", "from": "dialog:filter", "to": "tab:orders/active", "trigger": "click:Close" }
+        ],
+        "visited": 3,
+        "total": 3
+      }
+    }
+  ],
+  "ordinary": [
+    {
+      "id": "v61-o-single-about-page",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/about", "readyState": "settled", "node": "screen:about" }
+      ],
+      "expectedGraph": {
+        "nodes": [ { "id": "screen:about", "type": "screen", "label": "About" } ],
+        "edges": [],
+        "visited": 1,
+        "total": 1
+      }
+    },
+    {
+      "id": "v61-o-signup-wizard-two-step",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/signup", "readyState": "settled", "node": "screen:signup-step1" },
+        { "step": 2, "action": "click", "target": "button:Next", "resultRoute": "/signup/step2", "node": "screen:signup-step2" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:signup-step1", "type": "screen", "label": "Signup Step 1" },
+          { "id": "screen:signup-step2", "type": "screen", "label": "Signup Step 2" }
+        ],
+        "edges": [
+          { "id": "e:step1->step2", "from": "screen:signup-step1", "to": "screen:signup-step2", "trigger": "click:Next" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-o-nav-home-about-contact",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:About", "resultRoute": "/about", "node": "screen:about" },
+        { "step": 3, "action": "click", "target": "nav:Contact", "resultRoute": "/contact", "node": "screen:contact" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:about", "type": "screen", "label": "About" },
+          { "id": "screen:contact", "type": "screen", "label": "Contact" }
+        ],
+        "edges": [
+          { "id": "e:home->about", "from": "screen:home", "to": "screen:about", "trigger": "click:nav-about" },
+          { "id": "e:home->contact", "from": "screen:home", "to": "screen:contact", "trigger": "click:nav-contact" }
+        ],
+        "visited": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "v61-o-settings-logout-confirm-modal",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/settings", "readyState": "settled", "node": "screen:settings" },
+        { "step": 2, "action": "click", "target": "button:Log out", "resultOverlay": "dialog:confirm-logout", "node": "dialog:confirm-logout" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:settings", "type": "screen", "label": "Settings" },
+          { "id": "dialog:confirm-logout", "type": "dialog", "label": "Confirm Logout" }
+        ],
+        "edges": [
+          { "id": "e:settings->dialog-confirm-logout", "from": "screen:settings", "to": "dialog:confirm-logout", "trigger": "click:Log out" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-o-reports-tab-switch",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/reports", "readyState": "settled", "node": "tab:reports/daily" },
+        { "step": 2, "action": "click", "target": "tab:Weekly", "node": "tab:reports/weekly" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "tab:reports/daily", "type": "tab", "label": "Reports > Daily" },
+          { "id": "tab:reports/weekly", "type": "tab", "label": "Reports > Weekly" }
+        ],
+        "edges": [
+          { "id": "e:daily->weekly", "from": "tab:reports/daily", "to": "tab:reports/weekly", "trigger": "click:Weekly-tab" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    },
+    {
+      "id": "v61-o-onboarding-linear-four-step",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/onboarding/welcome", "readyState": "settled", "node": "screen:onboarding-welcome" },
+        { "step": 2, "action": "click", "target": "button:Continue", "resultRoute": "/onboarding/profile", "node": "screen:onboarding-profile" },
+        { "step": 3, "action": "click", "target": "button:Continue", "resultRoute": "/onboarding/preferences", "node": "screen:onboarding-preferences" },
+        { "step": 4, "action": "click", "target": "button:Finish", "resultRoute": "/onboarding/done", "node": "screen:onboarding-done" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:onboarding-welcome", "type": "screen", "label": "Welcome" },
+          { "id": "screen:onboarding-profile", "type": "screen", "label": "Profile" },
+          { "id": "screen:onboarding-preferences", "type": "screen", "label": "Preferences" },
+          { "id": "screen:onboarding-done", "type": "screen", "label": "Done" }
+        ],
+        "edges": [
+          { "id": "e:welcome->profile", "from": "screen:onboarding-welcome", "to": "screen:onboarding-profile", "trigger": "click:Continue" },
+          { "id": "e:profile->preferences", "from": "screen:onboarding-profile", "to": "screen:onboarding-preferences", "trigger": "click:Continue" },
+          { "id": "e:preferences->done", "from": "screen:onboarding-preferences", "to": "screen:onboarding-done", "trigger": "click:Finish" }
+        ],
+        "visited": 4,
+        "total": 4
+      }
+    },
+    {
+      "id": "v61-o-products-breadcrumb-back",
+      "observations": [
+        { "step": 1, "action": "goto", "url": "/", "readyState": "settled", "node": "screen:home" },
+        { "step": 2, "action": "click", "target": "nav:Products", "resultRoute": "/products", "node": "screen:products" },
+        { "step": 3, "action": "click", "target": "breadcrumb:Home", "resultRoute": "/", "node": "screen:home" }
+      ],
+      "expectedGraph": {
+        "nodes": [
+          { "id": "screen:home", "type": "screen", "label": "Home" },
+          { "id": "screen:products", "type": "screen", "label": "Products" }
+        ],
+        "edges": [
+          { "id": "e:home->products", "from": "screen:home", "to": "screen:products", "trigger": "click:nav-products" },
+          { "id": "e:products->home", "from": "screen:products", "to": "screen:home", "trigger": "click:breadcrumb-home" }
+        ],
+        "visited": 2,
+        "total": 2
+      }
+    }
+  ]
+}

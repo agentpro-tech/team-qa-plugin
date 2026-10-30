@@ -1,0 +1,39 @@
+{
+  "schema": "qa-gui/receipt/web-v1",
+  "contract_sha256": "c4961eaa1e1915e567d357fc49d4472d75167c51f388e348e6ac11af790d7d5d",
+  "run_uuid": "123e4567-e89b-42d3-a456-426614174000",
+  "requirements_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "verification_lane": "gui",
+  "target_kind": "deployed-build",
+  "target_binding_sha256": "cc85f8bbcdcc1efd2a7654e0e1fa6a06a9afb09e407256a6a0a1739986cc1958",
+  "target": {
+    "project_id": "fixture-app",
+    "preview_url": "https://test.example/app",
+    "version": "build-123",
+    "kind": "deployed-build",
+    "environment": "Test",
+    "backend_origin": "https://api.test.example",
+    "frontend_build": {
+      "kind": "next-build-id",
+      "id": "build-123"
+    },
+    "asset_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "target_binding_sha256": "cc85f8bbcdcc1efd2a7654e0e1fa6a06a9afb09e407256a6a0a1739986cc1958",
+    "identity_proof": {
+      "path": "proof.json",
+      "sha256": "f375afc4e215c67f177030e43c27d27d6ecde4fd4191561fdf877b4fafaba504"
+    }
+  },
+  "execution_status": "completed",
+  "semantic_verdict": "PASS",
+  "atomic_coverage": [
+    {
+      "case_id": "GC-01",
+      "requirement_id": "R1",
+      "result": "PASS"
+    }
+  ],
+  "evidence_manifest": [],
+  "created_at": "2026-10-08T00:00:00Z",
+  "integrity": "b15ee77974871a51a8f284b8727c2ed9d400e35eeb9ef0894b665caf41aad43e"
+}

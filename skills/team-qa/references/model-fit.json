@@ -1,0 +1,160 @@
+{
+  "schema": "team-qa/model-fit/v1",
+  "checked_at": "2026-10-02T13:30:00.000Z",
+  "policy": {
+    "fit_kind": "source-reviewed qualitative fit; no Team QA benchmark is claimed",
+    "unknown_model_rule": "models absent from this list retain tier=general, roles=[], status=unknown, and fit_review=pending",
+    "selection_priority_rule": "numeric order is an operator preference for otherwise eligible models; it is not benchmark evidence or a quality score",
+    "tool_scope": "tool IDs are reviewed role-fit capabilities only; they do not attest installed harness readiness, MCP configuration, permissions, or session access"
+  },
+  "sources": [
+    {
+      "provider": "openai",
+      "url": "https://developers.openai.com/api/docs/guides/model-selection",
+      "checked_at": "2026-10-02",
+      "facts": ["GPT-6.1 Sol: complex work balancing capability, time, and cost", "Luna: scoped tasks and triage", "Astra: demanding reasoning and coding"]
+    },
+    {
+      "provider": "openai",
+      "url": "https://developers.openai.com/api/docs/models",
+      "checked_at": "2026-10-02",
+      "facts": ["gpt-6.1-sol and gpt-6-luna exact model IDs", "model-specific reasoning and tool capability overview"]
+    },
+    {
+      "provider": "anthropic",
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "checked_at": "2026-10-02",
+      "facts": ["current model IDs, model-family positioning, and provider-level capabilities"]
+    },
+    {
+      "provider": "anthropic",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "checked_at": "2026-10-02",
+      "facts": ["per-model reasoning-effort support and defaults"]
+    },
+    {
+      "provider": "anthropic",
+      "url": "https://code.claude.com/docs/en/model-config",
+      "checked_at": "2026-10-02",
+      "facts": ["Claude Code exact model IDs, aliases, and minimum CLI versions for listed models"]
+    }
+  ],
+  "models": [
+    {
+      "id": "gpt-6.1-sol",
+      "provider": "openai",
+      "family": "gpt-6.1-sol",
+      "tier": "general",
+      "selection_priority": 1,
+      "roles": ["test_manager", "analyst", "designer", "executor_gui", "executor_code"],
+      "tools": ["fs.read", "dragon", "qa-gui", "qa-code"],
+      "fit_review": "source-reviewed",
+      "rationale": "Official model-selection guidance positions Sol for complex multi-step and coding work; role fit remains qualitative until Team QA eval evidence exists.",
+      "benchmark_status": "not-run",
+      "source_url": "https://developers.openai.com/api/docs/guides/model-selection"
+    },
+    {
+      "id": "gpt-6-sol",
+      "provider": "openai",
+      "family": "gpt-6-sol",
+      "tier": "general",
+      "selection_priority": 2,
+      "roles": ["test_manager", "analyst", "designer", "executor_gui", "executor_code"],
+      "tools": ["fs.read", "dragon", "qa-gui", "qa-code"],
+      "fit_review": "source-reviewed",
+      "rationale": "Official model catalog describes Sol as a general reasoning model; task-specific quality remains unevaluated for Team QA.",
+      "benchmark_status": "not-run",
+      "source_url": "https://developers.openai.com/api/docs/models"
+    },
+    {
+      "id": "gpt-6-luna",
+      "provider": "openai",
+      "family": "gpt-6-luna",
+      "tier": "small",
+      "selection_priority": 1,
+      "roles": ["analyst"],
+      "tools": ["fs.read"],
+      "fit_review": "source-reviewed",
+      "rationale": "Official model-selection guidance positions Luna for scoped work and triage; Analyst fit is qualitative and has no Team QA benchmark.",
+      "benchmark_status": "not-run",
+      "source_url": "https://developers.openai.com/api/docs/guides/model-selection"
+    },
+    {
+      "id": "gpt-6-astra",
+      "provider": "openai",
+      "family": "astra",
+      "tier": "reasoning",
+      "selection_priority": 1,
+      "roles": ["test_manager", "designer", "executor_code"],
+      "tools": ["fs.read", "qa-code"],
+      "fit_review": "source-reviewed-user-override-only",
+      "rationale": "Official guidance positions Astra for demanding reasoning and coding. Team QA policy excludes Astra from defaults; any explicit user request still needs a run-specific roster approval and compatible runtime.",
+      "benchmark_status": "not-run",
+      "source_url": "https://developers.openai.com/api/docs/guides/model-selection"
+    },
+    {
+      "id": "claude-opus-5-5",
+      "provider": "anthropic",
+      "family": "claude-opus-5-5",
+      "tier": "reasoning",
+      "selection_priority": 2,
+      "roles": ["test_manager", "analyst", "designer", "executor_gui", "executor_code"],
+      "tools": ["fs.read", "dragon", "qa-gui", "qa-code"],
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "min_harness_version": "2.1.280",
+      "fit_review": "source-reviewed",
+      "rationale": "Official model guidance positions Opus for long-running agentic coding and knowledge work; Team QA eval evidence remains absent.",
+      "benchmark_status": "not-run",
+      "source_url": "https://platform.claude.com/docs/en/models/overview",
+      "effort_source_url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "harness_source_url": "https://code.claude.com/docs/en/model-config"
+    },
+    {
+      "id": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "family": "claude-sonnet-5-5",
+      "tier": "general",
+      "selection_priority": 1,
+      "roles": ["test_manager", "analyst", "designer", "executor_gui", "executor_code"],
+      "tools": ["fs.read", "dragon", "qa-gui", "qa-code"],
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "min_harness_version": "2.1.284",
+      "fit_review": "source-reviewed",
+      "rationale": "Official model guidance positions Sonnet for a strong speed and intelligence balance; Team QA eval evidence remains absent.",
+      "benchmark_status": "not-run",
+      "source_url": "https://platform.claude.com/docs/en/models/overview",
+      "effort_source_url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "harness_source_url": "https://code.claude.com/docs/en/model-config"
+    },
+    {
+      "id": "claude-fable-5-1",
+      "provider": "anthropic",
+      "family": "claude-fable-5-1",
+      "tier": "reasoning",
+      "roles": [],
+      "tools": [],
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "min_harness_version": "2.1.257",
+      "fit_review": "pending",
+      "rationale": "Official catalog discovery only; no role fit or Team QA quality review is recorded for this newly surfaced model.",
+      "benchmark_status": "not-run",
+      "source_url": "https://platform.claude.com/docs/en/models/overview",
+      "effort_source_url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "harness_source_url": "https://code.claude.com/docs/en/model-config"
+    },
+    {
+      "id": "claude-haiku-4-5-20251001",
+      "provider": "anthropic",
+      "family": "claude-haiku-4-5",
+      "tier": "small",
+      "roles": [],
+      "tools": [],
+      "efforts": [],
+      "fit_review": "pending",
+      "rationale": "Official catalog discovery only; effort is not supported in the checked model overview and no Team QA role fit is recorded.",
+      "benchmark_status": "not-run",
+      "source_url": "https://platform.claude.com/docs/en/models/overview",
+      "effort_source_url": "https://platform.claude.com/docs/en/build-with-claude/effort"
+    }
+  ]
+}

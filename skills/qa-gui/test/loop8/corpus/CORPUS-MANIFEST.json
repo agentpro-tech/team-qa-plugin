@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "wave": "QA-GUI Loop 8 Wave 1",
+  "canonicalBase": "98e5a3415f478688d12bb3ed8dc8ff52f970716e",
+  "approvedGolden": {
+    "approvedBy": "owner",
+    "approvedAt": "2026-08-15T00:53:54+07:00",
+    "userText": "OK, approved",
+    "receipt": "owner control run qa-gui-loop8-control-20260815: golden/phone-320.annotated.proposed.receipt.json (not shipped)"
+  },
+  "provenance": "Labels and golden layout come from the closed BA and the owner's source-review approval; the checker author did not self-label model output.",
+  "files": [
+    { "path": "phone-320.png", "sha256": "0765c68bc3bafdb4256210d64de29d7f1b2eb3007c81c2e5f731fadfc3adc895" },
+    { "path": "phone-320.annotated.png", "sha256": "faeb07c41d255b8487df0e1579041c6677bf3cf33a9de2a10159540c653284db" },
+    { "path": "phone-320.findings.json", "sha256": "c2d328999f014f060eb237f4af2aa904021baaad74de9231b0813114c56c8a6f" },
+    { "path": "bbox-cases.json", "sha256": "1169f78bdb76b0ab15acc8e5529697ad50fe4176cf4a07fbad30030261c41f6f" },
+    { "path": "caption-cases.json", "sha256": "006a40d7688b7925483f253e89198ca19d180faf3de03907034f4794d5f61e1e" },
+    { "path": "fonts/noto-sans/NotoSans-Regular.ttf", "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5" },
+    { "path": "fonts/noto-sans/NotoSans-Bold.ttf", "sha256": "c976e4b1b99edc88775377fcc21692ca4bfa46b6d6ca6522bfda505b28ff9d6a" },
+    { "path": "fonts/noto-sans/OFL.txt", "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb" }
+  ]
+}

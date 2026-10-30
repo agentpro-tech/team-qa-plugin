@@ -1,0 +1,1781 @@
+{
+  "feature": "V6.7",
+  "version": 1,
+  "frozen": true,
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "liveTarget": {
+    "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+    "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+    "status": "draft",
+    "published": false,
+    "gitConnected": false,
+    "databaseEnabled": false,
+    "env": "TEST",
+    "buildSha": "b7e3f10a2c"
+  },
+  "canonicalGroupOrder": ["preflight", "savedFlows", "properties"],
+  "canonicalPreflightOrder": ["dragonReachable", "sessionPolicy", "buildIdentified", "envDbIdentified", "permissionCheck"],
+  "hard": [
+    {
+      "id": "V6.7-H01",
+      "scenario": "dragon-unreachable",
+      "job": {
+        "id": "nightly-test-h01",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 5000,
+        "dragon": { "reachable": false, "statusCode": null, "detail": "GET :9233/status — no response, connection refused" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": false, "detail": "no RPC at all; Dragon service not listening on :9233" },
+          "sessionPolicy": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "buildIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": false, "verdict": "MISSING", "evidence": [], "skipReason": "Dragon unreachable, no RPC at all" },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: preflight never completed" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: preflight never completed" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: incomplete regression pipeline",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H02",
+      "scenario": "dragon-denied-not-absent",
+      "job": {
+        "id": "nightly-test-h02",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 4200,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": false, "detail": "session.create returned HTTP 200 with inner {ok:false, code:'SYNTHETIC_FORBIDDEN'}; circuit breaker latched" },
+          "buildIdentified": { "pass": null, "detail": "not attempted — session denied before any read" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — session denied before any read" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — session denied before any read" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "FAIL", "evidence": [{ "type": "log", "detail": "inner result.ok===false, code SYNTHETIC_FORBIDDEN, CIRCUIT_OPEN on next call" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "SKIPPED", "cases": [], "skipReason": "short-circuited after evidenced preflight FAIL (session policy denial)" },
+          "properties": { "executed": false, "verdict": "SKIPPED", "cases": [], "skipReason": "short-circuited after evidenced preflight FAIL (session policy denial)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "FAIL",
+      "expectedReport": {
+        "verdict": "FAIL",
+        "reasonCode": "FAIL: dragon session denied (SYNTHETIC_FORBIDDEN) — a denial is not an absent Dragon",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "FAIL", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "SKIPPED", "evidenceComplete": true },
+          { "name": "properties", "verdict": "SKIPPED", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H03",
+      "scenario": "build-not-identified",
+      "job": {
+        "id": "nightly-test-h03",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": null
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 6100,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": false, "detail": "main bundle fetch returned no matching supabase ref pattern; cannot confirm build under test", "buildSha": null },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked, build must be confirmed first" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "log", "detail": "bundle grep returned no match" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (build not identified)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (build not identified)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H04",
+      "scenario": "env-db-mismatch",
+      "job": {
+        "id": "nightly-test-h04",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 6400,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": false, "detail": "runtime bundle supabase ref resolves to a different project than the pinned ee71fc9d-eebe-4bb2-b130-4930af6fa411 — env/DB does not match HR2 pin" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "read", "detail": "grep on main bundle src, ref mismatch recorded" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (env/DB mismatch)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (env/DB mismatch)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": "b7e3f10a2c",
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H05",
+      "scenario": "permission-check-empirical-drift",
+      "job": {
+        "id": "nightly-test-h05",
+        "runMode": "real-controlled",
+        "schedule": null,
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T07:15:00Z",
+        "durationMs": 7000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project" },
+          "permissionCheck": { "pass": false, "detail": "empirical probe of the live page shows databaseEnabled=true and published=true right now, contradicting the declared config pin; config says draft/no-DB but the actual runtime state drifted — refusing to proceed, per HR2 never assume from declared config" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "read", "detail": "runtime probe: published=true, databaseEnabled=true" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (empirical drift from declared config)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (empirical drift from declared config)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": "b7e3f10a2c",
+        "envDbPin": null,
+        "timestamp": "2026-08-11T07:15:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H06",
+      "scenario": "pin-wrong-project-id",
+      "job": {
+        "id": "nightly-test-h06",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "aa11bb22-cc33-4dd4-8e55-6f7788990011",
+          "previewUrl": "https://id-preview--aa11bb22-cc33-4dd4-8e55-6f7788990011.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "unknown"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 2500,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": false, "detail": "job config projectId aa11bb22... is not the pinned live target ee71fc9d-eebe-4bb2-b130-4930af6fa411; refusing to identify build against an unpinned project" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "log", "detail": "job.envPin.projectId does not match liveTarget.projectId" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (wrong project ID)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (wrong project ID)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H07",
+      "scenario": "pin-wrong-preview-url",
+      "job": {
+        "id": "nightly-test-h07",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.preview-other.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "unknown"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 2400,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": false, "detail": "job config previewUrl does not match the pinned https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app; refusing to open an unpinned URL" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "log", "detail": "job.envPin.previewUrl does not match liveTarget.previewUrl" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (wrong preview URL)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (wrong preview URL)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H08",
+      "scenario": "pin-published-true",
+      "job": {
+        "id": "nightly-test-h08",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": true,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "unknown"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 2300,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": false, "detail": "job config declares published:true; live corpus target must stay draft, never published" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "log", "detail": "job.envPin.published=true violates required draft state" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (target published)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (target published)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H09",
+      "scenario": "pin-git-connected",
+      "job": {
+        "id": "nightly-test-h09",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": true,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "unknown"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 2300,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": false, "detail": "job config declares gitConnected:true; live corpus target must stay unconnected to GitHub/GitLab" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "log", "detail": "job.envPin.gitConnected=true violates required unconnected state" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (Git connected)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (Git connected)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H10",
+      "scenario": "pin-database-enabled",
+      "job": {
+        "id": "nightly-test-h10",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": true,
+          "env": "TEST",
+          "buildSha": "unknown"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 2300,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": false, "detail": "job config declares databaseEnabled:true; live corpus target must keep its own database disabled" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — blocked upstream" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "log", "detail": "job.envPin.databaseEnabled=true violates required disabled state" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (database enabled)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (database enabled)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H11",
+      "scenario": "pin-production-target-no-fallback",
+      "job": {
+        "id": "nightly-test-h11",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://sampleshop.lovable.app",
+          "published": true,
+          "gitConnected": true,
+          "databaseEnabled": true,
+          "env": "PRODUCTION",
+          "buildSha": "unknown"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 2100,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": false, "detail": "job config targets the official production domain sampleshop.lovable.app, not the pinned TEST remix; refusing — no fallback to official allowed" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — blocked upstream" },
+          "permissionCheck": { "pass": false, "detail": "target is Production; K2/L7 forbid touching Production regardless of upstream outcome" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "UNGRADED", "evidence": [{ "type": "log", "detail": "job.envPin.env=PRODUCTION rejected outright" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (Production target, no official fallback)" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "blocked: HR2 pin missing (Production target, no official fallback)" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: HR2 pin missing",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H12",
+      "scenario": "missing-group-properties",
+      "job": {
+        "id": "nightly-test-h12",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 42000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "job.pipeline never declared the properties group" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: incomplete regression pipeline",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H13",
+      "scenario": "missing-group-savedFlows",
+      "job": {
+        "id": "nightly-test-h13",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 39000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "job.pipeline never declared the savedFlows group" },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: incomplete regression pipeline",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H14",
+      "scenario": "timeout-mid-properties",
+      "job": {
+        "id": "nightly-test-h14",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 60000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 60000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": { "executed": true, "verdict": "TIMEOUT", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "UNGRADED", "evidence": [] }], "skipReason": "job.timeoutMs (60000) reached mid-execution of the properties group" }
+        },
+        "timedOut": true,
+        "timeoutGroup": "properties",
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: incomplete regression pipeline",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "TIMEOUT", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H15",
+      "scenario": "real-bug-in-saved-flow",
+      "job": {
+        "id": "nightly-test-h15",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 51000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": {
+            "executed": true,
+            "verdict": "FAIL",
+            "cases": [
+              { "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] },
+              { "id": "flow-add-to-cart", "verdict": "FAIL", "label": "real-bug", "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-add-to-cart-run.mp4" }, { "type": "read", "detail": "POST /api/cart/items returned 500 on the third add" }] }
+            ],
+            "skipReason": null
+          },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "FAIL",
+      "expectedReport": {
+        "verdict": "FAIL",
+        "reasonCode": "FAIL: real-bug in saved flow flow-add-to-cart (POST /api/cart/items 500)",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "FAIL", "evidenceComplete": true },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H16",
+      "scenario": "property-violation-genuine",
+      "job": {
+        "id": "nightly-test-h16",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 48000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": {
+            "executed": true,
+            "verdict": "FAIL",
+            "cases": [
+              { "id": "prop-order-list-visible-when-logged-in", "P": "logged-in", "I": "open orders", "Q": "order list is visible", "verdict": "FAIL", "evidence": [{ "type": "read", "detail": "orders list container never rendered; DOM read shows empty <main>, network shows GET /api/orders 200 with 4 items" }] }
+            ],
+            "skipReason": null
+          }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "FAIL",
+      "expectedReport": {
+        "verdict": "FAIL",
+        "reasonCode": "FAIL: property prop-order-list-visible-when-logged-in violated",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "FAIL", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H17",
+      "scenario": "schedule-invalid",
+      "job": {
+        "id": "nightly-test-h17",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "not-a-cron-string", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": null,
+        "durationMs": 0,
+        "dragon": { "reachable": null, "statusCode": null, "detail": "job never dispatched — schedule failed to parse before any Dragon call" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": null, "detail": "not attempted — schedule invalid" },
+          "sessionPolicy": { "pass": null, "detail": "not attempted — schedule invalid" },
+          "buildIdentified": { "pass": null, "detail": "not attempted — schedule invalid" },
+          "envDbIdentified": { "pass": null, "detail": "not attempted — schedule invalid" },
+          "permissionCheck": { "pass": null, "detail": "not attempted — schedule invalid" }
+        },
+        "groups": {
+          "preflight": { "executed": false, "verdict": "MISSING", "evidence": [], "skipReason": "job.schedule.cron 'not-a-cron-string' failed cron parse" },
+          "savedFlows": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "job never dispatched" },
+          "properties": { "executed": false, "verdict": "MISSING", "cases": [], "skipReason": "job never dispatched" }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: invalid schedule",
+        "build": null,
+        "envDbPin": null,
+        "timestamp": null,
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "savedFlows", "verdict": "MISSING", "evidenceComplete": false },
+          { "name": "properties", "verdict": "MISSING", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H18",
+      "scenario": "no-blind-retry-violation",
+      "job": {
+        "id": "nightly-test-h18",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 60000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 121000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": { "executed": true, "verdict": "TIMEOUT", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "UNGRADED", "evidence": [] }], "skipReason": "job.timeoutMs (60000) reached mid-execution of the properties group on first attempt" }
+        },
+        "timedOut": true,
+        "timeoutGroup": "properties",
+        "retry": {
+          "attempted": true,
+          "blind": true,
+          "diagnosisRecorded": false,
+          "note": "runner automatically re-dispatched the whole pipeline after the timeout with no diagnosis and no human decision; the second attempt happened to complete all groups PASS, but the retry itself was blind and must not be used to launder a PASS"
+        }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: incomplete regression pipeline (blind retry not permitted)",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "TIMEOUT", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": true,
+        "blindRetryViolation": true,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H19",
+      "scenario": "deterministic-report-ordering-declared-order-a",
+      "job": {
+        "id": "nightly-test-h19",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 53000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": {
+            "executed": true,
+            "verdict": "PASS",
+            "cases": [
+              { "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] },
+              { "id": "flow-add-to-cart", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-add-to-cart-run.mp4" }] }
+            ],
+            "skipReason": null
+          },
+          "properties": {
+            "executed": true,
+            "verdict": "PASS",
+            "cases": [
+              { "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] },
+              { "id": "prop-order-list-visible-when-logged-in", "P": "logged-in", "I": "open orders", "Q": "order list is visible", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "orders list container rendered with 4 items" }] }
+            ],
+            "skipReason": null
+          }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true, "caseOrder": ["flow-add-to-cart", "flow-checkout-happy-path"] },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true, "caseOrder": ["prop-cart-total-consistent", "prop-order-list-visible-when-logged-in"] }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H20",
+      "scenario": "deterministic-report-ordering-declared-order-b",
+      "job": {
+        "id": "nightly-test-h20",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["properties", "preflight", "savedFlows"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 53500,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": {
+            "executed": true,
+            "verdict": "PASS",
+            "cases": [
+              { "id": "flow-add-to-cart", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-add-to-cart-run.mp4" }] },
+              { "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] }
+            ],
+            "skipReason": null
+          },
+          "properties": {
+            "executed": true,
+            "verdict": "PASS",
+            "cases": [
+              { "id": "prop-order-list-visible-when-logged-in", "P": "logged-in", "I": "open orders", "Q": "order list is visible", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "orders list container rendered with 4 items" }] },
+              { "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }
+            ],
+            "skipReason": null
+          }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true, "caseOrder": ["flow-add-to-cart", "flow-checkout-happy-path"] },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true, "caseOrder": ["prop-cart-total-consistent", "prop-order-list-visible-when-logged-in"] }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      },
+      "note": "same underlying content as V6.7-H19 but job.pipeline declared in a shuffled order and savedFlows/properties cases declared in a different order too — expectedReport.groupOrder and each group's caseOrder must be byte-identical to H19, proving the report canonicalizes ordering instead of echoing declaration order"
+    },
+    {
+      "id": "V6.7-H21",
+      "scenario": "missing-checker-for-properties",
+      "job": {
+        "id": "nightly-test-h21",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 33000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": {
+            "executed": true,
+            "verdict": "UNGRADED",
+            "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "UNGRADED", "evidence": [] }],
+            "skipReason": "propertyChecker module unavailable at run time — cases were read but no checker was wired to grade them"
+          }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: property checker unavailable",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "UNGRADED", "evidenceComplete": false }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-H22",
+      "scenario": "evidence-missing-for-savedflow-pass-claim",
+      "job": {
+        "id": "nightly-test-h22",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 40000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": {
+            "executed": true,
+            "verdict": "PASS",
+            "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [] }],
+            "skipReason": null
+          },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "UNGRADED",
+      "expectedReport": {
+        "verdict": "UNGRADED",
+        "reasonCode": "UNGRADED: missing evidence for savedFlows case flow-checkout-happy-path",
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "UNGRADED", "evidenceComplete": false },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": false,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    }
+  ],
+  "ordinary": [
+    {
+      "id": "V6.7-O01",
+      "scenario": "minimal-simulated-schedule-all-pass",
+      "job": {
+        "id": "nightly-test-o01",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 30000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/o01-flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-O02",
+      "scenario": "minimal-real-controlled-run-all-pass",
+      "job": {
+        "id": "morning-check-o02",
+        "runMode": "real-controlled",
+        "schedule": null,
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T09:05:00Z",
+        "durationMs": 28000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/o02-flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T09:05:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-O03",
+      "scenario": "minimal-two-saved-flows-pass",
+      "job": {
+        "id": "nightly-test-o03",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 36000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": {
+            "executed": true,
+            "verdict": "PASS",
+            "cases": [
+              { "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/o03-flow-checkout-happy-path-run.mp4" }] },
+              { "id": "flow-login-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/o03-flow-login-happy-path-run.mp4" }] }
+            ],
+            "skipReason": null
+          },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true, "caseOrder": ["flow-checkout-happy-path", "flow-login-happy-path"] },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-O04",
+      "scenario": "minimal-two-properties-pass",
+      "job": {
+        "id": "nightly-test-o04",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * *", "label": "nightly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T06:00:00Z",
+        "durationMs": 34000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/o04-flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": {
+            "executed": true,
+            "verdict": "PASS",
+            "cases": [
+              { "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] },
+              { "id": "prop-order-list-visible-when-logged-in", "P": "logged-in", "I": "open orders", "Q": "order list is visible", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "orders list container rendered with 4 items" }] }
+            ],
+            "skipReason": null
+          }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true, "caseOrder": ["prop-cart-total-consistent", "prop-order-list-visible-when-logged-in"] }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-O05",
+      "scenario": "minimal-weekly-schedule-all-pass",
+      "job": {
+        "id": "weekly-test-o05",
+        "runMode": "simulated-schedule",
+        "schedule": { "cron": "0 6 * * 1", "label": "weekly-test" },
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-10T06:00:00Z",
+        "durationMs": 31000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-10-sampleshop-remix/o05-flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-10T06:00:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    },
+    {
+      "id": "V6.7-O06",
+      "scenario": "minimal-real-controlled-no-schedule-all-pass",
+      "job": {
+        "id": "adhoc-check-o06",
+        "runMode": "real-controlled",
+        "schedule": null,
+        "pipeline": ["preflight", "savedFlows", "properties"],
+        "timeoutMs": 600000,
+        "reportPath": "qa-evidence/2026-08-11-sampleshop-remix/v6.7-morning-report.json",
+        "envPin": {
+          "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+          "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+          "published": false,
+          "gitConnected": false,
+          "databaseEnabled": false,
+          "env": "TEST",
+          "buildSha": "b7e3f10a2c"
+        }
+      },
+      "runResult": {
+        "startedAt": "2026-08-11T14:20:00Z",
+        "durationMs": 26000,
+        "dragon": { "reachable": true, "statusCode": 200, "detail": "GET :9233/status -> {ready:true}" },
+        "preflightChecks": {
+          "dragonReachable": { "pass": true, "detail": "status ready:true" },
+          "sessionPolicy": { "pass": true, "detail": "session.create asserted forbidSyntheticDOM:false" },
+          "buildIdentified": { "pass": true, "detail": "bundle grep matched build b7e3f10a2c", "buildSha": "b7e3f10a2c" },
+          "envDbIdentified": { "pass": true, "detail": "supabase ref matches pinned project, database disabled" },
+          "permissionCheck": { "pass": true, "detail": "target confirmed TEST draft, not Production" }
+        },
+        "groups": {
+          "preflight": { "executed": true, "verdict": "PASS", "evidence": [{ "type": "log", "detail": "all five preflight checks passed" }], "skipReason": null },
+          "savedFlows": { "executed": true, "verdict": "PASS", "cases": [{ "id": "flow-checkout-happy-path", "verdict": "PASS", "label": null, "evidence": [{ "type": "recording", "path": "qa-evidence/2026-08-11-sampleshop-remix/o06-flow-checkout-happy-path-run.mp4" }] }], "skipReason": null },
+          "properties": { "executed": true, "verdict": "PASS", "cases": [{ "id": "prop-cart-total-consistent", "P": "logged-in, cart has items", "I": "open cart", "Q": "displayed total equals sum of line items", "verdict": "PASS", "evidence": [{ "type": "read", "detail": "DOM total matched computed sum" }] }], "skipReason": null }
+        },
+        "timedOut": false,
+        "timeoutGroup": null,
+        "retry": { "attempted": false, "blind": false, "diagnosisRecorded": false }
+      },
+      "expectedVerdict": "PASS",
+      "expectedReport": {
+        "verdict": "PASS",
+        "reasonCode": null,
+        "build": "b7e3f10a2c",
+        "envDbPin": "TEST · ee71fc9d-eebe-4bb2-b130-4930af6fa411 · b7e3f10a2c",
+        "timestamp": "2026-08-11T14:20:00Z",
+        "groupOrder": ["preflight", "savedFlows", "properties"],
+        "groups": [
+          { "name": "preflight", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "savedFlows", "verdict": "PASS", "evidenceComplete": true },
+          { "name": "properties", "verdict": "PASS", "evidenceComplete": true }
+        ],
+        "evidenceComplete": true,
+        "retryAttempted": false,
+        "blindRetryViolation": false,
+        "productionTouched": false,
+        "fallbackToOfficial": false
+      }
+    }
+  ]
+}

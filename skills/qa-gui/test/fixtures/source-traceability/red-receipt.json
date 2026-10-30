@@ -1,0 +1,16 @@
+{
+  "schema": "qa-gui/red-proof/v1",
+  "date": "2026-08-28",
+  "command": "node --test test/source-issue-traceability.test.mjs",
+  "exitCode": 1,
+  "failure": {
+    "code": "ERR_MODULE_NOT_FOUND",
+    "missing": "scripts/teamwork/source-traceability-migration.mjs"
+  },
+  "sha256AtRed": {
+    "test/source-issue-traceability.test.mjs": "de1996a4f1562202ba577c75e602887bf2ea94b2b5f4bbc38d36838ae165d3fb",
+    "test/fixtures/source-traceability/canonical-v6.unknown-ref.json": "1d77b20de1a1691916c8cadba132839f7f649f2b9618cbbbffc310ebc7d258a3",
+    "test/fixtures/source-traceability/canonical-v6.valid.json": "cd2d39b5ca3008da7cdd5a7a959969483d78a32ac27e00f792b3b381d5129599",
+    "test/fixtures/source-traceability/migration-map.valid.json": "1dcf6c03c31ad20b269df7ee69c698aec5ae8bf7104e8dec73766f5872d17a90"
+  }
+}

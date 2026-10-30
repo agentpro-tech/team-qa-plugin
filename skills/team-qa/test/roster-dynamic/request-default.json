@@ -1,0 +1,10 @@
+{
+  "schema": "team-qa/roster-request/v1",
+  "run_id": "roster-acceptance-001",
+  "round": 1,
+  "scope": "fixture acceptance only",
+  "target": { "project_id": "fixture-project", "preview_url": "http://127.0.0.1:4173", "version": "fixture-build-1" },
+  "provider": "openai",
+  "manager": { "provider": "openai", "model": "gpt-6.1-sol", "effort": "medium", "harness": "codex" },
+  "caps": { "timeout_ms": 30000, "max_turns": 1 }
+}

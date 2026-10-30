@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/report-v1.json",
+  "title": "Team QA summary report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "target",
+    "decision",
+    "metrics",
+    "reasons",
+    "waived_p1",
+    "grounded_issues",
+    "red_checkers",
+    "child_gates"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_base": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "source_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verification_lane": {
+      "const": "all"
+    },
+    "contract_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "exact_final_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "target": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "project_id",
+            "preview_url",
+            "version"
+          ],
+          "properties": {
+            "project_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "preview_url": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^https?://"
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "$ref": "deployed-target.json"
+        }
+      ]
+    },
+    "decision": {
+      "enum": [
+        "GO",
+        "NO_GO"
+      ]
+    },
+    "metrics": {
+      "description": "Failures must be split by source: a wrong product, a wrong harness and a wrong environment are three different problems that belong to three different people.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage_high_pct",
+        "coverage_low_pct",
+        "defects",
+        "pass",
+        "fail",
+        "ungraded",
+        "product_defects",
+        "harness_failures",
+        "environment_failures"
+      ],
+      "properties": {
+        "coverage_high_pct": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            {
+              "const": "N/A"
+            }
+          ]
+        },
+        "coverage_low_pct": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            {
+              "const": "N/A"
+            }
+          ]
+        },
+        "defects": {
+          "description": "Product defects by priority. Counts only failures whose source is product; harness and environment must not be colored as product defects.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "p0",
+            "p1",
+            "p2"
+          ],
+          "properties": {
+            "p0": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "p1": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "p2": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ungraded": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "product_defects": {
+          "description": "Number of failures caused by the product itself being wrong. A fail without a declared source lands here so that a real defect cannot hide in harness/environment.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "harness_failures": {
+          "description": "Number of failures caused by a wrong test runner. That case was not really checked on the product, so it does not count as evidence that the product is right or wrong.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "environment_failures": {
+          "description": "Number of failures caused by a wrong infrastructure/environment, with the same reasoning as harness_failures.",
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "waived_p1": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "grounded_issues": {
+      "description": "The origin of each NO_GO reason, in the same order as reasons: which checker found it, which artifact can rebuild it, which case and evidence stand behind it. A reason without an origin is a story that cannot be traced.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "checker",
+          "source",
+          "case_id",
+          "evidence",
+          "detail"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "checker": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "enum": [
+              "board",
+              "tracked_plan",
+              "test_plan"
+            ]
+          },
+          "case_id": {
+            "description": "null means the issue belongs to the whole run, not to one case; it must not be assigned to a case at random.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "red_checkers": {
+      "description": "The register of RED checkers this run ran, with the number of items inspected. Without it, a disabled checker looks exactly like a checker that finished and found nothing.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "contract",
+          "scope",
+          "checked",
+          "issues"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scope": {
+            "enum": [
+              "board_record",
+              "tracked_case",
+              "requirement",
+              "run"
+            ]
+          },
+          "checked": {
+            "description": "Number of items the checker inspected. 0 is a real declaration: running clean on 0 items vouches for nothing.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "issues": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "child_gates": {
+      "description": "The child gates that contributed conclusions to the run, including a gate that ran no rows, so that a run with real child gates can be told apart from a run where only a script graded itself.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "gate",
+          "records",
+          "graded",
+          "ungraded",
+          "bound"
+        ],
+        "properties": {
+          "gate": {
+            "type": "string",
+            "minLength": 1
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "graded": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ungraded": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bound": {
+            "description": "Number of records that carry a child conclusion bound by that gate's own hash.",
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "target_kind": {
+      "const": "deployed-build"
+    },
+    "target_binding_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

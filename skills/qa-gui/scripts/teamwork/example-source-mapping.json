@@ -1,0 +1,19 @@
+{
+  "migrationVersion": "qa-source-traceability-map/v1",
+  "sourceItems": [
+    {
+      "id": "SRC-REQ-01",
+      "kind": "spec",
+      "sourceSystem": "example-spec",
+      "externalKey": "REQ-01",
+      "title": "Hành vi nguồn cần được kiểm chứng",
+      "origin": "upstream"
+    }
+  ],
+  "caseMappings": [
+    {
+      "caseId": "TC-01",
+      "sourceRefs": ["SRC-REQ-01"]
+    }
+  ]
+}

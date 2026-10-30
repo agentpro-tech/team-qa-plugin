@@ -1,0 +1,30 @@
+{
+  "schema": "agentpro/release-c-mutation-registry/v1",
+  "component": "qa-gui",
+  "mutations": [
+    {
+      "id": "C2-TRANSITION-DENOMINATOR",
+      "pattern": "missing required transition",
+      "anchor": "if (missingTransitions.length > 0)",
+      "replacement": "if (false)"
+    },
+    {
+      "id": "C2-CASE-BINDING",
+      "pattern": "foreign case state receipt",
+      "anchor": "if (receipt.caseId !== corpus.case_id)",
+      "replacement": "if (false)"
+    },
+    {
+      "id": "C2-LIFECYCLE-PHASES",
+      "pattern": "incomplete lifecycle",
+      "anchor": "if (!Object.hasOwn(receipt.lifecycle, phase))",
+      "replacement": "if (false)"
+    },
+    {
+      "id": "C2-SCREENSHOT-REUSE",
+      "pattern": "reused screenshot bytes",
+      "anchor": "if (seenScreenshots.has(receipt.screenshot.sha256))",
+      "replacement": "if (false)"
+    }
+  ]
+}

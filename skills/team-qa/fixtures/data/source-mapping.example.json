@@ -1,0 +1,34 @@
+{
+  "migrationVersion": "team-qa/source-traceability-map/v1",
+  "sourceItems": [
+    {
+      "id": "SRC-REQ-HIGH",
+      "kind": "spec",
+      "sourceSystem": "example-spec",
+      "externalKey": "REQ-HIGH",
+      "title": "High-risk flow requirement",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-QA-LOW-STATE",
+      "kind": "qa-derived",
+      "sourceSystem": "team-qa",
+      "externalKey": "QA-LOW-STATE",
+      "title": "Low-risk state guardrail",
+      "origin": "qa-derived",
+      "qaDerivedReason": "QA added this guardrail to keep empty and ideal states in the regression matrix."
+    }
+  ],
+  "caseMappings": [
+    {
+      "caseId": "CASE-HIGH",
+      "title": "High-risk flow succeeds",
+      "sourceRefs": ["SRC-REQ-HIGH"]
+    },
+    {
+      "caseId": "CASE-LOW",
+      "title": "Low-risk state is correct",
+      "sourceRefs": ["SRC-QA-LOW-STATE"]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "caseId": "TC-01",
+  "index": 1,
+  "value": "SRC-NOT-REGISTERED",
+  "expectedCode": "CASE_SOURCE_REF_UNKNOWN"
+}

@@ -1,0 +1,503 @@
+{
+  "content": [],
+  "structuredContent": {
+    "metadata": {
+      "page_id": "page_recorded_fixture",
+      "url": "https://chatgpt.com/space/page_recorded_fixture"
+    },
+    "content": {
+      "schema_version": 2,
+      "symbol": null,
+      "title": "Mẫu QA kiểm chứng skill Team QA",
+      "title_hash": "7cd68e3bac1c65ab56ce2bb4bb4e9c22d2940dc8dc22167c9a28e0ecbcd3a502",
+      "blocks": [
+        {
+          "id": "316982c2-67d3-479c-aa46-f524af515b21",
+          "kind": "markdown",
+          "markdown": "**Ứng dụng:** Dữ liệu minh họa kiểm chứng skill · **Môi trường và cơ sở dữ liệu:** LOCAL / fixture",
+          "hash": "245b582606a4df4186be579dd4d9da03cb743d59b81ac010afa66a2b5ee8db12",
+          "metadata": {}
+        },
+        {
+          "id": "fc634969-cfbf-494f-9034-63dbae4612b1",
+          "kind": "markdown",
+          "markdown": "**Build:** fixture-20261002 · **Vai trò kiểm thử:** qa-agent · **Hồ sơ kiểm thử:** sample-not-product-qa",
+          "hash": "f7bdfb54509c7bd97adc0ab4f723c9cf55839b43aeeaccfa7a91a3559d7ba14e",
+          "metadata": {}
+        },
+        {
+          "id": "10aeb398-29c5-4a18-845c-ad74393b24f1",
+          "kind": "markdown",
+          "markdown": "## Lỗi đang xử lý",
+          "hash": "3e773768823b40cbf8e24b24a4fe6ce8d4aa6fb4d65b02e64bf89f87f9d140e0",
+          "metadata": {}
+        },
+        {
+          "id": "ba024408-a492-4b9b-8903-1ec265982d27",
+          "kind": "markdown",
+          "markdown": "### Minh họa lỗi lưu biểu mẫu làm mất lựa chọn chi nhánh",
+          "hash": "e96f59e9dd79faa9eee7ffa2cfd684b7d323eca701321b3efe7ac1e1b2829674",
+          "metadata": {}
+        },
+        {
+          "id": "f1951e4a-f521-4e6b-9be0-ead2e5d39cc5",
+          "kind": "markdown",
+          "markdown": "DF-01 · ASSIGNED · P2",
+          "hash": "97ad4fc871de175ad3bfa0d30ea256571b460db97290a3c4398fc1668fa2465c",
+          "metadata": {}
+        },
+        {
+          "id": "7a2112be-1086-48de-9c8f-32c962184922",
+          "kind": "markdown",
+          "markdown": "**Người phụ trách:** dev-agent",
+          "hash": "05b5bb2f6c9cd642dd4d1c4a316358d8ab58a1f5d350a27c77a07e94e8a20961",
+          "metadata": {}
+        },
+        {
+          "id": "a1305c3a-63c8-4a86-ac49-16e6682596fb",
+          "kind": "markdown",
+          "markdown": "**Vị trí:** Dữ liệu minh họa kiểm chứng skill · LOCAL / fixture · 1280x800 · Ca TC-01 Minh họa kiểm tra lưu lựa chọn chi nhánh",
+          "hash": "86af98453401ab6813b9f078dc06ccdf50f1dff9dd641672132e71065607dc34",
+          "metadata": {}
+        },
+        {
+          "id": "a9110470-8f21-41ad-82f9-bf5699b89b47",
+          "kind": "markdown",
+          "markdown": "**Các bước tái hiện:**",
+          "hash": "ecd3e4827d517d7528c1068229f1508e1f26cebd2adbb1e6511e4c0b508abe00",
+          "metadata": {}
+        },
+        {
+          "id": "6edeff73-9cd3-4c32-9338-43d40779e079",
+          "kind": "markdown",
+          "markdown": "1. Mở biểu mẫu minh họa bằng vai trò quản trị.",
+          "hash": "6b4ebdd37afd0a68add89e3a0d2275d36f4b4dd506a992d4f203d0e096297139",
+          "metadata": {}
+        },
+        {
+          "id": "dfd960f7-e138-4aa2-89ab-c7cc68489b45",
+          "kind": "markdown",
+          "markdown": "2. Chọn chi nhánh A.",
+          "hash": "7e772ac933592dfb32e118262ca48337927191e0fee77f164980f3faabf3e9d7",
+          "metadata": {}
+        },
+        {
+          "id": "44a2643e-d3fa-4033-a140-2e4ee4956c03",
+          "kind": "markdown",
+          "markdown": "3. Lưu và mở lại biểu mẫu.",
+          "hash": "aa78aa7504e859533ff34fc722de2a4ef90dec3a99f30e8bdf5d22e45ac56f93",
+          "metadata": {}
+        },
+        {
+          "id": "71afba98-ed3a-47ba-a153-64aceec883e3",
+          "kind": "markdown",
+          "markdown": "**Thực tế:** Trong tình huống minh họa, trường chi nhánh trở về trạng thái chưa chọn.",
+          "hash": "aaba47d92386a91cdb9ceef0cb5daf95183aa7f45a5790575421ebbfe63beebb",
+          "metadata": {}
+        },
+        {
+          "id": "14035ca9-6a4b-4e0c-a160-fad2017c0111",
+          "kind": "markdown",
+          "markdown": "**Mong đợi:** Lựa chọn chi nhánh A vẫn được giữ khi mở lại.",
+          "hash": "ac491c941bc0c0b64bca85b62a0a381865ffe67117ee4c88f80e091eb3079d7f",
+          "metadata": {}
+        },
+        {
+          "id": "5dd46163-b1c1-4260-b680-20bd043bb1bc",
+          "kind": "markdown",
+          "markdown": "**Bằng chứng QA:**",
+          "hash": "2264c66524ac0d887fae5e71f00e522f4a81f41cc02e61a951161097fe2485b2",
+          "metadata": {}
+        },
+        {
+          "id": "1573ede2-2683-4a06-83f5-556acd263870",
+          "kind": "markdown",
+          "markdown": "- EV-ORIGINAL · original · evidence/replace-with-capture.png — bằng chứng cục bộ chưa truy cập được trên Page; cần tải lên",
+          "hash": "09adebdbd2e67a25548e5d4927137d76583dbbe28dc5eaa2c65e7ef38ba80e8c",
+          "metadata": {}
+        },
+        {
+          "id": "7e560d6b-e2bd-466b-8c1f-b0bbe6cce212",
+          "kind": "markdown",
+          "markdown": "- EV-ANNOTATED · annotated · evidence/replace-with-capture.annotated.png — bằng chứng cục bộ chưa truy cập được trên Page; cần tải lên",
+          "hash": "323261e62d224926e01ce085a555b96776edba76af19b448cb8dc910d40adda7",
+          "metadata": {}
+        },
+        {
+          "id": "4d03b561-7ac4-4299-ad94-2a11eb4f8c64",
+          "kind": "markdown",
+          "markdown": "**Bằng chứng sửa lỗi:**",
+          "hash": "081064e69d63fe0212e31674db0307bb8e8bfff6254f9f8fcdf6fcb599052d33",
+          "metadata": {}
+        },
+        {
+          "id": "01d994cb-a364-4314-99e9-90d9f3daa3e0",
+          "kind": "markdown",
+          "markdown": "Chưa có.",
+          "hash": "ebb43025f7b65896417fa282d6eace696a841e65bcba227a2c8c3a07e24580ac",
+          "metadata": {}
+        },
+        {
+          "id": "da61578d-0e89-4e8c-a185-1987a3de9384",
+          "kind": "markdown",
+          "markdown": "## Chờ QA kiểm tra lại",
+          "hash": "b0649446ccb4e3cdebdbf43160752ac9644c1ebdfc336def478c1b6127aea6db",
+          "metadata": {}
+        },
+        {
+          "id": "4b28eaf8-5ef5-4ff5-826e-b33ac4ee3754",
+          "kind": "markdown",
+          "markdown": "Chưa có lỗi trong nhóm này.",
+          "hash": "a845e752124dc59dbcb6bf2fa704f6c81ffdc73fdd27edb7fe322b32037e2b85",
+          "metadata": {}
+        },
+        {
+          "id": "2b9edcc8-cac8-4f1b-a2bf-276bb115d4dc",
+          "kind": "markdown",
+          "markdown": "## Lỗi đã giải quyết",
+          "hash": "f6bb2082c8bb09b539240007dba645f68e59833e8326dc87261b629dccf097fb",
+          "metadata": {}
+        },
+        {
+          "id": "ce8c3dc2-3925-4b39-8d78-5f35a120337c",
+          "kind": "markdown",
+          "markdown": "Chưa có lỗi trong nhóm này.",
+          "hash": "a845e752124dc59dbcb6bf2fa704f6c81ffdc73fdd27edb7fe322b32037e2b85",
+          "metadata": {}
+        },
+        {
+          "id": "51ed29df-9d1a-46f1-8e84-c6e4047ada1a",
+          "kind": "markdown",
+          "markdown": "## Phạm vi và kết quả vòng QA",
+          "hash": "56398028b06b8b875a99ff69dfbfb2dd5b9b454c8bce20980c9d2947e566645a",
+          "metadata": {}
+        },
+        {
+          "id": "23714f87-add4-4820-af6b-db77e1bb757b",
+          "kind": "markdown",
+          "markdown": "Dữ liệu minh họa kiểm chứng skill · LOCAL / fixture · 1280x800",
+          "hash": "6fc14141cb7331ea50ebf380708791d04c00ed6c95a1d979e495d2e08cd9772e",
+          "metadata": {}
+        },
+        {
+          "id": "426ca569-feb3-465f-ba0b-c0c1ab1b3bae",
+          "kind": "markdown",
+          "markdown": "Kết luận phát hành: NO-GO",
+          "hash": "c4cf28578549d864fe4a18a81a876a45c58ae2b0e026b2a0188b8f2c40ca70ff",
+          "metadata": {}
+        },
+        {
+          "id": "7df44d6c-4657-46d7-89ac-763840b59f5c",
+          "kind": "markdown",
+          "markdown": "- Dữ liệu mẫu chỉ dùng kiểm chứng skill; chưa có kết quả QA sản phẩm.",
+          "hash": "ba97a0e1d37a7050e0e2d9db7bf8a4bb615aa4c399979c4306d4f517eecc93d6",
+          "metadata": {}
+        },
+        {
+          "id": "a6307142-19fc-48ea-b837-9fe0d6cc8531",
+          "kind": "markdown",
+          "markdown": "- Vòng 1: Kiểm chứng template và đường tạo Page bằng dữ liệu minh họa; chưa chạy QA sản phẩm.",
+          "hash": "87a199f744a3d8c98962e05f08dc9106767c3e2ea5767c38591c400a4129fbdb",
+          "metadata": {}
+        },
+        {
+          "id": "515de817-bb52-4b3b-b5e0-f310ec2d01da",
+          "kind": "markdown",
+          "markdown": "## Tất cả ca kiểm thử",
+          "hash": "5f06c003ce63b54421756f34455114c0c98600b52f8a538ea0511c899a05f618",
+          "metadata": {}
+        },
+        {
+          "id": "71a0335c-77b2-4e91-b196-8183c8a8d299",
+          "kind": "markdown",
+          "markdown": "### Minh họa kiểm tra lưu lựa chọn chi nhánh",
+          "hash": "c987fef59e5012f4201b3db3d009c5be4fcc9b2661da44d46a9ee4fc0e2d0502",
+          "metadata": {}
+        },
+        {
+          "id": "1059de69-c8aa-42e8-b003-3d59d181d182",
+          "kind": "markdown",
+          "markdown": "TC-01 · TODO · P2 · Function: UNGRADED · UI: UNGRADED",
+          "hash": "be0574d5921bce5483b594072d854d7e93946bd032bb604c3e1903829c4dbf59",
+          "metadata": {}
+        },
+        {
+          "id": "316cf119-5de1-481e-81ac-4141fc1bcbb3",
+          "kind": "markdown",
+          "markdown": "Nguồn: SRC-REQ-01",
+          "hash": "5d6b8ed1037689579e96bf85f6fb2fa683f6210f79512737411cd46aa87a5e77",
+          "metadata": {}
+        },
+        {
+          "id": "76d3bc25-3297-42f1-aca8-bc2c558f4c1f",
+          "kind": "markdown",
+          "markdown": "Yêu cầu: REQ-01",
+          "hash": "00f526caa776e90ceec11114f826e47e558911c640e010b65d5f3999e7fe53fa",
+          "metadata": {}
+        },
+        {
+          "id": "1ba8f5f3-476e-4a3d-b1a0-e3564ca0cdf6",
+          "kind": "markdown",
+          "markdown": "**Các bước kiểm thử:**",
+          "hash": "e22a19c28dd465b114d4e00f72d6b4314afd839e651f4720f84629e281bd3e2c",
+          "metadata": {}
+        },
+        {
+          "id": "ccf01869-e4bb-4add-bb6a-dc0fbd0db887",
+          "kind": "markdown",
+          "markdown": "1. Mở biểu mẫu minh họa.",
+          "hash": "211c1a88710393cf55b0405d79ec0878a957bb1b9a45f517a53da12c687aa2ec",
+          "metadata": {}
+        },
+        {
+          "id": "c9e8e945-61dd-4be9-af3a-b76a445a8514",
+          "kind": "markdown",
+          "markdown": "2. Chọn chi nhánh A.",
+          "hash": "7e772ac933592dfb32e118262ca48337927191e0fee77f164980f3faabf3e9d7",
+          "metadata": {}
+        },
+        {
+          "id": "e5ca49c1-23b1-4a46-a4c3-e24f25ce8c5d",
+          "kind": "markdown",
+          "markdown": "3. Lưu và mở lại.",
+          "hash": "95a50175857fef4ffdeb449afe7eb649c2be7af1e2caf05ee1aa3a65bef4c3af",
+          "metadata": {}
+        },
+        {
+          "id": "fac89ca6-1444-4e79-b9fb-a4c9593ee174",
+          "kind": "markdown",
+          "markdown": "**Mong đợi:** Lựa chọn chi nhánh A được giữ khi mở lại.",
+          "hash": "d951bbfebebe97c426307aff9bab51a7fbe311cab9c2a4b59330016c260e2def",
+          "metadata": {}
+        },
+        {
+          "id": "38ae7bbb-be9d-428a-9ef7-35294b67dd8c",
+          "kind": "markdown",
+          "markdown": "**Function:** Chưa chạy.",
+          "hash": "7255d7cb0cd9e4a8513a8f5f860fc7bfa1c74b52bf3c364e0b429a8932d671ea",
+          "metadata": {}
+        },
+        {
+          "id": "63ff6ff5-94d2-482a-a724-826b578c57cc",
+          "kind": "markdown",
+          "markdown": "**UI:** Chưa chạy.",
+          "hash": "44229a4d92d5064f9b0549e6b7c4199df974b20cb4b7a3702e2e8e20014ed30f",
+          "metadata": {}
+        },
+        {
+          "id": "e5ef2551-9462-4346-bef6-62468387e3c0",
+          "kind": "markdown",
+          "markdown": "## Tham chiếu kỹ thuật",
+          "hash": "fd9cb20838bfc31800915629763d46d05db46b073a4a27277e169177b9ef61b7",
+          "metadata": {}
+        },
+        {
+          "id": "4edb8f40-d406-4874-81e2-423f6938dd9a",
+          "kind": "markdown",
+          "markdown": "canonical sha256 3d62290e34929588a0e0ad633189b645f366e87147ba537b585957bb48738ddd · revision 1 · board skill-upgrade-verification-sample",
+          "hash": "c889c7c2aaa885ddc9c352ca5dc7280c065de444e1aa52ffa6551a99e468f503",
+          "metadata": {}
+        },
+        {
+          "id": "07c637c4-4cb0-47ad-98d4-aa1253b7234f",
+          "kind": "markdown",
+          "markdown": "Định danh bản chạy: {\"runUuid\":\"00000000-0000-4000-8000-000000000001\",\"commit\":\"0000000000000000000000000000000000000000\",\"build\":\"fixture-20261002\",\"env\":\"LOCAL\",\"db\":\"not-applicable\",\"role\":\"qa-agent\",\"testProfile\":\"sample-not-product-qa\",\"currentRound\":1}",
+          "hash": "fb754ded9b40572f27be05c7e2d644fe0ad4b377a645d5dab6fc995259dc047e",
+          "metadata": {}
+        },
+        {
+          "id": "e2b01005-0396-44a5-8a26-23d4f7e8c9c7",
+          "kind": "markdown",
+          "markdown": "### Nguồn yêu cầu",
+          "hash": "eeca152958c63d6d1123230bc2534f0505a64ca261bd61e9e2990e514158df66",
+          "metadata": {}
+        },
+        {
+          "id": "7f93d7bc-f650-49fa-8ec2-33232a58a184",
+          "kind": "markdown",
+          "markdown": "- {\"id\":\"SRC-REQ-01\",\"kind\":\"spec\",\"sourceSystem\":\"skill-verification-fixture\",\"externalKey\":\"REQ-01\",\"title\":\"Yêu cầu minh họa giữ lựa chọn sau khi lưu\",\"origin\":\"upstream\"}",
+          "hash": "4ce3b7cbf195d4b4d23f5f657655091ccf79c107ea3d97a1802051da26ba9868",
+          "metadata": {}
+        },
+        {
+          "id": "2923bc83-6889-4907-8884-462478337d76",
+          "kind": "markdown",
+          "markdown": "### TC-01 Nhật ký ca kiểm thử",
+          "hash": "53f6ce64216037ab8f8330203aec122aeaada7582561b512b09c7dee2c4e7fb9",
+          "metadata": {}
+        },
+        {
+          "id": "86ac53b9-01f5-47b0-9fa6-7666e5ca8763",
+          "kind": "markdown",
+          "markdown": "- assignee: \"qa-agent\"",
+          "hash": "e435a2f3e0b087d9435ae120d0cff63777a3c6e76ed913d4276120fa319c34c7",
+          "metadata": {}
+        },
+        {
+          "id": "0ed5acfe-3762-4039-abba-73a52b40313f",
+          "kind": "markdown",
+          "markdown": "- requirements: \\[\"REQ-01\"\\]",
+          "hash": "c1b54d93622623d5aa937dc17f321aae896e91ebd2ed947dc037d584bc96de84",
+          "metadata": {}
+        },
+        {
+          "id": "3231a64c-56ca-4b32-ae51-a5da51257de4",
+          "kind": "markdown",
+          "markdown": "- machine: {\"rule\":\"UNGRADED\",\"selector\":\"#sample-form\"}",
+          "hash": "c47a187fe63cc474568d37f587593023602a8aef4d340448774490d760a5e175",
+          "metadata": {}
+        },
+        {
+          "id": "ec20f999-4375-453f-a710-9fb197b29b80",
+          "kind": "markdown",
+          "markdown": "- states: \\[\\]",
+          "hash": "9906d2608c86baa28d332a8a74961c2e61e365afa6a3edb0919f02842d98a9b3",
+          "metadata": {}
+        },
+        {
+          "id": "e048057d-8763-4520-814d-654d18664a40",
+          "kind": "markdown",
+          "markdown": "- stateReceipts: \\[\\]",
+          "hash": "1d4f3e5206f4d2f6023d059c6a9e28c593b44becc2eaee4dd27c66fc24611446",
+          "metadata": {}
+        },
+        {
+          "id": "4795eb59-8431-4873-9e37-5442df1fada2",
+          "kind": "markdown",
+          "markdown": "- results: \\[\\]",
+          "hash": "26c4abcbcc8e7f466ca1a2c60424dbbc4b351beae8d8cc3c8dabf28f07029898",
+          "metadata": {}
+        },
+        {
+          "id": "a694bad1-03d7-42d0-8e54-f4b2371133b4",
+          "kind": "markdown",
+          "markdown": "- comments: \\[\\]",
+          "hash": "0be7c2c44bcef32cd3a3746769540d036f364bf1f1085cdab026e1b16b493d11",
+          "metadata": {}
+        },
+        {
+          "id": "d214c87d-ec60-46bc-a740-21bbaa6fb6c2",
+          "kind": "markdown",
+          "markdown": "- history: \\[\\]",
+          "hash": "47a709e9a18151da1a30813688eaf45be50d8770f0f92e8aa1bd244fa224a776",
+          "metadata": {}
+        },
+        {
+          "id": "ef8ebc8e-e5f6-4bbd-bfcd-d2f72e625400",
+          "kind": "markdown",
+          "markdown": "### DF-01 Nhật ký lỗi",
+          "hash": "0dc6bd17fc5a4338cfddfd8d7de45625b7f300c76fc2d0e58aec1d1b1deab8f1",
+          "metadata": {}
+        },
+        {
+          "id": "ba586f77-0c9c-4b1a-b3f8-13e88dbd954b",
+          "kind": "markdown",
+          "markdown": "- caseId: \"TC-01\"",
+          "hash": "9d8d095a870207f4645025ef917a6f22d82a6ce0ccef488f8750a8bae9929e55",
+          "metadata": {}
+        },
+        {
+          "id": "8764e184-31f2-4a32-bdf0-86a1f65a8714",
+          "kind": "markdown",
+          "markdown": "- assignee: \"dev-agent\"",
+          "hash": "8a3e175af2892b1bbb4ce490a9d5187da7e08dac01e6038a7b8c1f01d471ddb7",
+          "metadata": {}
+        },
+        {
+          "id": "1cf76368-1728-4bde-9c0b-80fd2415424c",
+          "kind": "markdown",
+          "markdown": "- createdBy: \"qa-agent\"",
+          "hash": "7173119060cfc40a194e037a912f12eb82fad6d0737e62fe30b8ace2f0e81b67",
+          "metadata": {}
+        },
+        {
+          "id": "f93b25b5-f7ee-4eb4-ab9f-27872fa79fab",
+          "kind": "markdown",
+          "markdown": "- findings: \\[{\"id\":\"F-01\",\"rule\":\"sample-fixture\",\"severity\":\"high\",\"selector\":\"#sample-form\",\"caption\":\"Minh họa cách gắn bằng chứng vào lỗi; chưa có ảnh kiểm chứng sản phẩm.\",\"bbox\":{\"x\":0,\"y\":0,\"width\":1,\"height\":1,\"dpr\":1}}\\]",
+          "hash": "703d597a4ee5e2601a89f908d9f827c47d97db4cb565b70ecc577c8acbd7e14d",
+          "metadata": {}
+        },
+        {
+          "id": "e50b3c9d-e2fa-4db4-8570-e93c60464449",
+          "kind": "markdown",
+          "markdown": "- fixEvidence: \\[\\]",
+          "hash": "755c81f3f8616fc024d3a8c75af3e4db1cfb771ae157a57cb1cdaeeef562f9b0",
+          "metadata": {}
+        },
+        {
+          "id": "894e591b-cb28-4b4a-a730-7f4489b3e109",
+          "kind": "markdown",
+          "markdown": "- lastRetestFixEvidenceCount: 0",
+          "hash": "b6f72f131cf78f8aa28cdcc89717fcd0b20c205c83caf215d07d4c6586c27467",
+          "metadata": {}
+        },
+        {
+          "id": "9acdb610-2753-452f-9030-d4e3cb9fa1f7",
+          "kind": "markdown",
+          "markdown": "- comments: \\[\\]",
+          "hash": "0be7c2c44bcef32cd3a3746769540d036f364bf1f1085cdab026e1b16b493d11",
+          "metadata": {}
+        },
+        {
+          "id": "a784a29b-2dd0-4234-91ad-7c5e41edd7d6",
+          "kind": "markdown",
+          "markdown": "- history: \\[\\]",
+          "hash": "47a709e9a18151da1a30813688eaf45be50d8770f0f92e8aa1bd244fa224a776",
+          "metadata": {}
+        },
+        {
+          "id": "ff11d724-4a58-445d-ba83-f22ba0a488c3",
+          "kind": "markdown",
+          "markdown": "- rejectionReason: null",
+          "hash": "7285579927eb986c6a79a2479ffb5a0cbed30c2cffdc5520f57cb8e965a22dff",
+          "metadata": {}
+        },
+        {
+          "id": "31181460-feac-4776-9bbd-37b779abcd10",
+          "kind": "markdown",
+          "markdown": "### Độ bao phủ và phần chưa kiểm thử",
+          "hash": "92bc1728e39748097c760df198e482c6c74622affb15ebe557d4bbbba5d41e36",
+          "metadata": {}
+        },
+        {
+          "id": "88738a29-99b6-4d01-b1ee-4f0d80a9d40f",
+          "kind": "markdown",
+          "markdown": "- coverage: \\[\\]",
+          "hash": "f433e6f781374dcf2c895c60f643f3bbb7702153869440a364c21934a35d8d01",
+          "metadata": {}
+        },
+        {
+          "id": "d64a5117-d522-450f-9bf1-788dcbc5ff07",
+          "kind": "markdown",
+          "markdown": "- untested: \\[\\]",
+          "hash": "bde329d486faa22b53fcce7f0a017305c8b74959faa155b3bcf1cef7d20dc1e4",
+          "metadata": {}
+        },
+        {
+          "id": "f0f5c3d2-153b-4d2a-80b3-a618e89cefcb",
+          "kind": "markdown",
+          "markdown": "- rounds: \\[{\"round\":1,\"startedAt\":\"2026-08-11T00:00:00Z\",\"scope\":\"Kiểm chứng template và đường tạo Page bằng dữ liệu minh họa; chưa chạy QA sản phẩm.\"}\\]",
+          "hash": "cc92b53f538bdceffda247f4bd679f4d1ff7dc3d2cd959630bb1ba335a623aa8",
+          "metadata": {}
+        },
+        {
+          "id": "de95fb9c-354e-45bc-bac2-7acc439c69c2",
+          "kind": "markdown",
+          "markdown": "- evidenceManifest: \\[\\]",
+          "hash": "1e868481eb2d659af446e84016870db55fbcee8180bdaabdd331e7b9ce1a7f64",
+          "metadata": {}
+        },
+        {
+          "id": "ad2632f1-474a-4fec-8452-3d790175594b",
+          "kind": "markdown",
+          "markdown": "- release: {\"verdict\":\"NO-GO\",\"risks\":\\[\"Dữ liệu mẫu chỉ dùng kiểm chứng skill; chưa có kết quả QA sản phẩm.\"\\]}",
+          "hash": "c2026ba133d712d092359d841567c9690d48665cedcf0875654b24f203398f4b",
+          "metadata": {}
+        }
+      ],
+      "markdown": "**Ứng dụng:** Dữ liệu minh họa kiểm chứng skill · **Môi trường và cơ sở dữ liệu:** LOCAL / fixture\n\n**Build:** fixture-20261002 · **Vai trò kiểm thử:** qa-agent · **Hồ sơ kiểm thử:** sample-not-product-qa\n\n## Lỗi đang xử lý\n\n### Minh họa lỗi lưu biểu mẫu làm mất lựa chọn chi nhánh\n\nDF-01 · ASSIGNED · P2\n\n**Người phụ trách:** dev-agent\n\n**Vị trí:** Dữ liệu minh họa kiểm chứng skill · LOCAL / fixture · 1280x800 · Ca TC-01 Minh họa kiểm tra lưu lựa chọn chi nhánh\n\n**Các bước tái hiện:**\n\n1. Mở biểu mẫu minh họa bằng vai trò quản trị.\n\n2. Chọn chi nhánh A.\n\n3. Lưu và mở lại biểu mẫu.\n\n**Thực tế:** Trong tình huống minh họa, trường chi nhánh trở về trạng thái chưa chọn.\n\n**Mong đợi:** Lựa chọn chi nhánh A vẫn được giữ khi mở lại.\n\n**Bằng chứng QA:**\n\n- EV-ORIGINAL · original · evidence/replace-with-capture.png — bằng chứng cục bộ chưa truy cập được trên Page; cần tải lên\n\n- EV-ANNOTATED · annotated · evidence/replace-with-capture.annotated.png — bằng chứng cục bộ chưa truy cập được trên Page; cần tải lên\n\n**Bằng chứng sửa lỗi:**\n\nChưa có.\n\n## Chờ QA kiểm tra lại\n\nChưa có lỗi trong nhóm này.\n\n## Lỗi đã giải quyết\n\nChưa có lỗi trong nhóm này.\n\n## Phạm vi và kết quả vòng QA\n\nDữ liệu minh họa kiểm chứng skill · LOCAL / fixture · 1280x800\n\nKết luận phát hành: NO-GO\n\n- Dữ liệu mẫu chỉ dùng kiểm chứng skill; chưa có kết quả QA sản phẩm.\n\n- Vòng 1: Kiểm chứng template và đường tạo Page bằng dữ liệu minh họa; chưa chạy QA sản phẩm.\n\n## Tất cả ca kiểm thử\n\n### Minh họa kiểm tra lưu lựa chọn chi nhánh\n\nTC-01 · TODO · P2 · Function: UNGRADED · UI: UNGRADED\n\nNguồn: SRC-REQ-01\n\nYêu cầu: REQ-01\n\n**Các bước kiểm thử:**\n\n1. Mở biểu mẫu minh họa.\n\n2. Chọn chi nhánh A.\n\n3. Lưu và mở lại.\n\n**Mong đợi:** Lựa chọn chi nhánh A được giữ khi mở lại.\n\n**Function:** Chưa chạy.\n\n**UI:** Chưa chạy.\n\n## Tham chiếu kỹ thuật\n\ncanonical sha256 3d62290e34929588a0e0ad633189b645f366e87147ba537b585957bb48738ddd · revision 1 · board skill-upgrade-verification-sample\n\nĐịnh danh bản chạy: {\"runUuid\":\"00000000-0000-4000-8000-000000000001\",\"commit\":\"0000000000000000000000000000000000000000\",\"build\":\"fixture-20261002\",\"env\":\"LOCAL\",\"db\":\"not-applicable\",\"role\":\"qa-agent\",\"testProfile\":\"sample-not-product-qa\",\"currentRound\":1}\n\n### Nguồn yêu cầu\n\n- {\"id\":\"SRC-REQ-01\",\"kind\":\"spec\",\"sourceSystem\":\"skill-verification-fixture\",\"externalKey\":\"REQ-01\",\"title\":\"Yêu cầu minh họa giữ lựa chọn sau khi lưu\",\"origin\":\"upstream\"}\n\n### TC-01 Nhật ký ca kiểm thử\n\n- assignee: \"qa-agent\"\n\n- requirements: \\[\"REQ-01\"\\]\n\n- machine: {\"rule\":\"UNGRADED\",\"selector\":\"#sample-form\"}\n\n- states: \\[\\]\n\n- stateReceipts: \\[\\]\n\n- results: \\[\\]\n\n- comments: \\[\\]\n\n- history: \\[\\]\n\n### DF-01 Nhật ký lỗi\n\n- caseId: \"TC-01\"\n\n- assignee: \"dev-agent\"\n\n- createdBy: \"qa-agent\"\n\n- findings: \\[{\"id\":\"F-01\",\"rule\":\"sample-fixture\",\"severity\":\"high\",\"selector\":\"#sample-form\",\"caption\":\"Minh họa cách gắn bằng chứng vào lỗi; chưa có ảnh kiểm chứng sản phẩm.\",\"bbox\":{\"x\":0,\"y\":0,\"width\":1,\"height\":1,\"dpr\":1}}\\]\n\n- fixEvidence: \\[\\]\n\n- lastRetestFixEvidenceCount: 0\n\n- comments: \\[\\]\n\n- history: \\[\\]\n\n- rejectionReason: null\n\n### Độ bao phủ và phần chưa kiểm thử\n\n- coverage: \\[\\]\n\n- untested: \\[\\]\n\n- rounds: \\[{\"round\":1,\"startedAt\":\"2026-08-11T00:00:00Z\",\"scope\":\"Kiểm chứng template và đường tạo Page bằng dữ liệu minh họa; chưa chạy QA sản phẩm.\"}\\]\n\n- evidenceManifest: \\[\\]\n\n- release: {\"verdict\":\"NO-GO\",\"risks\":\\[\"Dữ liệu mẫu chỉ dùng kiểm chứng skill; chưa có kết quả QA sản phẩm.\"\\]}",
+      "page_id": "page_recorded_fixture"
+    }
+  },
+  "isError": false
+}

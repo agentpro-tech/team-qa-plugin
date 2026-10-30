@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ui-sanity fixture A — base defects</title>
+<style>
+  body { font-family: sans-serif; margin: 24px; }
+  section { margin-bottom: 32px; }
+  h2 { font-size: 14px; color: #666; }
+  .btn { height: 36px; padding: 0 16px; border: 1px solid #ccc; border-radius: 6px; background: #f5f5f5; }
+</style>
+</head>
+<body>
+
+<!-- DEFECT 1: text clipped horizontally (no ellipsis) → expect text-clipped-x -->
+<section>
+  <h2>defect: clip-x</h2>
+  <div id="clip-x" style="width:120px;overflow:hidden;white-space:nowrap;border:1px solid #ddd;padding:4px;">This label is much much longer than its box allows</div>
+</section>
+
+<!-- DEFECT 2: text clipped vertically → expect text-clipped-y -->
+<section>
+  <h2>defect: clip-y</h2>
+  <div id="clip-y" style="width:220px;height:34px;overflow:hidden;line-height:20px;border:1px solid #ddd;">Line one of a paragraph that keeps going. Line two continues the thought. Line three is fully invisible and chopped by the fixed height of this box.</div>
+</section>
+
+<!-- DEFECT 3: button occluded by a stray overlay div → expect occluded-control -->
+<section>
+  <h2>defect: occluded button</h2>
+  <div style="position:relative;width:220px;height:60px;">
+    <button id="occluded-btn" class="btn" style="position:absolute;left:0;top:12px;">Save changes</button>
+    <div id="stray-cover" style="position:absolute;left:-8px;top:0;width:200px;height:60px;background:rgba(200,220,255,.5);"></div>
+  </div>
+</section>
+
+<!-- DEFECT 4: misaligned row (3rd button nudged 9px) → expect misaligned-row -->
+<section>
+  <h2>defect: misaligned row</h2>
+  <div id="bad-row" style="display:flex;gap:12px;align-items:flex-start;">
+    <button class="btn">One</button>
+    <button class="btn">Two</button>
+    <button class="btn" style="margin-top:9px;">Three</button>
+    <button class="btn">Four</button>
+  </div>
+</section>
+
+<!-- DEFECT 5: element wider than viewport → expect page-overflow-x -->
+<section>
+  <h2>defect: page overflow</h2>
+  <div id="too-wide" style="width:calc(100vw + 320px);height:24px;background:repeating-linear-gradient(90deg,#eee,#eee 10px,#ddd 10px,#ddd 20px);"></div>
+</section>
+
+<!-- DEFECT 6: zero-size button → expect zero-size-interactive (warn) -->
+<section>
+  <h2>defect: zero-size button</h2>
+  <button id="ghost-btn" style="width:0;height:0;padding:0;border:0;overflow:hidden;">Ghost</button>
+</section>
+
+<!-- CLEAN CONTROLS — must NOT be flagged -->
+<section>
+  <h2>clean: ellipsis truncation (intentional)</h2>
+  <div id="clean-ellipsis" style="width:120px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border:1px solid #ddd;padding:4px;">Intentionally truncated long label with ellipsis</div>
+
+  <h2>clean: sr-only link (intentional)</h2>
+  <a href="#main" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Skip to content</a>
+
+  <h2>clean: aligned row</h2>
+  <div id="good-row" style="display:flex;gap:12px;">
+    <button class="btn">Alpha</button>
+    <button class="btn">Beta</button>
+    <button class="btn">Gamma</button>
+    <button class="btn">Delta</button>
+  </div>
+
+  <h2>clean: normal paragraph</h2>
+  <p style="max-width:480px;">A perfectly normal paragraph that wraps naturally and is fully visible, with nothing hidden or clipped anywhere.</p>
+</section>
+
+</body>
+</html>

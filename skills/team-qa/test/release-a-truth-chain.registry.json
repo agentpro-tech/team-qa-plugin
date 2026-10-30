@@ -1,0 +1,22 @@
+{
+  "schema": "agentpro/release-a-mutation-registry/v1",
+  "release": "Release A - Truth Chain",
+  "component": "team-qa",
+  "frozen_at": "2026-09-01T00:00:00.000Z",
+  "acceptance": [
+    {"id": "M01-M02", "positive": "absent FULL or SMOKE tier is N/A and the checker ledger completes", "negative": "0/0 must never become 100 or crash"},
+    {"id": "M03", "positive": "receipt consumes the computed report decision", "negative": "Markdown GO cannot mint a GO receipt"},
+    {"id": "M04", "positive": "release-bound run has roles and target lock", "negative": "missing roles stops UNGRADED:UNGOVERNED"},
+    {"id": "M05", "positive": "only exact qa-code/receipt/v2 or qa-gui/receipt/v2 is accepted", "negative": "aggregate verdict/v1 is rejected"},
+    {"id": "M06", "positive": "board case belongs to the child receipt atomic coverage", "negative": "foreign case membership is rejected"},
+    {"id": "M16", "positive": "Team QA declared receipt majors match both child schemas", "negative": "an old declared major stops before execution"}
+  ],
+  "mutations": [
+    "M01-M02-NOT-APPLICABLE",
+    "M04-UNGOVERNED",
+    "M03-COMPUTED-GO",
+    "M05-EXACT-SCHEMA",
+    "M06-CASE-MEMBERSHIP",
+    "M16-SCHEMA-ALIGNMENT"
+  ]
+}

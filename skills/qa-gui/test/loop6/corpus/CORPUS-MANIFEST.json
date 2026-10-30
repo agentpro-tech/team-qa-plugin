@@ -1,0 +1,89 @@
+{
+  "manifestVersion": 1,
+  "status": "FROZEN",
+  "frozenAt": "2026-10-29T17:36:13+0700",
+  "refreezeRevision": 3,
+  "supersedesManifestSha256": "b6ded29af0c5bab1f77ad4384e8bc8b3f79407435bbe30d5f132e1787b8739a5",
+  "refreezeReason": "Revision 2 named a client project in fixture app names, URLs and evidence paths; revision 3 replaces it with the neutral SampleShop throughout and changes nothing else.",
+  "sourceBa": "owner BA qa-gui-loop-6-closed.md (kept by the owner, not shipped; sourceBaSha256 pins it)",
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "liveTarget": {
+    "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+    "preview": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+    "expectedState": {
+      "visibility": "draft",
+      "published": false,
+      "externalGitConnected": false,
+      "lovableDatabaseEnabled": false
+    }
+  },
+  "totals": {
+    "hard": 212,
+    "ordinary": 70
+  },
+  "files": [
+    {
+      "file": "v6.1-app-map.json",
+      "feature": "V6.1",
+      "hard": 14,
+      "ordinary": 7,
+      "sha256": "e40508ad835be6977973e6e9800962404e03339d7774458f8f4e4c4bbd40e835"
+    },
+    {
+      "file": "v6.2-properties.json",
+      "feature": "V6.2",
+      "hard": 28,
+      "ordinary": 9,
+      "sha256": "dbd40c996cd7198b81d2b41fccd6fb8a390773c8038e1c6cf096f3a5285c16ac"
+    },
+    {
+      "file": "v6.3-memory.json",
+      "feature": "V6.3",
+      "hard": 20,
+      "ordinary": 6,
+      "sha256": "6fb7dc813d4e01a9d8bb6c8d03a0665966b24028c4daf9a7615d120d9d47b885"
+    },
+    {
+      "file": "v6.4-diagnosis.json",
+      "feature": "V6.4",
+      "hard": 55,
+      "ordinary": 12,
+      "sha256": "ac3147d70a339d3002675301c77c54e0629896c14a893d0215f43bb77484b962"
+    },
+    {
+      "file": "v6.5-ba-plan.json",
+      "feature": "V6.5",
+      "hard": 24,
+      "ordinary": 8,
+      "sha256": "4a15d1b4569ab71eab70b42f200a8ec39a2df082f094d5bdc8dd4c991571cd3b"
+    },
+    {
+      "file": "v6.6-intent-flow.json",
+      "feature": "V6.6",
+      "hard": 22,
+      "ordinary": 10,
+      "sha256": "c05b522486cc43610223d5bd5c9e77188277eda0be5bcd114ffc578058914cec"
+    },
+    {
+      "file": "v6.7-regression-job.json",
+      "feature": "V6.7",
+      "hard": 22,
+      "ordinary": 6,
+      "sha256": "66458870eb4ac6ea6d0dc96ca7971c718231282e0c91bd21294c8cfcdaafdf7d"
+    },
+    {
+      "file": "v6.8-form-probe.json",
+      "feature": "V6.8",
+      "hard": 27,
+      "ordinary": 12,
+      "sha256": "5f9ac1141c114b3c0d01d3cebf0dd8bd36f7aafa70d7e6dfca10ac93aeb9d7f1"
+    }
+  ],
+  "rules": [
+    "Corpus files are immutable after freeze.",
+    "Checker authors and product coders may read but must not modify corpus files.",
+    "Any hash mismatch makes the affected feature UNGRADED.",
+    "Identical function inputs must never map to conflicting oracle outputs.",
+    "No official or Production target fallback is permitted."
+  ]
+}

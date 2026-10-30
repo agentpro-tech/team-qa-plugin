@@ -1,0 +1,15 @@
+{
+  "roster_title": "Proposed roster — approve before planning",
+  "roster_columns": "| Role | Provider / model | Reasoning | Route | Task |",
+  "approval": "Approve this roster to plan QA. The user does not need to type the hash.",
+  "availability": "The catalog does not prove that the tools/models run; preflight results are presented separately.",
+  "roles": {
+    "test_manager": ["Test Manager", "Orchestrates, plans and reports"],
+    "analyst": ["Analyst", "Analyzes requirements and risks"],
+    "designer": ["Designer", "Designs cases after plan approval"],
+    "executor_gui": ["GUI Executor", "Function/UI QA through qa-gui and Dragon"],
+    "executor_code": ["Code Executor", "Code QA independent of the coder"],
+    "coverage_gate": ["Coverage Gate", "Aggregates coverage; no LLM call"]
+  },
+  "routes": {"codex-native": "Native Codex", "codex": "Codex CLI", "claude": "Claude CLI", "node": "Node deterministic"}
+}

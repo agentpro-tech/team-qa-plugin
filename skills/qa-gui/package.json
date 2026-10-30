@@ -1,0 +1,11 @@
+{
+  "name": "qa-gui-loopup-harness",
+  "private": true,
+  "version": "2.15.0",
+  "type": "module",
+  "scripts": {
+    "test:release-truth": "node --test --test-concurrency=1 test/qa-gate-release-truth.test.mjs test/session3-release-truth-v2.test.mjs test/session3-mutation.test.mjs",
+    "test:release-c": "node --test --test-concurrency=1 test/release-c-transition-corpus.acceptance.test.mjs test/release-c-transition-corpus.mutation.test.mjs",
+    "test": "node --test --test-concurrency=1 test/*.test.mjs"
+  }
+}

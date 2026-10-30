@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-code/contracts/release-truth-contract/v2/team-qa.receipt.schema.json",
+  "title": "team-qa/receipt/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "run_uuid", "task_base", "source_revision", "exact_final_sha", "requirements_hash", "verification_lane", "artifacts", "plan_case_total", "executed", "missing_ids", "rtm_filled", "rtm_total", "release_verdict", "created_at", "integrity"],
+  "properties": {
+    "schema": {"const": "team-qa/receipt/v1"},
+    "contract_sha256": {"$ref": "#/$defs/sha256"},
+    "run_uuid": {"type": "string", "format": "uuid"},
+    "task_base": {"$ref": "#/$defs/sha40"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "exact_final_sha": {"$ref": "#/$defs/sha40"},
+    "requirements_hash": {"$ref": "#/$defs/sha256"},
+    "verification_lane": {"const": "all"},
+    "artifacts": {"type": "object", "additionalProperties": false, "required": ["plan", "tracked_plan", "board", "rtm", "summary"], "properties": {"plan": {"$ref": "#/$defs/artifact"}, "tracked_plan": {"$ref": "#/$defs/artifact"}, "board": {"$ref": "#/$defs/artifact"}, "rtm": {"$ref": "#/$defs/artifact"}, "summary": {"$ref": "#/$defs/artifact"}}},
+    "plan_case_total": {"type": "integer", "minimum": 0},
+    "executed": {"type": "integer", "minimum": 0},
+    "missing_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "rtm_filled": {"type": "integer", "minimum": 0},
+    "rtm_total": {"type": "integer", "minimum": 0},
+    "release_verdict": {"enum": ["GO", "NO-GO", "UNGRADED"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "integrity": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "artifact": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}}
+  }
+}

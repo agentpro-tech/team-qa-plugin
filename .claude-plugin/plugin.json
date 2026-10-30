@@ -1,0 +1,21 @@
+{
+  "name": "team-qa",
+  "displayName": "Team QA",
+  "version": "1.15.0",
+  "description": "A QA team inside Claude Code: it plans the testing, gets your sign-off, runs independent agents for the GUI and the code, checks every verdict against evidence and ends with GO or NO_GO.",
+  "author": {
+    "name": "Agent Pro",
+    "url": "https://github.com/agentpro-tech"
+  },
+  "homepage": "https://github.com/agentpro-tech/team-qa-releases",
+  "repository": "https://github.com/agentpro-tech/team-qa-plugin",
+  "keywords": [
+    "qa",
+    "testing",
+    "browser-testing",
+    "code-review",
+    "release-readiness"
+  ],
+  "documentationUrl": "https://github.com/agentpro-tech/team-qa-releases#readme",
+  "supportUrl": "https://github.com/agentpro-tech/team-qa-releases/issues"
+}

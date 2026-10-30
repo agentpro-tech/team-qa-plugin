@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agentpro://escaped-defect-defense/v1/registry",
+  "title": "agentpro/escaped-defect-registry/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "registry_id", "source_revision", "defects"],
+  "properties": {
+    "schema": { "const": "agentpro/escaped-defect-registry/v1" },
+    "registry_id": { "type": "string", "minLength": 1 },
+    "source_revision": { "type": "string", "minLength": 1 },
+    "defects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["incident_id", "title", "source", "affected_component", "escaped_gate", "severity", "reproduction", "expected", "observed", "root_cause_class", "affected_layers", "regression_tests", "owner", "closure_evidence"],
+        "properties": {
+          "incident_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$" },
+          "title": { "type": "string", "minLength": 1 },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "ref", "sha256"],
+            "properties": {
+              "kind": { "type": "string", "minLength": 1 },
+              "ref": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          },
+          "affected_component": { "type": "string", "minLength": 1 },
+          "escaped_gate": { "type": "string", "minLength": 1 },
+          "severity": { "enum": ["P0", "P1", "P2"] },
+          "reproduction": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "expected": { "type": "string", "minLength": 1 },
+          "observed": { "type": "string", "minLength": 1 },
+          "root_cause_class": { "type": "string", "minLength": 1 },
+          "affected_layers": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "enum": ["qa-code", "qa-gui", "team-qa", "team-code"] }
+          },
+          "regression_tests": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/regressionBinding" }
+          },
+          "owner": { "type": "string", "minLength": 1 },
+          "closure_evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/closureEvidence" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "regressionBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "case_id", "requirement_id", "verification_lane", "case_kind", "fixture", "positive_test", "mutation_test", "gate", "fixture_sha256", "positive_test_sha256", "mutation_test_sha256", "gate_sha256"],
+      "properties": {
+        "layer": { "enum": ["qa-code", "qa-gui", "team-qa", "team-code"] },
+        "case_id": { "type": "string", "minLength": 1 },
+        "requirement_id": { "type": "string", "minLength": 1 },
+        "verification_lane": { "enum": ["code", "gui", "machine", "multi"] },
+        "case_kind": { "enum": ["static", "behavioral"] },
+        "fixture": { "type": "string", "minLength": 1 },
+        "positive_test": { "type": "string", "minLength": 1 },
+        "mutation_test": { "type": "string", "minLength": 1 },
+        "gate": { "type": "string", "minLength": 1 },
+        "fixture_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "positive_test_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "mutation_test_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "gate_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "closureEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "kind", "path", "sha256"],
+      "properties": {
+        "layer": { "enum": ["qa-code", "qa-gui", "team-qa", "team-code"] },
+        "kind": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

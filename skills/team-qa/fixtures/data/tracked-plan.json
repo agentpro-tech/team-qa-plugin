@@ -1,0 +1,6 @@
+{
+  "cases": [
+    {"id":"CASE-HIGH","req_id":"REQ-HIGH","lane":"lane-high","steps":["Run high-risk flow"],"expected":"High-risk flow succeeds","data":{},"priority":"P2","kind":"behavioral","taxonomy":["functional","negative","regression"],"states":["ideal","error"],"viewports":["mobile","desktop"]},
+    {"id":"CASE-LOW","req_id":"REQ-LOW","lane":"lane-low","steps":["Inspect low-risk state"],"expected":"Low-risk state is correct","data":{},"priority":"P2","kind":"static","taxonomy":["functional","visual"],"states":["empty","ideal"],"viewports":["tablet","desktop"]}
+  ]
+}

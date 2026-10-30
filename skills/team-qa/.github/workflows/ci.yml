@@ -1,0 +1,151 @@
+name: team-qa-release-gate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Use the pinned SCROLL runtime that ships with Team QA (vendor/scroll/VENDORED.md)
+        run: |
+          grep -q 'a134d56e66d9e797bff49d6141eca6002bb6518d' vendor/scroll/VENDORED.md
+          cp -R vendor/scroll "$RUNNER_TEMP/scroll"
+      - name: Fetch pinned QA parser and board tooling for fixture tests
+        env:
+          QA_CODE_DEPLOY_KEY: ${{ secrets.QA_CODE_READ_DEPLOY_KEY }}
+          QA_GUI_DEPLOY_KEY: ${{ secrets.QA_GUI_READ_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$QA_CODE_DEPLOY_KEY" ] || [ -z "$QA_GUI_DEPLOY_KEY" ]; then
+            echo 'QA_CODE_READ_DEPLOY_KEY and QA_GUI_READ_DEPLOY_KEY are required: one read-only deploy key per QA repository.' >&2
+            exit 20
+          fi
+          umask 077
+          ssh_dir="$(mktemp -d "$RUNNER_TEMP/teamqa-ci-ssh.XXXXXX")"
+          printf '%s\n' "$QA_CODE_DEPLOY_KEY" > "$ssh_dir/qa-code"
+          printf '%s\n' "$QA_GUI_DEPLOY_KEY" > "$ssh_dir/qa-gui"
+          unset QA_CODE_DEPLOY_KEY QA_GUI_DEPLOY_KEY
+          curl --fail --silent --show-error https://api.github.com/meta | jq -r '.ssh_keys[] | "github.com " + .' > "$ssh_dir/known_hosts"
+          test -s "$ssh_dir/known_hosts"
+          GIT_SSH_COMMAND="ssh -i \"$ssh_dir/qa-code\" -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o StrictHostKeyChecking=yes -o 'UserKnownHostsFile=\"$ssh_dir/known_hosts\"'" git clone --no-checkout git@github.com:agentpro-tech/qa-code.git "$RUNNER_TEMP/qa-code"
+          git -C "$RUNNER_TEMP/qa-code" checkout 925ae774ee31960be9ae653bdb3d07df46a6ed2a
+          GIT_SSH_COMMAND="ssh -i \"$ssh_dir/qa-gui\" -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o StrictHostKeyChecking=yes -o 'UserKnownHostsFile=\"$ssh_dir/known_hosts\"'" git clone --no-checkout git@github.com:agentpro-tech/qa-gui.git "$RUNNER_TEMP/qa-gui"
+          git -C "$RUNNER_TEMP/qa-gui" checkout 4c6ad3bc565ccbdb9cf5d9e8405f2739cabeed53
+          echo "TEAMQA_NATIVE_TEST_QA_CODE_ROOT=$RUNNER_TEMP/qa-code" >> "$GITHUB_ENV"
+          echo "TEAMQA_NATIVE_TEST_QA_GUI_ROOT=$RUNNER_TEMP/qa-gui" >> "$GITHUB_ENV"
+          echo "TEAMQA_PREFLIGHT_TEST_QA_CODE_ROOT=$RUNNER_TEMP/qa-code" >> "$GITHUB_ENV"
+          echo "TEAMQA_QA_GUI_BOARD_TOOL=$RUNNER_TEMP/qa-gui/scripts/teamwork/cli.mjs" >> "$GITHUB_ENV"
+      - name: Verify package manifest
+        run: node scripts/package-tool.mjs verify --root . --manifest package-manifest.json
+      - name: Prove live remote main is this commit
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          remote_sha="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$remote_sha" = "$GITHUB_SHA"
+      - name: Run release provenance acceptance
+        run: node test/release/release-provenance.test.mjs
+      - name: Verify isolated package install contract
+        run: node --test test/release/package-install-compat-root.test.mjs
+      - name: Prove detached build gate turns RED
+        run: bash scripts/release-provenance-redproof.sh
+      - name: Verify local candidate package gate
+        run: node --test test/release-a-local-candidate-package.test.mjs
+      - name: Prove local candidate package mutations turn RED
+        run: node test/release-a-local-candidate-package-mutation.mjs
+      - name: Run Team QA acceptance
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node test/acceptance/run-acceptance.mjs
+      - name: Run release truth contract v2 incident replay
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/release-truth-v2-session1.test.mjs
+      - name: Run upstream source traceability contract
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/source-issue-traceability.test.mjs
+      - name: Prove release truth v2 mutations turn RED
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node test/release-truth-v2-session1-mutation.mjs
+      - name: Run Release B reliability handoff acceptance
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/release-b/reliability-handoff.acceptance.mjs
+      - name: Prove Release B reliability handoff mutations turn RED
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node test/release-b/reliability-handoff-mutation.mjs
+      - name: Run Release C escaped-defect compile acceptance
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/release-c-escaped-defect-compile.acceptance.mjs
+      - name: Prove Release C escaped-defect compile mutations turn RED
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/release-c-escaped-defect-compile.mutation.mjs
+      - name: Verify Release C role-bound SCROLL contracts
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/release-c-scroll-agent-contract.acceptance.mjs
+      - name: Prove Release C role-contract mutations turn RED
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/release-c-scroll-agent-contract.mutation.mjs
+      - name: Verify board destinations, template-open gate and retest scope
+        run: node --test test/qa-board-human-space.test.mjs
+      - name: Prove board and retest policy mutations turn RED
+        run: node test/qa-board-human-space.mutation.mjs
+      - name: Verify dynamic roster and phase locks
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: |
+          node test/roster-dynamic.acceptance.mjs
+          node --test test/catalog-status/*.test.mjs test/roster-contract/*.test.mjs test/roster-hardening/*.test.mjs
+          node test/roster-contract/run-gates.mutation.mjs
+      - name: Verify visible chat, QA board and operational preflight gates
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: |
+          node --test test/chat-preflight/*.test.mjs
+          node test/chat-preflight/mutation.mjs
+      - name: Verify Claude Code root host adapter
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: |
+          node --test test/claude-host/*.test.mjs
+          node test/claude-host/mutation.mjs
+      - name: Verify target composition and strict Dragon input
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: |
+          node --test test/target-composition.test.mjs
+          node test/target-composition.mutation.mjs
+      - name: Run Team QA fixtures
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: TEAMQA_NODE="$(command -v node)" bash fixtures/run_fixtures.sh
+
+      - name: Verify native child adapters and machine rejection gates
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/native-adapters/*.test.mjs
+      - name: Verify bounded QA continuation, attempt history and Dragon admission
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/attempt-history.test.mjs test/continuation.test.mjs test/continuation-reader.test.mjs test/dragon-admission.test.mjs test/qa-lifecycle-hook.test.mjs test/publication-debt.test.mjs
+      - name: Verify board quality and native write admission
+        env:
+          TEAMQA_SCROLL_ROOT: ${{ runner.temp }}/scroll
+        run: node --test test/qa-board-teamwork.acceptance.test.mjs test/board-write-admission.test.mjs test/board-write-hook.test.mjs test/board-quality-write-request-cli.test.mjs test/notion-board-env.test.mjs

@@ -1,0 +1,4 @@
+interface:
+  display_name: "QA Code"
+  short_description: "Grade code and agent trajectories with evidence"
+  default_prompt: "Use $qa-code to review this diff with Gate 0, agentic evidence receipts, a grounded verdict, and explicit confidence."

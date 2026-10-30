@@ -1,0 +1,18 @@
+[
+  {
+    "rule": "unintended-text-overflow",
+    "severity": "high",
+    "selector": "div > a.inline-flex",
+    "detail": "text box escapes parent div > div.flex:nth-of-type(1) (el right 287 vs parent right 279)",
+    "caption": "Liên kết div > a.inline-flex tràn 8 CSS px sang phải (287 so với 279), làm bố cục 320 px bị lệch. Thu gọn chiều rộng hoặc cho phép nội dung xuống dòng.",
+    "language": "vi",
+    "bbox": {
+      "x": 170.9609375,
+      "y": 438.5,
+      "width": 116.0390625,
+      "height": 44,
+      "dpr": 3,
+      "unit": "css-px"
+    }
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "schema": "release-truth-contract/v2",
+  "contract_sha256": "77433f4c204e7f32848976b585cfb901152f97b775726467a0a5128eb3ec362c",
+  "schemas": {
+    "qa-code/receipt/v2": "c40f47fc6913655154f4db88cdc3f2aef215da6877866965ece6acb0402efbb2",
+    "qa-gui/receipt/v2": "d93ae0d5b9b0eee2b138950c495febda3b1a768971acf8137625f04c4f398d68",
+    "requirements.freeze/v2": "01772a5d2efee7b5aef088ffc01780fff9aaed5edea671e7034739beec901657",
+    "team-code/customer-ready-receipt/v1": "c57e3e2f399a8f72c026b42922d0554f2b3fe36bf53262c8c70446f42c1c02bc",
+    "team-code/release-receipt/v2": "064f87222f71229484de1ec58c6e19caef345eade84c6d5590d08831dffd610b",
+    "team-qa/receipt/v1": "92614a57db966e1adef071a4f9684fdf89cb97c0e2175b4ac15c44706ccf50c7"
+  },
+  "migration": {
+    "requirements.freeze/v1": "compatibility-read-only-regenerate-v2",
+    "qa-code/receipt/v1": "compatibility-read-only-no-customer-ready",
+    "qa-gui/receipt/v1": "compatibility-read-only-no-customer-ready",
+    "team-code/release-receipt/v1": "historical-read-only",
+    "team-qa/receipt/v1": "introduced",
+    "team-code/customer-ready-receipt/v1": "finalizer-only"
+  }
+}

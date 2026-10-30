@@ -1,0 +1,17 @@
+{
+  "schema": "team-qa/release-a-local-candidate-package-mutations/v1",
+  "mutations": [
+    {
+      "id": "TQ-A5-MUT-LOCAL-PROOF",
+      "file": "scripts/build-package.sh",
+      "from": "TRUTH_COMMAND=\"prove-local\"",
+      "to": "TRUTH_COMMAND=\"prove\""
+    },
+    {
+      "id": "TQ-A5-MUT-COMPAT-ROOT",
+      "file": "scripts/install-package.sh",
+      "from": "echo 'LOCAL_CANDIDATE_REQUIRES_EXPLICIT_COMPAT_ROOT' >&2; exit 24",
+      "to": "true"
+    }
+  ]
+}

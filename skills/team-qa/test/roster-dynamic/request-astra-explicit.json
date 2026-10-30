@@ -1,0 +1,19 @@
+{
+  "schema": "team-qa/roster-request/v1",
+  "run_id": "roster-acceptance-astra-001",
+  "round": 1,
+  "scope": "fixture acceptance only",
+  "target": { "project_id": "fixture-project", "preview_url": "http://127.0.0.1:4173", "version": "fixture-build-1" },
+  "provider": "openai",
+  "manager": { "provider": "openai", "model": "gpt-6.1-sol", "effort": "medium", "harness": "codex" },
+  "overrides": [
+    {
+      "role": "executor_code",
+      "provider": "openai",
+      "model": "astra-v1",
+      "effort": "high",
+      "user_event": { "id": "user-event-astra-001", "actor": "user", "text": "For executor_code in this run only, use openai model astra-v1 at high reasoning." }
+    }
+  ],
+  "caps": { "timeout_ms": 30000, "max_turns": 1 }
+}

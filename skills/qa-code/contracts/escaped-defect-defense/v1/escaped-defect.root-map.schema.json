@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agentpro://escaped-defect-defense/v1/root-map",
+  "title": "agentpro/escaped-defect-root-map/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "roots"],
+  "properties": {
+    "schema": { "const": "agentpro/escaped-defect-root-map/v1" },
+    "roots": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "qa-code": { "type": "string", "minLength": 1 },
+        "qa-gui": { "type": "string", "minLength": 1 },
+        "team-qa": { "type": "string", "minLength": 1 },
+        "team-code": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

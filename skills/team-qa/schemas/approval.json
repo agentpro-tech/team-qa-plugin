@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/approval-v1.json",
+  "title": "Team QA plan approval v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["signed_by", "ts", "plan_sha256"],
+  "properties": {
+    "signed_by": {"const": "owner"},
+    "ts": {"type": "string", "format": "date-time"},
+    "plan_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

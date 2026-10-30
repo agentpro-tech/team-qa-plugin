@@ -1,0 +1,29 @@
+{
+  "schema": "agentpro/release-a-mutation-registry/v1",
+  "release": "Release A - Truth Chain",
+  "component": "qa-gui",
+  "frozen_at": "2026-09-01T00:00:00.000Z",
+  "acceptance": [
+    {
+      "id": "A2-CASE-STATE-EVIDENCE",
+      "test": "Release A A2: receipt rows bind requirement, tracked case and state evidence",
+      "positive": "each atomic row names a tracked case and its evidence metadata seals the same case plus state",
+      "negative": "foreign and cross-requirement cases are rejected"
+    },
+    {
+      "id": "M07-EVIDENCE-TAMPER",
+      "test": "I19/QGa-QGb: traversal, symlink escape and forged metadata commit are rejected",
+      "positive": "physical evidence and bound metadata verify",
+      "negative": "tampered or forged evidence is rejected"
+    }
+  ],
+  "mutations": [
+    "case-producer",
+    "case-membership",
+    "denominator",
+    "physical-evidence",
+    "evidence-type",
+    "vision",
+    "dwell"
+  ]
+}

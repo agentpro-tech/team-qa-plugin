@@ -1,0 +1,372 @@
+{
+  "schema": "agentpro/skill-package-manifest/v1",
+  "skill": "qa-code",
+  "version": "1.11.0",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sha256": "80b3bf6d438df0b07b348d0a38af12ff90cb89bf366fc5af909c19440212b541",
+      "mode": "0644"
+    },
+    {
+      "path": "VERSION",
+      "sha256": "74ee4d121463989183f9a9b848577eb2434f3f5d095de2a4b197bf29ffa2399b",
+      "mode": "0644"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "sha256": "b407dd525aa2c2b5bbc1d99028deaec9d376584f1a1fe473eccee959f37ca0ed",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/escaped-defect-defense/v1/CONTRACT.json",
+      "sha256": "9f3aefcce0207c8c89e91ce64476672fce4accfb5e7b0feea1b56dd1262ed5be",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/escaped-defect-defense/v1/README.md",
+      "sha256": "8692e5bbad2ce6ef3022d04be65b09f09e860fb2db39c544a3f9cbdd77a03600",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/escaped-defect-defense/v1/escaped-defect.registry.schema.json",
+      "sha256": "92d0411080e109f79f712ea97ac7063e2b8288e93a31f459b1ead8502c15e36e",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/escaped-defect-defense/v1/escaped-defect.root-map.schema.json",
+      "sha256": "84c281e1194efdaac4406812486417d1ff050138301328e1b2ecdb1764458f5e",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/CONTRACT.json",
+      "sha256": "5959bd617af0562b7ff062344b2edcd5b63fd360357c33cf66f58f9ad820b2ae",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/README.md",
+      "sha256": "b01aecdd362d6813f67f8ad3251b101315a289f6fe662f104629d76ce4be7e11",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/qa-code.receipt.schema.json",
+      "sha256": "c40f47fc6913655154f4db88cdc3f2aef215da6877866965ece6acb0402efbb2",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/qa-gui.receipt.schema.json",
+      "sha256": "d93ae0d5b9b0eee2b138950c495febda3b1a768971acf8137625f04c4f398d68",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/requirements.freeze.schema.json",
+      "sha256": "01772a5d2efee7b5aef088ffc01780fff9aaed5edea671e7034739beec901657",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/team-code.customer-ready-receipt.schema.json",
+      "sha256": "c57e3e2f399a8f72c026b42922d0554f2b3fe36bf53262c8c70446f42c1c02bc",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/team-code.release-receipt.schema.json",
+      "sha256": "064f87222f71229484de1ec58c6e19caef345eade84c6d5590d08831dffd610b",
+      "mode": "0644"
+    },
+    {
+      "path": "contracts/release-truth-contract/v2/team-qa.receipt.schema.json",
+      "sha256": "92614a57db966e1adef071a4f9684fdf89cb97c0e2175b4ac15c44706ccf50c7",
+      "mode": "0644"
+    },
+    {
+      "path": "launchd/io.qacode.mutation-nightly.plist",
+      "sha256": "dab6e2808768dcf387c9957ea855d186bbb39a34020a61668dfe74684f163c77",
+      "mode": "0644"
+    },
+    {
+      "path": "package-files.json",
+      "sha256": "9c3be130b91c4c0b3022fd000374bd46132e7b8d8fa8b2850aadea44b2415acb",
+      "mode": "0644"
+    },
+    {
+      "path": "references/native-test-runners.md",
+      "sha256": "43890f3f911b0bf483c55101019367133677fcea0d9ab6f3d340f2837f98a083",
+      "mode": "0644"
+    },
+    {
+      "path": "references/provider-defaults.json",
+      "sha256": "3de605de007c8ff80ace07335cef614e6de79512a02915fd125774a4a046800b",
+      "mode": "0644"
+    },
+    {
+      "path": "references/qa-prompt.md",
+      "sha256": "8d2eee6fc6341ee590513086e9d58b8a88b0d5a9f01027684bd96658c4f0aaae",
+      "mode": "0644"
+    },
+    {
+      "path": "references/release-receipt-v1.md",
+      "sha256": "9f09102096c3410990659f6179799302bab92b532cc6a4b1c04e65b80bcd6464",
+      "mode": "0644"
+    },
+    {
+      "path": "references/release-receipt-v2.md",
+      "sha256": "607dc316a63960709b03b6ecf72d25ee39177f1a97e559bdf997d7e1b446cb11",
+      "mode": "0644"
+    },
+    {
+      "path": "references/research/agentic-qa-trends-2026.md",
+      "sha256": "743439858cea129ea2203beb490b4a44cb94c460d800485ec0d5c5c3c8bfacbf",
+      "mode": "0644"
+    },
+    {
+      "path": "references/runtime-receipt-v1.md",
+      "sha256": "c5cc29783c4482b5fcae63de3fbf28ef5d7edb3cefecd7204d5efe223f36d829",
+      "mode": "0644"
+    },
+    {
+      "path": "references/secret-adjudication-v1.md",
+      "sha256": "d11be49ac3294d0be7c25c9794f3f26615bd612690b71cb2c650d272d5b8a4c7",
+      "mode": "0644"
+    },
+    {
+      "path": "references/teamqa-provider-routes.md",
+      "sha256": "909abec9dfaeedb109de204ad6ac131595afc9e00744c7d7a2c42c474a98539c",
+      "mode": "0644"
+    },
+    {
+      "path": "references/threat-model.json",
+      "sha256": "bf0c8f58903ae72ffc03cd25c9061532d0def75f00405c76e9c3d9de0efcec0d",
+      "mode": "0644"
+    },
+    {
+      "path": "references/verdict.schema.json",
+      "sha256": "6ba32aa9ee4c06f737d20bbdb477813558a8e9c7b25a025f1e8505815185e121",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/build-package.sh",
+      "sha256": "bdb30dcaeccd6434a19fe63826f5b9e336749506fa6d37eb5b24c4cc193cc19f",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/escaped-defect/gate-wiring-detector.mjs",
+      "sha256": "40e1540a47ee6aeef2847943cc912782d6b29625d27761c33a69bc5f58fec672",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/gate0.sh",
+      "sha256": "829dc23b37f5943f701de604715ffe201998c6ceff0e7cebcd3f0b0f1186e70b",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/incident-replay/helpers.mjs",
+      "sha256": "3a54166fe3cab90209ead925246dd0a80eec419a27b50329679c54ae68b0721c",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/incident-replay/release-a-truth-chain.registry.json",
+      "sha256": "0055bfaeeed2f46b1608c9fb24f6f680d39f93041f35e27a6853cfbe8002fa64",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/incident-replay/release-truth.test.mjs",
+      "sha256": "08f8fadab6b3052669cca7d69e2332e46135554c1714d0ccf82551d840672287",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/incident-replay/session2-mutation.test.mjs",
+      "sha256": "f954f782bf203aea0e11df2505826400540e15a20c304935ac04ff0032f5d249",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/incident-replay/session2.test.mjs",
+      "sha256": "1c7a6917592d2862cdd6fd2bfc1580a0cae037ca146e4a338afbcaeff7f1b43e",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/incident-replay/wire-check.mjs",
+      "sha256": "7d2b344043fc3c582fafca0d5bf3c65d10dde4f9562b6c404eff267e317b5dd9",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/install-package.sh",
+      "sha256": "eba90d59a08ab7b588984a54e7940100661308055743813927a998dc9b02a4d9",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/install.sh",
+      "sha256": "b303b0607cd9b8e95901cc61bcd507b3284c43ec4f0155ff5117aa03d13861b2",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/lib/archive-fs-preload.mjs",
+      "sha256": "dbdef84b104ac3ee384e8f32719393060e9f641b75b7d7e5b0a21be2444cc444",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/archive.mjs",
+      "sha256": "0d051d3778dbf81c37d13a43789f4cb57c567bbc52527306b0e0407fdeac9567",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/gate0.mjs",
+      "sha256": "48ecf216f8153f4ffacf6deae85a2a73f20ed0cd9471826efd087fbaf976b27d",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/lib/mutate.mjs",
+      "sha256": "87a53ec1f941a401586ffa7eb482c496cc65832004489d84a33546cf820cb394",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/lib/native-qa.mjs",
+      "sha256": "413019e35cc9a4e5f88a944e95d00c895e07f0406e47f756d1cfc300e5231133",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/native-test-reporter.mjs",
+      "sha256": "d0e7bf0745c2d7149133bd234d6526dbac508b5e6f23058f46ab220a4be4fa2b",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/original-source.mjs",
+      "sha256": "40e9470bee70f354f37f16f2ded3beb23dcc623cc22f18e7a19817c66a720ef3",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/provider-execution.mjs",
+      "sha256": "d7d7088bdbd4bfff37af61696b7833101636c9d3453dcdd49fa46d60ab745934",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/publisher-signature.mjs",
+      "sha256": "6cb500ec564b03eff814483ddb6d49d533e86f7c56eb7f573faed6d7282812e1",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/qa-harness.mjs",
+      "sha256": "788a6eeca0ba1643ffd4f58c408e63694cdf0517c1be883f430541ff8aab63c0",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/release-receipt.mjs",
+      "sha256": "6f01f13d1a78f77f38c50abea659152dd479c76bf61f650bd7afa49bbd9a2bdb",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/release-truth-v2.mjs",
+      "sha256": "a2fe889b7d46c15e1100aada2eb4c88c7c3009410e6428c7959b7b0f849db18f",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/secret-adjudication.mjs",
+      "sha256": "50b2dd9f4f05cc674e95d0a081c924fab03131e371f0d4e187fab1c82902b193",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/teamqa-review-proof.mjs",
+      "sha256": "42b3609089ba67bd47dcd8e495d78a1ab5b0cb298ce76388e82209e0c581aba5",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/test-runners.mjs",
+      "sha256": "abb69acca5f823505e1a97e4837b13a7252b0f0f3d667a053fd9fec029fd66f4",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/write-preserved.mjs",
+      "sha256": "884c7e98e79f4274d28e336dbeae251e639ec275150e6969eeff72e7c5d97696",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/mutate.sh",
+      "sha256": "c5c162de2880727947038d7585dd3ebc020ba8ea7bac5e945af1a02be7e424c8",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/native-verify.mjs",
+      "sha256": "6b27455732118cd4c3fc1c5c3f962d5493ba9b5e6d4be5f442819969cb7c5080",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/nightly-mutation.sh",
+      "sha256": "59b27823b596b6c8bdf24c8dd17cb8972ba6032666a235e4e6e80371aa92159a",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/package-tool.mjs",
+      "sha256": "2540d5d1020f463d2537d7078f20ee592238ddd321bd12ff3b62b528277b3832",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/qa-run.sh",
+      "sha256": "c947d741d23685445a9376bda91d967c1e4515f66f3250758627903c95d38dd9",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/receipt-verify.mjs",
+      "sha256": "3f07c78d9fed620398b622c05ceb7304ac2deb57d967da9c483abcef103f3323",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/trajectory-validate.mjs",
+      "sha256": "d646389241663ce40adacfc1590b5a207699d539558af9941d563de0e6ca18c3",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/update-package-manifest.sh",
+      "sha256": "04b6ad80d6845a6dbc10e20eed5a7a161fb6d6ad0fffa58f1ac04db5b9111cd3",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/verdict-validate.mjs",
+      "sha256": "225060dbd4ce65b281fe66e4b25ff2e18bf21fcff71721d9cb43224b4f519523",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/verify-install.sh",
+      "sha256": "35e4b3d7380396dda39f2580450578dc167620a2985f32f2a7f09ccf59592b80",
+      "mode": "0755"
+    },
+    {
+      "path": "security/publisher-key.json",
+      "sha256": "d1590a0bdc278a9cd99c053a692667ddb20a3487c42f9bd3d56f0fa3f0b0fd73",
+      "mode": "0644"
+    },
+    {
+      "path": "test/native-adapter.test.mjs",
+      "sha256": "455847c2c95ec45a62ae83670c71cb8eee5c04bdeee961fea9c55ee7b5b354bc",
+      "mode": "0644"
+    },
+    {
+      "path": "test/native-gate0-integration.test.mjs",
+      "sha256": "da07ecde8151aa43371fd08018c0a1737483911cbdbfaa7a55111c1950c1f17d",
+      "mode": "0644"
+    },
+    {
+      "path": "test/native-stack-runners.test.mjs",
+      "sha256": "e92b82cb22a492e8b0e0e3a074135eee4df66817ced6bb9627af03c949f03a97",
+      "mode": "0644"
+    },
+    {
+      "path": "test/original-source.test.mjs",
+      "sha256": "b6def26c53f96d9425347f6531a0388b8c45f465d2466d3e369c121f774e944a",
+      "mode": "0644"
+    },
+    {
+      "path": "test/publisher-signature.test.mjs",
+      "sha256": "490a2fe855fd8e043fd6326fa01167bb8545770648929c287be662d02c2c6a1a",
+      "mode": "0644"
+    },
+    {
+      "path": "test/secret-adjudication.test.mjs",
+      "sha256": "6370b1df7d4144c09db4d0b698ffc607337a2066ca4201499f3aab1f12c834a2",
+      "mode": "0644"
+    },
+    {
+      "path": "test/teamqa-provider-native-packet.test.mjs",
+      "sha256": "6927368f6ea79ca09767b3a65fa3d1c5e4c3941da1e7431d6b21bd7a5701b14d",
+      "mode": "0644"
+    }
+  ]
+}

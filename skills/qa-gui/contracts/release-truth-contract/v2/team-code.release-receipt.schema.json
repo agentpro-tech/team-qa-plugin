@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-code/contracts/release-truth-contract/v2/team-code.release-receipt.schema.json",
+  "title": "team-code/release-receipt/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "run_uuid", "commit", "task_base", "source_revision", "requirements_hash", "required_gates", "gate_receipts", "team_qa_required", "execution_status", "semantic_verdict", "finalizer_decision", "reasons", "created_at", "integrity"],
+  "properties": {
+    "schema": {"const": "team-code/release-receipt/v2"},
+    "contract_sha256": {"$ref": "#/$defs/sha256"},
+    "run_uuid": {"type": "string", "format": "uuid"},
+    "commit": {"$ref": "#/$defs/sha40"},
+    "task_base": {"$ref": "#/$defs/sha40"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "requirements_hash": {"$ref": "#/$defs/sha256"},
+    "required_gates": {"type": "array", "uniqueItems": true, "items": {"enum": ["qa-code", "qa-gui", "team-qa", "delivery"]}},
+    "gate_receipts": {"type": "array", "items": {"type": "object"}},
+    "team_qa_required": {"type": "boolean"},
+    "execution_status": {"enum": ["completed", "blocked", "failed"]},
+    "semantic_verdict": {"enum": ["PASS", "FAIL", "UNGRADED"]},
+    "finalizer_decision": {"enum": ["RELEASE_CANDIDATE", "CUSTOMER_RETEST_READY", "BLOCKED"]},
+    "reasons": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "integrity": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

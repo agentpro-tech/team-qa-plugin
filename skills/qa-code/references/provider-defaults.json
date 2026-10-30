@@ -1,0 +1,5 @@
+{
+  "schema": "qa-code/provider-defaults/v1",
+  "standalone": { "provider": "xai", "model": "grok-4.5" },
+  "teamqa": { "model_source": "approved-roster", "reasoning_source": "approved-roster" }
+}

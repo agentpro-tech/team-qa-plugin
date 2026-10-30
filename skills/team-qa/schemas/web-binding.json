@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentpro-tech/team-qa/schemas/web-binding.json",
+  "title": "team-qa/web-binding/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_uuid",
+    "requirements_hash",
+    "contract_sha256",
+    "verification_lane",
+    "target_kind",
+    "target_binding_sha256",
+    "target"
+  ],
+  "properties": {
+    "schema": {
+      "const": "team-qa/web-binding/v1"
+    },
+    "run_uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requirements_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "contract_sha256": {
+      "const": "c4961eaa1e1915e567d357fc49d4472d75167c51f388e348e6ac11af790d7d5d"
+    },
+    "verification_lane": {
+      "const": "gui"
+    },
+    "target_kind": {
+      "const": "deployed-build"
+    },
+    "target_binding_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "target": {
+      "$ref": "deployed-target.json"
+    }
+  }
+}

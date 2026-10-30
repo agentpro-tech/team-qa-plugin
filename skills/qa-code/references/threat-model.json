@@ -1,0 +1,29 @@
+{
+  "entry_points": [
+    { "name": "Gate 0 repository and config input" },
+    { "name": "Verdict and Gate 0 JSON validation" },
+    { "name": "Agent trajectory JSONL audit" },
+    { "name": "Sealed Gate 0 and qa-code release receipt verification" },
+    { "name": "Standalone package installer and nightly mutation wrapper" }
+  ],
+  "trust_boundaries": [
+    { "name": "Untrusted target repository to qa-code runtime" },
+    { "name": "External checker output to machine verdict" },
+    { "name": "LLM review output to verdict validator" },
+    { "name": "Grok tool trajectory to machine-observed tool log" },
+    { "name": "Source Git commit to packaged runtime" }
+  ],
+  "sensitive_assets": [
+    { "name": "Target source diff and acceptance tests" },
+    { "name": "Repository secrets and credentials" },
+    { "name": "Coverage baseline and QA evidence" },
+    { "name": "Immutable task base diff and receipt integrity" },
+    { "name": "Release provenance and package hashes" }
+  ],
+  "high_impact_sinks": [
+    { "name": "Checker subprocess execution" },
+    { "name": "Verdict and evidence file writes" },
+    { "name": "Runtime installation and LaunchAgent activation" },
+    { "name": "Merge-blocking PASS FAIL UNGRADED decision" }
+  ]
+}

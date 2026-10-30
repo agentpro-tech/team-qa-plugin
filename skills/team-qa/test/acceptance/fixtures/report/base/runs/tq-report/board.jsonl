@@ -1,0 +1,4 @@
+{"case_id":"CASE-HIGH-1","lane":"lane-high","verdict":"pass","evidence":["evidence/high-1.txt"],"source":"qa-gui","run_id":"tq-report","ts":"2026-08-05T00:00:00.000Z"}
+{"case_id":"CASE-HIGH-2","lane":"lane-high","verdict":"pass","evidence":["evidence/high-2.txt"],"source":"qa-gui","run_id":"tq-report","ts":"2026-08-05T00:00:01.000Z"}
+{"case_id":"CASE-LOW-1","lane":"lane-low","verdict":"pass","evidence":["evidence/low-1.txt"],"source":"qa-gui","run_id":"tq-report","ts":"2026-08-05T00:00:02.000Z"}
+{"case_id":"CASE-LOW-2","lane":"lane-low","verdict":"pass","evidence":["evidence/low-2.txt"],"source":"qa-gui","run_id":"tq-report","ts":"2026-08-05T00:00:03.000Z"}

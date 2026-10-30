@@ -1,0 +1,1 @@
+{"case_id":"CASE-BLOCKED","lane":"lane-checkout","verdict":"blocked","evidence":["evidence/env-down.txt"],"source":"qa-gui","run_id":"tq-board","ts":"2026-08-05T00:00:00.000Z","reason":"ENV_DOWN"}

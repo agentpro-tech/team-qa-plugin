@@ -1,0 +1,24 @@
+{
+  "seedVersion": "qa-source-seed/v1",
+  "sourceItems": [
+    {
+      "id": "SRC-REQ-01",
+      "kind": "spec",
+      "sourceSystem": "example-spec",
+      "externalKey": "REQ-01",
+      "title": "Hành vi nguồn cần được kiểm chứng",
+      "origin": "upstream"
+    }
+  ],
+  "cases": [
+    {
+      "id": "TC-01",
+      "title": "Thay bằng hành vi có thể kiểm chứng",
+      "requirement": "REQ-01",
+      "requirements": ["REQ-01"],
+      "sourceRefs": ["SRC-REQ-01"],
+      "steps": ["Mở trạng thái cần kiểm chứng", "Thu bằng chứng đúng loại"],
+      "expected": "Hành vi khớp với nguồn đã liên kết."
+    }
+  ]
+}

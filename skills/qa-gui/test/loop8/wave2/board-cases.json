@@ -1,0 +1,548 @@
+{
+  "schemaVersion": 1,
+  "provenance": {
+    "source": "BA-qa-gui-loop-8-annotation-board.md",
+    "sourceSha256": "db76def04689fe596db138e39f55f598b9a4311d23ed86846532ed66c1bd172d",
+    "labelPolicy": "Expected verdicts are direct translations of V8.4-V8.6 and H4-H5 from the closed BA; they are not model-generated labels."
+  },
+  "supportedLanguages": ["vi", "en", "ko", "ja"],
+  "templates": {
+    "vi": {
+      "schemaVersion": 5,
+      "canonicalVersion": "qa-board-teamwork/v1",
+      "rev": 1,
+      "boardId": "loop8-wave2-vi",
+      "title": "Vòng kiểm thử giao diện",
+      "boardCreated": "2026-08-15T00:00:00Z",
+      "language": "vi",
+      "deepCheck": "available",
+      "app": "fixture-app",
+      "envDb": "TEST / fixture-db",
+      "viewport": "320x740",
+      "currentRound": 1,
+      "cases": [
+        {
+          "id": "TC-01",
+          "title": "Liên kết không tràn màn hình",
+          "requirement": "V8.4",
+          "steps": "Mở trang đăng nhập ở chiều rộng 320 px rồi quan sát liên kết trợ giúp.",
+          "expected": "Liên kết nằm trọn trong khối cha và người dùng đọc được toàn bộ nội dung.",
+          "status": "FAIL",
+          "priority": "P1",
+          "assignee": "qa-agent",
+          "functionVerdict": "FAIL",
+          "uiVerdict": "FAIL",
+          "humanSummary": {
+            "function": "Liên kết vẫn mở đúng đích nhưng vùng chạm bị lệch.",
+            "ui": "Liên kết tràn 8 px sang phải và làm bố cục lệch."
+          },
+          "machine": {
+            "rule": "UNINTENDED-TEXT-OVERFLOW",
+            "selector": "div > a.inline-flex"
+          },
+          "results": [
+            {
+              "round": 1,
+              "functionVerdict": "FAIL",
+              "uiVerdict": "FAIL",
+              "recordedAt": "2026-08-15T00:05:00Z",
+              "evidence": ["evidence/phone-320.annotated.png"]
+            }
+          ],
+          "evidence": ["evidence/phone-320.png", "evidence/phone-320.annotated.png"],
+          "comments": [],
+          "history": []
+        }
+      ],
+      "defects": [
+        {
+          "id": "DF-01",
+          "title": "Liên kết tràn khỏi khối cha",
+          "caseId": "TC-01",
+          "status": "ASSIGNED",
+          "priority": "P1",
+          "assignee": "dev-agent",
+          "createdBy": "qa-agent",
+          "repro": "Mở trang đăng nhập ở chiều rộng 320 px và nhìn liên kết trợ giúp bên phải.",
+          "expected": "Liên kết nằm trong khối cha và không làm bố cục lệch.",
+          "actual": "Liên kết tràn 8 px sang phải nên vùng nội dung vượt khỏi khối cha.",
+          "findings": [
+            {
+              "id": "F-01",
+              "rule": "unintended-text-overflow",
+              "severity": "high",
+              "selector": "div > a.inline-flex",
+              "caption": "Liên kết div > a.inline-flex tràn 8 CSS px sang phải, làm bố cục 320 px bị lệch. Thu gọn chiều rộng hoặc cho phép nội dung xuống dòng.",
+              "bbox": {
+                "x": 170.9609375,
+                "y": 438.5,
+                "width": 116.0390625,
+                "height": 44,
+                "dpr": 3,
+                "unit": "css-px"
+              }
+            }
+          ],
+          "evidence": [
+            {
+              "id": "EV-ORIGINAL",
+              "type": "image",
+              "path": "evidence/phone-320.png",
+              "role": "original",
+              "findingId": "F-01"
+            },
+            {
+              "id": "EV-ANNOTATED",
+              "type": "image",
+              "path": "evidence/phone-320.annotated.png",
+              "role": "annotated",
+              "findingId": "F-01"
+            }
+          ],
+          "fixEvidence": [],
+          "lastRetestFixEvidenceCount": 0,
+          "comments": [],
+          "history": [],
+          "rejectionReason": null
+        }
+      ],
+      "rounds": [
+        {
+          "round": 1,
+          "startedAt": "2026-08-15T00:00:00Z",
+          "scope": "Kiểm tra màn hình đăng nhập trên điện thoại."
+        }
+      ],
+      "coverage": [],
+      "untested": [],
+      "release": {
+        "verdict": "NO-GO",
+        "risks": ["Cần sửa bố cục trước khi phát hành."]
+      }
+    },
+    "en": {
+      "schemaVersion": 5,
+      "canonicalVersion": "qa-board-teamwork/v1",
+      "rev": 1,
+      "boardId": "loop8-wave2-en",
+      "title": "Interface quality round",
+      "boardCreated": "2026-08-15T00:00:00Z",
+      "language": "en",
+      "deepCheck": "available",
+      "app": "fixture-app",
+      "envDb": "TEST / fixture-db",
+      "viewport": "1280x800",
+      "currentRound": 1,
+      "cases": [
+        {
+          "id": "TC-EN-01",
+          "title": "The save control remains reachable",
+          "requirement": "V8.5",
+          "steps": "Open the form, change the name, and press the save control.",
+          "expected": "The saved name remains visible after the page is refreshed.",
+          "status": "PASS",
+          "priority": "P2",
+          "assignee": "qa-agent",
+          "functionVerdict": "PASS",
+          "uiVerdict": "PASS",
+          "humanSummary": {
+            "function": "The saved value remains visible after refresh.",
+            "ui": "The control stays visible and readable at the tested width."
+          },
+          "machine": {
+            "rule": "PASS",
+            "selector": "button.save"
+          },
+          "results": [
+            {
+              "round": 1,
+              "functionVerdict": "PASS",
+              "uiVerdict": "PASS",
+              "recordedAt": "2026-08-15T00:05:00Z",
+              "evidence": ["evidence/save.png"]
+            }
+          ],
+          "evidence": ["evidence/save.png"],
+          "comments": [],
+          "history": []
+        }
+      ],
+      "defects": [],
+      "rounds": [
+        {
+          "round": 1,
+          "startedAt": "2026-08-15T00:00:00Z",
+          "scope": "Verify the profile form and its saved state."
+        }
+      ],
+      "coverage": [],
+      "untested": [],
+      "release": {
+        "verdict": "GO",
+        "risks": ["No open release risk was observed."
+        ]
+      }
+    },
+    "ko": {
+      "schemaVersion": 5,
+      "canonicalVersion": "qa-board-teamwork/v1",
+      "rev": 1,
+      "boardId": "loop8-wave2-ko",
+      "title": "화면 품질 검사",
+      "boardCreated": "2026-08-15T00:00:00Z",
+      "language": "ko",
+      "deepCheck": "available",
+      "app": "fixture-app",
+      "envDb": "TEST / fixture-db",
+      "viewport": "1280x800",
+      "currentRound": 1,
+      "cases": [
+        {
+          "id": "TC-KO-01",
+          "title": "저장 버튼을 사용할 수 있음",
+          "requirement": "V8.5",
+          "steps": "양식을 열고 이름을 바꾼 다음 저장 버튼을 누릅니다.",
+          "expected": "새로 고침한 뒤에도 저장한 이름이 화면에 표시됩니다.",
+          "status": "PASS",
+          "priority": "P2",
+          "assignee": "qa-agent",
+          "functionVerdict": "PASS",
+          "uiVerdict": "PASS",
+          "humanSummary": {
+            "function": "새로 고침한 뒤에도 저장한 값이 유지됩니다.",
+            "ui": "검사한 화면 너비에서 버튼이 선명하게 보입니다."
+          },
+          "machine": {
+            "rule": "PASS",
+            "selector": "button.save"
+          },
+          "results": [
+            {
+              "round": 1,
+              "functionVerdict": "PASS",
+              "uiVerdict": "PASS",
+              "recordedAt": "2026-08-15T00:05:00Z",
+              "evidence": ["evidence/save-ko.png"]
+            }
+          ],
+          "evidence": ["evidence/save-ko.png"],
+          "comments": [],
+          "history": []
+        }
+      ],
+      "defects": [],
+      "rounds": [
+        {
+          "round": 1,
+          "startedAt": "2026-08-15T00:00:00Z",
+          "scope": "프로필 양식과 저장 상태를 확인합니다."
+        }
+      ],
+      "coverage": [],
+      "untested": [],
+      "release": {
+        "verdict": "GO",
+        "risks": ["확인된 출시 위험이 없습니다."]
+      }
+    },
+    "ja": {
+      "schemaVersion": 5,
+      "canonicalVersion": "qa-board-teamwork/v1",
+      "rev": 1,
+      "boardId": "loop8-wave2-ja",
+      "title": "画面品質の確認",
+      "boardCreated": "2026-08-15T00:00:00Z",
+      "language": "ja",
+      "deepCheck": "available",
+      "app": "fixture-app",
+      "envDb": "TEST / fixture-db",
+      "viewport": "1280x800",
+      "currentRound": 1,
+      "cases": [
+        {
+          "id": "TC-JA-01",
+          "title": "保存ボタンを操作できる",
+          "requirement": "V8.5",
+          "steps": "フォームを開き、名前を変更してから保存ボタンを押します。",
+          "expected": "画面を再読み込みした後も保存した名前が表示されます。",
+          "status": "PASS",
+          "priority": "P2",
+          "assignee": "qa-agent",
+          "functionVerdict": "PASS",
+          "uiVerdict": "PASS",
+          "humanSummary": {
+            "function": "再読み込みした後も保存した値が残ります。",
+            "ui": "確認した画面幅でボタンが読みやすく表示されます。"
+          },
+          "machine": {
+            "rule": "PASS",
+            "selector": "button.save"
+          },
+          "results": [
+            {
+              "round": 1,
+              "functionVerdict": "PASS",
+              "uiVerdict": "PASS",
+              "recordedAt": "2026-08-15T00:05:00Z",
+              "evidence": ["evidence/save-ja.png"]
+            }
+          ],
+          "evidence": ["evidence/save-ja.png"],
+          "comments": [],
+          "history": []
+        }
+      ],
+      "defects": [],
+      "rounds": [
+        {
+          "round": 1,
+          "startedAt": "2026-08-15T00:00:00Z",
+          "scope": "プロフィール画面と保存状態を確認します。"
+        }
+      ],
+      "coverage": [],
+      "untested": [],
+      "release": {
+        "verdict": "GO",
+        "risks": ["未解決のリリース危険はありません。"]
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "annotation-valid",
+      "base": "vi",
+      "gate": "annotation",
+      "expected": "PASS",
+      "operations": []
+    },
+    {
+      "id": "annotation-missing-annotated",
+      "base": "vi",
+      "gate": "annotation",
+      "expected": "FAIL",
+      "expectedPath": "defects[0].evidence",
+      "expectedText": "DF-01",
+      "operations": [
+        {
+          "op": "set",
+          "path": "defects.0.evidence",
+          "value": [
+            {
+              "id": "EV-ORIGINAL",
+              "type": "image",
+              "path": "evidence/phone-320.png",
+              "role": "original",
+              "findingId": "F-01"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "annotation-missing-original",
+      "base": "vi",
+      "gate": "annotation",
+      "expected": "FAIL",
+      "expectedPath": "defects[0].evidence",
+      "expectedText": "DF-01",
+      "operations": [
+        {
+          "op": "set",
+          "path": "defects.0.evidence",
+          "value": [
+            {
+              "id": "EV-ANNOTATED",
+              "type": "image",
+              "path": "evidence/phone-320.annotated.png",
+              "role": "annotated",
+              "findingId": "F-01"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "language-vi-valid",
+      "base": "vi",
+      "gate": "language",
+      "expected": "PASS",
+      "operations": []
+    },
+    {
+      "id": "language-en-valid",
+      "base": "en",
+      "gate": "language",
+      "expected": "PASS",
+      "operations": []
+    },
+    {
+      "id": "language-ko-valid",
+      "base": "ko",
+      "gate": "language",
+      "expected": "PASS",
+      "operations": []
+    },
+    {
+      "id": "language-ja-valid",
+      "base": "ja",
+      "gate": "language",
+      "expected": "PASS",
+      "operations": []
+    },
+    {
+      "id": "language-machine-english-exempt",
+      "base": "vi",
+      "gate": "language",
+      "expected": "PASS",
+      "operations": [
+        {
+          "op": "set",
+          "path": "cases.0.machine.rule",
+          "value": "AUTHENTICATED SESSION PASS"
+        },
+        {
+          "op": "set",
+          "path": "cases.0.machine.selector",
+          "value": "button.checkout"
+        }
+      ]
+    },
+    {
+      "id": "language-vi-english-field",
+      "base": "vi",
+      "gate": "language",
+      "expected": "FAIL",
+      "expectedPath": "cases[0].humanSummary.function",
+      "expectedText": "authenticated session",
+      "operations": [
+        {
+          "op": "set",
+          "path": "cases.0.humanSummary.function",
+          "value": "The authenticated session and dashboard are restored."
+        }
+      ]
+    },
+    {
+      "id": "language-vi-mixed-field",
+      "base": "vi",
+      "gate": "language",
+      "expected": "FAIL",
+      "expectedPath": "defects[0].actual",
+      "expectedText": "users cannot save",
+      "operations": [
+        {
+          "op": "set",
+          "path": "defects.0.actual",
+          "value": "Nút bị che and users cannot save."
+        }
+      ]
+    },
+    {
+      "id": "language-unsupported-th",
+      "base": "vi",
+      "gate": "language",
+      "expected": "UNGRADED",
+      "expectedText": "language-unsupported",
+      "operations": [
+        {
+          "op": "set",
+          "path": "language",
+          "value": "th"
+        }
+      ]
+    },
+    {
+      "id": "structure-valid",
+      "base": "vi",
+      "gate": "structure",
+      "expected": "PASS",
+      "operations": []
+    },
+    {
+      "id": "structure-missing-steps",
+      "base": "vi",
+      "gate": "structure",
+      "expected": "FAIL",
+      "expectedPath": "cases[0].steps",
+      "expectedText": "TC-01",
+      "operations": [
+        {
+          "op": "delete",
+          "path": "cases.0.steps"
+        }
+      ]
+    },
+    {
+      "id": "structure-missing-case-expected",
+      "base": "vi",
+      "gate": "structure",
+      "expected": "FAIL",
+      "expectedPath": "cases[0].expected",
+      "expectedText": "TC-01",
+      "operations": [
+        {
+          "op": "delete",
+          "path": "cases.0.expected"
+        }
+      ]
+    },
+    {
+      "id": "structure-missing-defect-actual",
+      "base": "vi",
+      "gate": "structure",
+      "expected": "FAIL",
+      "expectedPath": "defects[0].actual",
+      "expectedText": "DF-01",
+      "operations": [
+        {
+          "op": "delete",
+          "path": "defects.0.actual"
+        }
+      ]
+    },
+    {
+      "id": "structure-missing-defect-expected",
+      "base": "vi",
+      "gate": "structure",
+      "expected": "FAIL",
+      "expectedPath": "defects[0].expected",
+      "expectedText": "DF-01",
+      "operations": [
+        {
+          "op": "delete",
+          "path": "defects.0.expected"
+        }
+      ]
+    },
+    {
+      "id": "structure-missing-defect-repro",
+      "base": "vi",
+      "gate": "structure",
+      "expected": "FAIL",
+      "expectedPath": "defects[0].repro",
+      "expectedText": "DF-01",
+      "operations": [
+        {
+          "op": "delete",
+          "path": "defects.0.repro"
+        }
+      ]
+    },
+    {
+      "id": "structure-missing-defect-evidence",
+      "base": "vi",
+      "gate": "structure",
+      "expected": "FAIL",
+      "expectedPath": "defects[0].evidence",
+      "expectedText": "DF-01",
+      "operations": [
+        {
+          "op": "set",
+          "path": "defects.0.evidence",
+          "value": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "threat_model": {
+    "path": "security/qa-board-teamwork-threat-model.json"
+  },
+  "security_product_path": {
+    "tests": [
+      "test/qa-board-teamwork.acceptance.test.mjs",
+      "test/release-b/reliability-handoff.acceptance.mjs"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "wave": "QA-GUI Loop 8 Wave 2",
+  "canonicalBase": "3cdb7def1c73cc1440b014d5412d1292440feab2",
+  "closedBaSha256": "db76def04689fe596db138e39f55f598b9a4311d23ed86846532ed66c1bd172d",
+  "approval": {
+    "planChoice": "A",
+    "goldenApproval": "OK, approved"
+  },
+  "provenance": "The 18 expected verdicts are direct BA acceptance cases for V8.4, V8.5, V8.6, H4 and H5; the checker author did not label model output.",
+  "supportedLanguages": ["vi", "en", "ko", "ja"],
+  "files": [
+    {
+      "path": "board-cases.json",
+      "sha256": "c88d09e409942c5ddbd2da0cce0a66127de307cecbe13543dcfe6ede7a7e8fc4"
+    }
+  ]
+}

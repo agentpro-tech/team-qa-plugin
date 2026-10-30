@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "qa-gui/receipt/web-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contract_sha256",
+    "run_uuid",
+    "requirements_hash",
+    "verification_lane",
+    "target_kind",
+    "target_binding_sha256",
+    "target",
+    "execution_status",
+    "semantic_verdict",
+    "atomic_coverage",
+    "evidence_manifest",
+    "created_at",
+    "integrity",
+    "dispatch_proof",
+    "teamqa_provenance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "qa-gui/receipt/web-v1"
+    },
+    "contract_sha256": {
+      "const": "c4961eaa1e1915e567d357fc49d4472d75167c51f388e348e6ac11af790d7d5d"
+    },
+    "run_uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requirements_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "verification_lane": {
+      "const": "gui"
+    },
+    "target_kind": {
+      "const": "deployed-build"
+    },
+    "target_binding_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "preview_url",
+        "version",
+        "kind",
+        "environment",
+        "backend_origin",
+        "frontend_build",
+        "asset_manifest_sha256",
+        "target_binding_sha256",
+        "identity_proof"
+      ],
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preview_url": {
+          "type": "string",
+          "pattern": "^https?://"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "const": "deployed-build"
+        },
+        "environment": {
+          "enum": [
+            "Local",
+            "Test",
+            "Staging",
+            "Production"
+          ]
+        },
+        "backend_origin": {
+          "type": "string",
+          "pattern": "^https?://"
+        },
+        "frontend_build": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "id"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "asset_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "target_binding_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "identity_proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "execution_status": {
+      "enum": [
+        "completed",
+        "blocked",
+        "failed"
+      ]
+    },
+    "semantic_verdict": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNGRADED"
+      ]
+    },
+    "atomic_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requirement_id",
+          "assertion_id",
+          "case_id",
+          "evidence_ref",
+          "evidence_sha256",
+          "evidence_type",
+          "result"
+        ],
+        "properties": {
+          "requirement_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assertion_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "evidence_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "UNGRADED"
+            ]
+          }
+        }
+      }
+    },
+    "evidence_manifest": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "sha256",
+          "evidence_type",
+          "metadata"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "evidence_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "run_uuid",
+              "target_binding_sha256",
+              "case_id",
+              "state",
+              "captured_at"
+            ],
+            "properties": {
+              "run_uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "target_binding_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "case_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "state": {
+                "type": "string",
+                "minLength": 1
+              },
+              "captured_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "integrity": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "dispatch_proof": {
+      "type": "object"
+    },
+    "teamqa_provenance": {
+      "type": "object"
+    }
+  }
+}

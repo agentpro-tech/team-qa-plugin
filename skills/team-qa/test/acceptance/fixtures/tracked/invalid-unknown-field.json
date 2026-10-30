@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "id": "CASE-UNKNOWN",
+      "req_id": "REQ-UNKNOWN",
+      "lane": "lane-a",
+      "steps": ["Step 1"],
+      "expected": "Result",
+      "data": {},
+      "priority": "P2",
+      "kind": "static",
+      "unexpected": true
+    }
+  ]
+}

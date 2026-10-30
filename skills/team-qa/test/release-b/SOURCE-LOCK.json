@@ -1,0 +1,19 @@
+{
+  "schema": "team-qa/release-b-source-lock/v1",
+  "frozen_at": "2026-09-02T03:36:17Z",
+  "canonical_plan_sha256": "b32a42b83869142dbf6618403e7f520f72a31af64f55793a655a5244d297eaa2",
+  "release_a_prerequisite_receipt_sha256": "86a51d605d4e4986927471039b448b7f8cf0dc62a6e3b94b934567169289ade4",
+  "repositories": {
+    "team-qa": {
+      "baseline_commit": "7333ea56dd2c8842b2384635a44786858953d14a",
+      "baseline_tree": "97a3faf629abbaaad508589dcd4d03c8184a8037"
+    },
+    "team-code": {
+      "baseline_commit": "c42439969307a1677b56a48210840b778e05dd2f",
+      "baseline_tree": "34e369ec95aa0162bddb165829c542322fd29ed1"
+    }
+  },
+  "runtime_cutover_authorized": false,
+  "github_push_authorized": false,
+  "release_c_authorized": false
+}

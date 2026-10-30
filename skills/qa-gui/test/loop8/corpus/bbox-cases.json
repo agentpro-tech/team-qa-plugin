@@ -1,0 +1,55 @@
+[
+  {
+    "id": "known-position-exact",
+    "input": {
+      "findings": [{ "rule": "A11", "selector": "#known" }],
+      "measurements": [{ "selector": "#known", "rect": { "x": 41, "y": 342, "width": 237, "height": 38 } }],
+      "dpr": 3
+    },
+    "expected": [{
+      "rule": "A11",
+      "selector": "#known",
+      "bbox": { "x": 41, "y": 342, "width": 237, "height": 38, "dpr": 3, "unit": "css-px" }
+    }]
+  },
+  {
+    "id": "fractional-position-preserved",
+    "input": {
+      "findings": [{ "rule": "A11", "selector": "div > a.inline-flex" }],
+      "measurements": [{ "selector": "div > a.inline-flex", "rect": { "x": 170.9609375, "y": 438.5, "width": 116.0390625, "height": 44 } }],
+      "dpr": 3
+    },
+    "expected": [{
+      "rule": "A11",
+      "selector": "div > a.inline-flex",
+      "bbox": { "x": 170.9609375, "y": 438.5, "width": 116.0390625, "height": 44, "dpr": 3, "unit": "css-px" }
+    }]
+  },
+  {
+    "id": "selector-element-disappeared",
+    "input": {
+      "findings": [{ "rule": "A11", "selector": "#gone" }],
+      "measurements": [],
+      "dpr": 3
+    },
+    "expected": [{ "rule": "A11", "selector": "#gone", "bboxReason": "element-not-found" }]
+  },
+  {
+    "id": "network-finding-has-no-element",
+    "input": {
+      "findings": [{ "rule": "D3", "detail": "GET /api/orders returned 500" }],
+      "measurements": [],
+      "dpr": 1
+    },
+    "expected": [{ "rule": "D3", "detail": "GET /api/orders returned 500", "bboxReason": "non-element-finding" }]
+  },
+  {
+    "id": "invalid-rect-not-invented",
+    "input": {
+      "findings": [{ "rule": "A11", "selector": "#zero" }],
+      "measurements": [{ "selector": "#zero", "rect": { "x": 10, "y": 20, "width": 0, "height": 38 } }],
+      "dpr": 2
+    },
+    "expected": [{ "rule": "A11", "selector": "#zero", "bboxReason": "invalid-rect" }]
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentpro.local/contracts/reliability-handoff/v1/team-qa.handoff.schema.json",
+  "title": "team-qa/handoff/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contract_sha256",
+    "run_uuid",
+    "task_base",
+    "source_revision",
+    "exact_final_sha",
+    "requirements_hash",
+    "capsule_digest",
+    "team_qa_receipt_sha256",
+    "team_qa_receipt_integrity",
+    "release_verdict",
+    "producer",
+    "ready_at",
+    "integrity"
+  ],
+  "properties": {
+    "schema": { "const": "team-qa/handoff/v1" },
+    "contract_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "run_uuid": { "type": "string", "minLength": 1 },
+    "task_base": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "source_revision": { "type": "string", "minLength": 1 },
+    "exact_final_sha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "requirements_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "capsule_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "team_qa_receipt_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "team_qa_receipt_integrity": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "release_verdict": { "enum": ["GO", "NO-GO", "UNGRADED"] },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skill", "version", "source_commit"],
+      "properties": {
+        "skill": { "const": "team-qa" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "source_commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+      }
+    },
+    "ready_at": { "type": "string", "format": "date-time" },
+    "integrity": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

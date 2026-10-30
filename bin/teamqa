@@ -1,0 +1,9 @@
+#!/bin/sh
+# `teamqa` of the Team QA plugin (BA plugin C3). Claude Code puts the plugin's bin/ on the PATH of the Bash commands it
+# runs, so `teamqa doctor` works there without an alias. The plugin root is found from where this file is.
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)
+for n in "$(command -v node 2>/dev/null)" /opt/homebrew/bin/node /usr/local/bin/node; do
+  [ -n "$n" ] && [ -x "$n" ] && exec "$n" "$root/skills/team-qa/scripts/teamqa.mjs" "$@"
+done
+echo 'Team QA needs Node.js 20 or later (https://nodejs.org).' >&2
+exit 127

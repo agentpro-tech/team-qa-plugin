@@ -1,0 +1,84 @@
+{
+  "schema": "team-qa/roster-policy/v1",
+  "default_single_provider": true,
+  "excluded_default_families": [
+    "astra"
+  ],
+  "roles": [
+    {
+      "role": "test_manager",
+      "tiers": [
+        "general",
+        "reasoning"
+      ],
+      "effort": "medium",
+      "tools": [
+        "fs.read"
+      ],
+      "permission_profile": "read-only"
+    },
+    {
+      "role": "analyst",
+      "tiers": [
+        "small",
+        "general",
+        "reasoning"
+      ],
+      "effort": "high",
+      "tools": [
+        "fs.read"
+      ],
+      "permission_profile": "read-only"
+    },
+    {
+      "role": "designer",
+      "tiers": [
+        "general",
+        "reasoning"
+      ],
+      "effort": "medium",
+      "tools": [
+        "fs.read"
+      ],
+      "permission_profile": "read-only"
+    },
+    {
+      "role": "executor_gui",
+      "tiers": [
+        "general",
+        "reasoning"
+      ],
+      "effort": "medium",
+      "tools": [
+        "dragon",
+        "qa-gui"
+      ],
+      "permission_profile": "qa-browser"
+    },
+    {
+      "role": "executor_code",
+      "tiers": [
+        "general",
+        "reasoning"
+      ],
+      "effort": "high",
+      "tools": [
+        "qa-code"
+      ],
+      "permission_profile": "read-only"
+    },
+    {
+      "role": "coverage_gate",
+      "tiers": [],
+      "effort": null,
+      "tools": [
+        "fs.read",
+        "fs.write"
+      ],
+      "permission_profile": "deterministic"
+    }
+  ],
+  "catalog_max_age_ms": 900000,
+  "preflight_max_age_ms": 300000,
+  "native_response_max_words": 140
+}

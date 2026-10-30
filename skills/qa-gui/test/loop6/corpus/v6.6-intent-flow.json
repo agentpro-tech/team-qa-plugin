@@ -1,0 +1,850 @@
+{
+  "feature": "V6.6",
+  "version": 1,
+  "frozen": true,
+  "sourceBaSha256": "7f49119b1c84085548acb7a57c2b6dc42bbaaf488a1e90db2f336d836cef7ae3",
+  "schema": "qa-gui/v6.6-intent-flow-corpus/v1",
+  "app": "SampleShop",
+  "liveTarget": {
+    "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411",
+    "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app",
+    "status": "draft",
+    "published": false,
+    "gitConnected": false,
+    "databaseEnabled": false
+  },
+  "verdictEnum": ["PASS", "UNGRADED"],
+  "ungradedReasonEnum": ["multiple-targets", "missing-target", "disabled-target", "state-mismatch", "destructive-guard", "env-guard"],
+  "hard": [
+    {
+      "id": "V6.6-H-01-selector-changed-clear-target",
+      "category": "selector-changed",
+      "flowName": "Mở đơn hàng gần nhất",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "mở đơn hàng gần nhất trong danh sách",
+          "role": "button",
+          "nameAtSave": "Mở",
+          "aliasNames": ["Xem", "Chi tiết"],
+          "selectorAtSave": "#order-list > tr:first-child > button.btn-open-legacy",
+          "stateBefore": { "screen": "orders-list", "orderCount": ">=1" },
+          "expectedAfter": { "screen": "order-detail", "orderId": "most-recent" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='order-row-0'] button[aria-label='Mở đơn']", "role": "button", "name": "Mở đơn", "container": "page:orders-list", "enabled": true, "visible": true, "context": { "rowIndex": 0, "isMostRecent": true } },
+        { "controlId": "c2", "selector": "[data-testid='order-row-1'] button[aria-label='Mở đơn']", "role": "button", "name": "Mở đơn", "container": "page:orders-list", "enabled": true, "visible": true, "context": { "rowIndex": 1, "isMostRecent": false } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "old class selector .btn-open-legacy is gone, but role=button + name='Mở đơn' + isMostRecent uniquely resolves to c1"
+    },
+    {
+      "id": "V6.6-H-02-layout-changed-toolbar-to-footer",
+      "category": "layout-changed",
+      "flowName": "Lưu thay đổi thông tin khách hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "lưu thay đổi form khách hàng",
+          "role": "button",
+          "nameAtSave": "Lưu",
+          "selectorAtSave": ".toolbar-top .btn-save",
+          "stateBefore": { "screen": "customer-edit", "formDirty": true },
+          "expectedAfter": { "screen": "customer-edit", "formDirty": false, "toastVisible": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "footer.form-actions button[type=submit]", "role": "button", "name": "Lưu", "container": "page:customer-edit", "enabled": true, "visible": true, "context": { "movedFrom": "toolbar-top", "movedTo": "footer" } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "the save toolbar moved from page-top to a footer action bar; only one Save button remains and role+name are unchanged"
+    },
+    {
+      "id": "V6.6-H-03-role-name-preserved-dom-restructure",
+      "category": "role-name-preserved",
+      "flowName": "Bật công tắc thông báo email",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "bật công tắc nhận thông báo email",
+          "role": "switch",
+          "nameAtSave": "Nhận thông báo email",
+          "selectorAtSave": "div.settings > label:nth-child(3) input[type=checkbox]",
+          "stateBefore": { "screen": "settings", "emailNotif": false },
+          "expectedAfter": { "screen": "settings", "emailNotif": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-field='email-notifications'] [role=switch]", "role": "switch", "name": "Nhận thông báo email", "container": "page:settings", "enabled": true, "visible": true, "state": { "checked": false } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "DOM restructured from label/checkbox to a data-field wrapper with role=switch, but the accessible role and name are unchanged so intent resolves uniquely"
+    },
+    {
+      "id": "V6.6-H-04-alias-text-synonym",
+      "category": "alias-text",
+      "flowName": "Xác nhận thanh toán đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "xác nhận thanh toán",
+          "role": "button",
+          "nameAtSave": "Xác nhận thanh toán",
+          "aliasNames": ["Thanh toán", "Hoàn tất thanh toán", "Confirm payment"],
+          "selectorAtSave": "#pay-confirm-btn",
+          "stateBefore": { "screen": "checkout", "paymentMethodSelected": true },
+          "expectedAfter": { "screen": "order-success" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "button.checkout-cta", "role": "button", "name": "Hoàn tất thanh toán", "container": "page:checkout", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "label reworded to an alias already declared at save time ('Hoàn tất thanh toán'); single actionable candidate"
+    },
+    {
+      "id": "V6.6-H-05-alias-text-vi-en-switch",
+      "category": "alias-text",
+      "flowName": "Tìm kiếm đơn hàng theo mã",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "tìm kiếm đơn hàng",
+          "role": "searchbox",
+          "nameAtSave": "Tìm đơn hàng",
+          "aliasNames": ["Search orders", "Tìm kiếm"],
+          "selectorAtSave": "input#search-orders-vi",
+          "stateBefore": { "screen": "orders-list", "locale": "vi" },
+          "expectedAfter": { "screen": "orders-list", "resultsFiltered": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "input[placeholder='Search orders']", "role": "searchbox", "name": "Search orders", "container": "page:orders-list", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "app UI locale flipped from vi to en after redesign; the pre-declared English alias covers it, single candidate"
+    },
+    {
+      "id": "V6.6-H-06-modal-target-relocated",
+      "category": "modal",
+      "flowName": "Sửa email khách hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "mở form sửa khách hàng",
+          "role": "button",
+          "nameAtSave": "Sửa",
+          "selectorAtSave": ".customer-row .edit-inline",
+          "stateBefore": { "screen": "customers-list" },
+          "expectedAfter": { "screen": "customers-list", "modalOpen": "EditCustomer" },
+          "destructive": false
+        },
+        {
+          "stepId": "s2",
+          "intent": "lưu email mới của khách hàng",
+          "role": "button",
+          "nameAtSave": "Lưu",
+          "selectorAtSave": "#inline-edit-save",
+          "stateBefore": { "modalOpen": "EditCustomer", "emailFieldDirty": true },
+          "expectedAfter": { "modalOpen": null, "toastVisible": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='customer-row'] button[aria-label='Sửa khách hàng']", "role": "button", "name": "Sửa khách hàng", "container": "page:customers-list", "enabled": true, "visible": true },
+        { "controlId": "c2", "selector": "[role=dialog][aria-label='Sửa khách hàng'] button[type=submit]", "role": "button", "name": "Lưu", "container": "modal:EditCustomer", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }, { "stepId": "s2", "targets": ["c2"] }],
+      "expectedVerdict": "PASS",
+      "reason": "inline edit was redesigned into a modal dialog; each step still resolves to exactly one control inside the correct container"
+    },
+    {
+      "id": "V6.6-H-07-tab-target-relocated",
+      "category": "tab",
+      "flowName": "Xem lịch sử thanh toán của đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "chuyển sang tab lịch sử thanh toán",
+          "role": "tab",
+          "nameAtSave": "Lịch sử",
+          "selectorAtSave": "#order-detail-tabs > li:nth-child(2)",
+          "stateBefore": { "screen": "order-detail", "activeTab": "info" },
+          "expectedAfter": { "screen": "order-detail", "activeTab": "payment-history" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[role=tab][data-tab='payment-history']", "role": "tab", "name": "Lịch sử thanh toán", "container": "page:order-detail", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "tab renamed and moved among a reshuffled tab set, but only one tab matches the payment-history intent"
+    },
+    {
+      "id": "V6.6-H-08-ambiguity-two-equal-candidates",
+      "category": "ambiguity",
+      "flowName": "Lưu đơn hàng đang chỉnh sửa",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "lưu đơn hàng",
+          "role": "button",
+          "nameAtSave": "Lưu",
+          "selectorAtSave": "#save-order-btn",
+          "stateBefore": { "screen": "order-edit" },
+          "expectedAfter": { "screen": "order-edit", "saved": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "header.order-edit-header button.btn-save", "role": "button", "name": "Lưu", "container": "page:order-edit", "enabled": true, "visible": true, "context": { "position": "sticky-header" } },
+        { "controlId": "c2", "selector": "footer.order-edit-footer button.btn-save", "role": "button", "name": "Lưu", "container": "page:order-edit", "enabled": true, "visible": true, "context": { "position": "footer" } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1", "c2"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "multiple-targets",
+      "haltAtStep": "s1",
+      "reason": "redesign now shows two identical Save buttons (sticky header + footer) with the same role/name; per H5 the flow must stop UNGRADED, never auto-pick"
+    },
+    {
+      "id": "V6.6-H-09-ambiguity-alias-collision",
+      "category": "ambiguity",
+      "flowName": "Xoá sản phẩm khỏi giỏ hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "xoá sản phẩm khỏi giỏ hàng",
+          "role": "button",
+          "nameAtSave": "Xoá",
+          "aliasNames": ["Remove", "Xoá khỏi giỏ"],
+          "selectorAtSave": ".cart-item .btn-remove",
+          "stateBefore": { "screen": "cart", "itemCount": 2 },
+          "expectedAfter": { "screen": "cart", "itemCount": 1 },
+          "destructive": true
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": ".cart-item[data-id='p1'] button[aria-label='Xoá khỏi giỏ']", "role": "button", "name": "Xoá khỏi giỏ", "container": "page:cart", "enabled": true, "visible": true },
+        { "controlId": "c2", "selector": ".cart-item[data-id='p2'] button[aria-label='Xoá khỏi giỏ']", "role": "button", "name": "Xoá khỏi giỏ", "container": "page:cart", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1", "c2"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "multiple-targets",
+      "haltAtStep": "s1",
+      "reason": "the saved flow never pinned which cart line the intent targets; two rows now equally match role/name/alias, so the engine must stop rather than guess which product to remove"
+    },
+    {
+      "id": "V6.6-H-10-missing-target-removed",
+      "category": "missing-target",
+      "flowName": "Xuất báo cáo doanh thu theo ngày",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "mở form xuất báo cáo doanh thu",
+          "role": "button",
+          "nameAtSave": "Xuất báo cáo",
+          "selectorAtSave": "#export-report-btn",
+          "stateBefore": { "screen": "dashboard" },
+          "expectedAfter": { "screen": "dashboard", "modalOpen": "ExportReport" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "#dashboard-refresh", "role": "button", "name": "Làm mới", "container": "page:dashboard", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": [] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "missing-target",
+      "haltAtStep": "s1",
+      "reason": "the export-report control was removed in the redesign; nothing on the snapshot matches role=button + the export-revenue-report intent by name or alias"
+    },
+    {
+      "id": "V6.6-H-11-missing-target-relocated-outside-snapshot",
+      "category": "missing-target",
+      "flowName": "Huỷ đơn hàng đang chờ xử lý",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "huỷ đơn hàng",
+          "role": "button",
+          "nameAtSave": "Huỷ đơn",
+          "selectorAtSave": "#cancel-order-btn",
+          "stateBefore": { "screen": "order-detail", "orderStatus": "pending" },
+          "expectedAfter": { "screen": "order-detail", "orderStatus": "cancelled" },
+          "destructive": true
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "button.btn-print", "role": "button", "name": "In đơn", "container": "page:order-detail", "enabled": true, "visible": true },
+        { "controlId": "c2", "selector": "button.btn-duplicate", "role": "button", "name": "Nhân bản", "container": "page:order-detail", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": [] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "missing-target",
+      "haltAtStep": "s1",
+      "reason": "the cancel-order action is not present anywhere in the redesigned control snapshot for this screen; nothing matches the intent, even though other unrelated actions remain"
+    },
+    {
+      "id": "V6.6-H-12-disabled-target-precondition-unmet",
+      "category": "disabled-target",
+      "flowName": "Gửi đơn hàng cho khách duyệt",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "gửi đơn hàng cho khách duyệt",
+          "role": "button",
+          "nameAtSave": "Gửi duyệt",
+          "selectorAtSave": "#submit-approval-btn",
+          "stateBefore": { "screen": "order-edit", "allLineItemsPriced": true },
+          "expectedAfter": { "screen": "order-edit", "approvalStatus": "sent" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='submit-approval']", "role": "button", "name": "Gửi duyệt", "container": "page:order-edit", "enabled": false, "visible": true, "state": { "reason": "missing-shipping-address" } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "disabled-target",
+      "haltAtStep": "s1",
+      "reason": "the single matching control now exists but is disabled because the redesign added a required shipping-address precondition the saved flow's stateBefore never captured; must not click a disabled control"
+    },
+    {
+      "id": "V6.6-H-13-disabled-target-permission-gated",
+      "category": "disabled-target",
+      "flowName": "Áp dụng mã giảm giá cho đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "áp dụng mã giảm giá",
+          "role": "button",
+          "nameAtSave": "Áp dụng",
+          "selectorAtSave": "#apply-discount-btn",
+          "stateBefore": { "screen": "order-edit", "role": "staff" },
+          "expectedAfter": { "screen": "order-edit", "discountApplied": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='apply-discount']", "role": "button", "name": "Áp dụng mã giảm giá", "container": "page:order-edit", "enabled": false, "visible": true, "state": { "reason": "requires-manager-role" } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "disabled-target",
+      "haltAtStep": "s1",
+      "reason": "redesign added a manager-only permission gate; the control resolves uniquely but is disabled for the current role, so the flow cannot run it"
+    },
+    {
+      "id": "V6.6-H-14-state-mismatch-empty-cart",
+      "category": "state-mismatch",
+      "flowName": "Thanh toán giỏ hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "thanh toán giỏ hàng",
+          "role": "button",
+          "nameAtSave": "Thanh toán",
+          "selectorAtSave": "#checkout-btn",
+          "stateBefore": { "screen": "cart", "itemCount": ">=1" },
+          "expectedAfter": { "screen": "checkout" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='checkout-cta']", "role": "button", "name": "Thanh toán", "container": "page:cart", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "currentAppState": { "screen": "cart", "itemCount": 0 },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "state-mismatch",
+      "haltAtStep": "s1",
+      "reason": "the control itself resolves cleanly but the saved step's required stateBefore (cart itemCount>=1) does not hold in the current snapshot (cart is empty), so replay is not valid"
+    },
+    {
+      "id": "V6.6-H-15-state-mismatch-order-status-changed",
+      "category": "state-mismatch",
+      "flowName": "Huỷ đơn hàng đang chờ xử lý",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "huỷ đơn hàng",
+          "role": "button",
+          "nameAtSave": "Huỷ đơn",
+          "selectorAtSave": "#cancel-order-btn",
+          "stateBefore": { "screen": "order-detail", "orderStatus": "pending" },
+          "expectedAfter": { "screen": "order-detail", "orderStatus": "cancelled" },
+          "destructive": true
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='cancel-order']", "role": "button", "name": "Huỷ đơn", "container": "page:order-detail", "enabled": false, "visible": true, "state": { "orderStatus": "completed", "reason": "cannot-cancel-completed-order" } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "state-mismatch",
+      "haltAtStep": "s1",
+      "reason": "the order has since moved to completed status, so the saved precondition (pending) no longer holds and the resolved cancel control is correctly disabled — must not force the click"
+    },
+    {
+      "id": "V6.6-H-16-unsafe-destructive-alias-now-permanent",
+      "category": "unsafe-destructive-intent",
+      "flowName": "Lưu trữ đơn hàng cũ",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "lưu trữ đơn hàng (archive, có thể khôi phục)",
+          "role": "button",
+          "nameAtSave": "Lưu trữ",
+          "aliasNames": ["Archive"],
+          "selectorAtSave": "#archive-order-btn",
+          "stateBefore": { "screen": "order-detail" },
+          "expectedAfter": { "screen": "order-detail", "archived": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='archive-order']", "role": "button", "name": "Xoá vĩnh viễn", "container": "page:order-detail", "enabled": true, "visible": true, "state": { "destructive": true, "reversible": false } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "destructive-guard",
+      "haltAtStep": "s1",
+      "reason": "the redesign kept the same position/role but relabeled the control from reversible 'Lưu trữ' (archive) to irreversible 'Xoá vĩnh viễn' (permanent delete); literal-selector replay would silently upgrade a safe intent into a destructive one, so it must stop UNGRADED rather than click"
+    },
+    {
+      "id": "V6.6-H-17-unsafe-destructive-two-delete-variants",
+      "category": "unsafe-destructive-intent",
+      "flowName": "Xoá sản phẩm khỏi kho",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "xoá sản phẩm khỏi kho",
+          "role": "button",
+          "nameAtSave": "Xoá",
+          "selectorAtSave": "#delete-product-btn",
+          "stateBefore": { "screen": "inventory-detail" },
+          "expectedAfter": { "screen": "inventory-list" },
+          "destructive": true
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='soft-delete']", "role": "button", "name": "Ẩn sản phẩm", "container": "page:inventory-detail", "enabled": true, "visible": true, "state": { "destructive": true, "reversible": true } },
+        { "controlId": "c2", "selector": "[data-testid='hard-delete']", "role": "button", "name": "Xoá vĩnh viễn", "container": "page:inventory-detail", "enabled": true, "visible": true, "state": { "destructive": true, "reversible": false } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1", "c2"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "multiple-targets",
+      "haltAtStep": "s1",
+      "reason": "redesign split one destructive delete into two actions (reversible hide vs permanent delete) that both plausibly satisfy 'xoá sản phẩm'; ambiguous and destructive, so it must stop UNGRADED and never auto-pick the riskier one"
+    },
+    {
+      "id": "V6.6-H-18-combo-selector-and-tab",
+      "category": "selector-changed+tab",
+      "flowName": "Mở tab Kho hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "chuyển sang tab kho hàng",
+          "role": "tab",
+          "nameAtSave": "Kho",
+          "selectorAtSave": "#main-tabs > li.tab-inventory-old",
+          "stateBefore": { "screen": "dashboard", "activeTab": "orders" },
+          "expectedAfter": { "screen": "dashboard", "activeTab": "inventory" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[role=tab][data-tab='inventory']", "role": "tab", "name": "Kho hàng", "container": "page:dashboard", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "the old class-based tab selector is gone and the tab set was reshuffled, but role+name still resolves to exactly one tab"
+    },
+    {
+      "id": "V6.6-H-19-combo-layout-and-modal",
+      "category": "layout-changed+modal",
+      "flowName": "Thêm khách hàng mới",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "mở form thêm khách hàng mới",
+          "role": "button",
+          "nameAtSave": "Thêm khách hàng",
+          "selectorAtSave": ".page-header .btn-add-customer",
+          "stateBefore": { "screen": "customers-list" },
+          "expectedAfter": { "screen": "customers-list", "modalOpen": "AddCustomer" },
+          "destructive": false
+        },
+        {
+          "stepId": "s2",
+          "intent": "lưu khách hàng mới",
+          "role": "button",
+          "nameAtSave": "Lưu",
+          "selectorAtSave": "#add-customer-form-save",
+          "stateBefore": { "modalOpen": "AddCustomer", "formValid": true },
+          "expectedAfter": { "modalOpen": null, "toastVisible": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='fab-add-customer']", "role": "button", "name": "Thêm khách hàng", "container": "page:customers-list", "enabled": true, "visible": true, "context": { "movedFrom": "page-header", "movedTo": "floating-action-button" } },
+        { "controlId": "c2", "selector": "[role=dialog][aria-label='Thêm khách hàng'] button[type=submit]", "role": "button", "name": "Lưu", "container": "modal:AddCustomer", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }, { "stepId": "s2", "targets": ["c2"] }],
+      "expectedVerdict": "PASS",
+      "reason": "add-customer entry point moved from page header into a floating action button and the form became a modal instead of an inline panel, but each step still resolves uniquely"
+    },
+    {
+      "id": "V6.6-H-20-combo-alias-and-disabled",
+      "category": "alias-text+disabled-target",
+      "flowName": "Hoàn tiền cho đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "hoàn tiền cho đơn hàng",
+          "role": "button",
+          "nameAtSave": "Hoàn tiền",
+          "aliasNames": ["Refund", "Hoàn trả tiền"],
+          "selectorAtSave": "#refund-btn",
+          "stateBefore": { "screen": "order-detail", "paymentStatus": "paid" },
+          "expectedAfter": { "screen": "order-detail", "paymentStatus": "refunded" },
+          "destructive": true
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='refund-action']", "role": "button", "name": "Hoàn trả tiền", "container": "page:order-detail", "enabled": false, "visible": true, "state": { "reason": "refund-window-expired" } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "disabled-target",
+      "haltAtStep": "s1",
+      "reason": "alias resolves to a single control ('Hoàn trả tiền' was pre-declared as an alias) but the redesign added a refund-window-expired guard that disables it — resolved uniquely yet not actionable"
+    },
+    {
+      "id": "V6.6-H-21-env-guard-official-domain",
+      "category": "env-guard",
+      "flowName": "Lưu đơn hàng trên bản official",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "lưu đơn hàng",
+          "role": "button",
+          "nameAtSave": "Lưu",
+          "selectorAtSave": "#save-order-btn",
+          "stateBefore": { "screen": "order-edit" },
+          "expectedAfter": { "screen": "order-edit", "saved": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='save-order']", "role": "button", "name": "Lưu", "container": "page:order-edit", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://sampleshop.app/dashboard", "status": "published", "published": true, "gitConnected": false, "databaseEnabled": true },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "env-guard",
+      "haltAtStep": "s1",
+      "reason": "control resolution is trivially clean, but the snapshot's URL is the official published SampleShop domain, not the pinned draft remix preview — per HR2/L7/H8 the flow must stop UNGRADED before touching a non-pinned target, regardless of how clear the target is"
+    },
+    {
+      "id": "V6.6-H-22-env-guard-git-connected-production",
+      "category": "env-guard",
+      "flowName": "Xoá đơn hàng thử nghiệm",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "xoá đơn hàng",
+          "role": "button",
+          "nameAtSave": "Xoá",
+          "selectorAtSave": "#delete-order-btn",
+          "stateBefore": { "screen": "order-detail" },
+          "expectedAfter": { "screen": "orders-list" },
+          "destructive": true
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[data-testid='delete-order']", "role": "button", "name": "Xoá", "container": "page:order-detail", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "production", "published": true, "gitConnected": true, "databaseEnabled": true },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "UNGRADED",
+      "ungradedReason": "env-guard",
+      "haltAtStep": "s1",
+      "reason": "same project id and preview URL as the pinned live target, but this snapshot reports gitConnected:true, status:production and databaseEnabled:true — the pin requires draft, not Git-connected, not Production and database disabled, so this is a disallowed target state and must stop UNGRADED even though the delete control resolves uniquely"
+    }
+  ],
+  "ordinary": [
+    {
+      "id": "V6.6-O-01-login-button-unchanged",
+      "category": "unchanged",
+      "flowName": "Đăng nhập vào SampleShop",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "đăng nhập",
+          "role": "button",
+          "nameAtSave": "Đăng nhập",
+          "selectorAtSave": "#login-btn",
+          "stateBefore": { "screen": "login", "credentialsFilled": true },
+          "expectedAfter": { "screen": "dashboard" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "#login-btn", "role": "button", "name": "Đăng nhập", "container": "page:login", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; selector, role and name are identical to the saved flow"
+    },
+    {
+      "id": "V6.6-O-02-save-order-button-unchanged",
+      "category": "unchanged",
+      "flowName": "Lưu đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "lưu đơn hàng",
+          "role": "button",
+          "nameAtSave": "Lưu",
+          "selectorAtSave": "#save-order-btn",
+          "stateBefore": { "screen": "order-edit" },
+          "expectedAfter": { "screen": "order-edit", "saved": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "#save-order-btn", "role": "button", "name": "Lưu", "container": "page:order-edit", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    },
+    {
+      "id": "V6.6-O-03-cancel-link-unchanged",
+      "category": "unchanged",
+      "flowName": "Huỷ thao tác chỉnh sửa",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "huỷ chỉnh sửa và quay lại danh sách",
+          "role": "link",
+          "nameAtSave": "Huỷ",
+          "selectorAtSave": "a#cancel-edit-link",
+          "stateBefore": { "screen": "order-edit" },
+          "expectedAfter": { "screen": "orders-list" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "a#cancel-edit-link", "role": "link", "name": "Huỷ", "container": "page:order-edit", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    },
+    {
+      "id": "V6.6-O-04-search-input-unchanged",
+      "category": "unchanged",
+      "flowName": "Tìm kiếm khách hàng theo tên",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "tìm kiếm khách hàng",
+          "role": "searchbox",
+          "nameAtSave": "Tìm khách hàng",
+          "selectorAtSave": "input#search-customers",
+          "stateBefore": { "screen": "customers-list" },
+          "expectedAfter": { "screen": "customers-list", "resultsFiltered": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "input#search-customers", "role": "searchbox", "name": "Tìm khách hàng", "container": "page:customers-list", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    },
+    {
+      "id": "V6.6-O-05-tab-switch-unchanged",
+      "category": "unchanged",
+      "flowName": "Chuyển sang tab Thông tin đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "chuyển sang tab thông tin",
+          "role": "tab",
+          "nameAtSave": "Thông tin",
+          "selectorAtSave": "[role=tab][data-tab='info']",
+          "stateBefore": { "screen": "order-detail", "activeTab": "payment-history" },
+          "expectedAfter": { "screen": "order-detail", "activeTab": "info" },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[role=tab][data-tab='info']", "role": "tab", "name": "Thông tin", "container": "page:order-detail", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    },
+    {
+      "id": "V6.6-O-06-checkbox-toggle-unchanged",
+      "category": "unchanged",
+      "flowName": "Đánh dấu đơn hàng đã đóng gói",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "đánh dấu đơn hàng đã đóng gói",
+          "role": "checkbox",
+          "nameAtSave": "Đã đóng gói",
+          "selectorAtSave": "#packed-checkbox",
+          "stateBefore": { "screen": "order-detail", "packed": false },
+          "expectedAfter": { "screen": "order-detail", "packed": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "#packed-checkbox", "role": "checkbox", "name": "Đã đóng gói", "container": "page:order-detail", "enabled": true, "visible": true, "state": { "checked": false } }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    },
+    {
+      "id": "V6.6-O-07-status-dropdown-unchanged",
+      "category": "unchanged",
+      "flowName": "Đổi trạng thái đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "mở danh sách chọn trạng thái đơn hàng",
+          "role": "combobox",
+          "nameAtSave": "Trạng thái",
+          "selectorAtSave": "#order-status-select",
+          "stateBefore": { "screen": "order-detail", "orderStatus": "pending" },
+          "expectedAfter": { "screen": "order-detail", "dropdownOpen": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "#order-status-select", "role": "combobox", "name": "Trạng thái", "container": "page:order-detail", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    },
+    {
+      "id": "V6.6-O-08-pagination-next-unchanged",
+      "category": "unchanged",
+      "flowName": "Xem trang tiếp theo của danh sách đơn hàng",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "chuyển sang trang tiếp theo",
+          "role": "button",
+          "nameAtSave": "Trang sau",
+          "selectorAtSave": "#orders-pagination-next",
+          "stateBefore": { "screen": "orders-list", "page": 1 },
+          "expectedAfter": { "screen": "orders-list", "page": 2 },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "#orders-pagination-next", "role": "button", "name": "Trang sau", "container": "page:orders-list", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    },
+    {
+      "id": "V6.6-O-09-modal-close-unchanged",
+      "category": "unchanged",
+      "flowName": "Đóng modal xem trước hoá đơn",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "đóng modal xem trước hoá đơn",
+          "role": "button",
+          "nameAtSave": "Đóng",
+          "selectorAtSave": "[role=dialog][aria-label='Xem trước hoá đơn'] button.btn-close",
+          "stateBefore": { "modalOpen": "InvoicePreview" },
+          "expectedAfter": { "modalOpen": null },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "[role=dialog][aria-label='Xem trước hoá đơn'] button.btn-close", "role": "button", "name": "Đóng", "container": "modal:InvoicePreview", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name inside the modal"
+    },
+    {
+      "id": "V6.6-O-10-filter-apply-unchanged",
+      "category": "unchanged",
+      "flowName": "Áp dụng bộ lọc theo khoảng ngày",
+      "savedSteps": [
+        {
+          "stepId": "s1",
+          "intent": "áp dụng bộ lọc ngày",
+          "role": "button",
+          "nameAtSave": "Áp dụng",
+          "selectorAtSave": "#date-filter-apply",
+          "stateBefore": { "screen": "orders-list", "dateRangeSelected": true },
+          "expectedAfter": { "screen": "orders-list", "filtered": true },
+          "destructive": false
+        }
+      ],
+      "redesignedControls": [
+        { "controlId": "c1", "selector": "#date-filter-apply", "role": "button", "name": "Áp dụng", "container": "page:orders-list", "enabled": true, "visible": true }
+      ],
+      "env": { "projectId": "ee71fc9d-eebe-4bb2-b130-4930af6fa411", "previewUrl": "https://id-preview--ee71fc9d-eebe-4bb2-b130-4930af6fa411.lovable.app", "status": "draft", "published": false, "gitConnected": false, "databaseEnabled": false },
+      "expectedTargets": [{ "stepId": "s1", "targets": ["c1"] }],
+      "expectedVerdict": "PASS",
+      "reason": "no redesign; identical selector, role and name"
+    }
+  ]
+}

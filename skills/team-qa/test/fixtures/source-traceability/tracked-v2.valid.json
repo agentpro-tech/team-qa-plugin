@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "sourceItems": [
+    {
+      "id": "SRC-JIRA-42",
+      "kind": "issue",
+      "sourceSystem": "jira",
+      "externalKey": "APP-42",
+      "title": "Save action loses the selected owner",
+      "url": "https://jira.example.test/browse/APP-42",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-SPEC-7",
+      "kind": "spec",
+      "sourceSystem": "github",
+      "externalKey": "SPEC-7",
+      "title": "Owner persistence specification",
+      "url": "https://github.example.test/specs/7",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-QA-EMPTY",
+      "kind": "qa-derived",
+      "sourceSystem": "team-qa",
+      "externalKey": "QA-EMPTY-STATE",
+      "title": "Empty-state regression guardrail",
+      "origin": "qa-derived",
+      "qaDerivedReason": "QA added this guardrail after a repeated empty-state regression."
+    }
+  ],
+  "cases": [
+    {
+      "id": "TC-01",
+      "title": "Save preserves the selected owner",
+      "req_id": "REQ-HIGH",
+      "sourceRefs": ["SRC-JIRA-42", "SRC-SPEC-7"],
+      "lane": "lane-high",
+      "steps": ["Select an owner", "Save the record"],
+      "expected": "The selected owner remains after save.",
+      "data": {},
+      "priority": "P1",
+      "kind": "behavioral",
+      "taxonomy": ["functional", "regression"],
+      "states": ["ideal"],
+      "viewports": ["desktop"]
+    },
+    {
+      "id": "TC-02",
+      "title": "Save is stable after refresh",
+      "req_id": "REQ-HIGH",
+      "sourceRefs": ["SRC-JIRA-42"],
+      "lane": "lane-high",
+      "steps": ["Save the owner", "Refresh the page"],
+      "expected": "The owner remains selected after refresh.",
+      "data": {},
+      "priority": "P1",
+      "kind": "behavioral",
+      "taxonomy": ["functional", "state", "regression"],
+      "states": ["ideal"],
+      "viewports": ["desktop"]
+    },
+    {
+      "id": "TC-03",
+      "title": "Empty state remains actionable",
+      "req_id": "REQ-LOW",
+      "sourceRefs": ["SRC-QA-EMPTY"],
+      "lane": "lane-low",
+      "steps": ["Open a record with no owners"],
+      "expected": "The empty state exposes a clear action.",
+      "data": {},
+      "priority": "P2",
+      "kind": "static",
+      "taxonomy": ["visual", "accessibility", "regression"],
+      "states": ["empty"],
+      "viewports": ["mobile", "desktop"]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "fixture": "canonical-v6.valid.json",
+  "mutation": {
+    "path": "cases[0].sourceRefs[1]",
+    "value": "SRC-UNKNOWN"
+  },
+  "expectedErrorPath": "cases[0].sourceRefs[1]"
+}
