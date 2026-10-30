@@ -136,10 +136,12 @@ export function ruleVStatic(verdict) {
   }];
 }
 
-/** V-GATE0 (L4): only PASS-STATIC needs evidence of a green Gate 0 on the same commit. */
+/** V-GATE0 (L4): every PASS grade (PASS and PASS-STATIC) needs evidence of a green Gate 0 on the same commit. A red
+ * or ungraded Gate 0 used to leave a tools-mode PASS untouched, because only PASS-STATIC was checked here and the
+ * V-GATE0-BINDING check binds repo, commit and integrity but not status. */
 export function ruleVGate0(verdict, gate0, gate0ReadError = null) {
   try {verifyGate0SecretAdjudication(gate0);} catch(error) {return {verdictOut:'UNGRADED',downgraded:[{rule:'V-GATE0',why:error.message}]};}
-  if (verdict?.verdict !== 'PASS-STATIC') {
+  if (!['PASS', 'PASS-STATIC'].includes(verdict?.verdict)) {
     return { verdictOut: verdict?.verdict, downgraded: [] };
   }
 

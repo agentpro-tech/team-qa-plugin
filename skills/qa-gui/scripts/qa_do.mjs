@@ -19,8 +19,9 @@
 //   { "tabId": 123, "steps": [ ... ], "timeout": 35000 }        # treated as a `do` call
 //   { "method": "do", "params": { "tabId":123, "steps":[...] }, "timeout": 35000 }
 //
-// Output: JSON with { ok, completed, reads, asserts, verdict } — verdict is auto-derived from
-// asserts when present (all ok => PASS, any not-ok => FAIL), else "n/a" (inspect reads yourself).
+// Output: JSON with { ok, completed, reads, asserts, verdict }. On a clean, complete run (ok and completed !== false)
+// verdict comes from the asserts (all ok => PASS, any not-ok => FAIL), else "n/a" (inspect reads yourself). A failed
+// step, an incomplete run, a denial or an HTTP error is never PASS: FAIL when an assert failed, else UNGRADED.
 
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -121,11 +122,16 @@ async function main() {
         ? 'INCOMPLETE — Dragon did not complete every step'
         : null;
   const asserts = result.asserts || [];
-  let verdict = 'n/a';
-  if (asserts.length) verdict = asserts.every((a) => a.ok) ? 'PASS' : 'FAIL';
+  const ok = response.ok && r.ok !== false && !r.error && !nestedError;
+  const assertFailed = asserts.some((a) => !a?.ok);
+  // PASS needs a clean, complete run: asserts that ran before a failed step, a denial or an HTTP error prove nothing
+  // about the steps that did not run, so that is UNGRADED unless an assert already failed (FAIL).
+  let verdict;
+  if (ok && result.completed !== false) verdict = asserts.length ? (assertFailed ? 'FAIL' : 'PASS') : 'n/a';
+  else verdict = assertFailed ? 'FAIL' : 'UNGRADED';
 
   const out = {
-    ok: response.ok && r.ok !== false && !r.error && !nestedError,
+    ok,
     error: safeMessage(r.error || nestedError || (!response.ok ? `HTTP ${response.status}` : ''), token) || null,
     completed: result.completed,
     reads: result.reads || null,

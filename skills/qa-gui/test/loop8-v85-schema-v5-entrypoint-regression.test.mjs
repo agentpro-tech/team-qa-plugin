@@ -39,7 +39,9 @@ test('Loop 8 entrypoints create and gate the current schema-v6 boards by default
   const fixture = JSON.parse(readFileSync(example, 'utf8'));
   assert.equal(fixture.schemaVersion, 6);
   const gated = run(gate, [example]);
-  assert.equal(gated.status, 0, gated.stderr || gated.stdout);
+  // The example's only case is TODO, so the gate reads the v6 board in full and grades it UNGRADED, never PASS.
+  assert.equal(gated.status, 20, gated.stderr || gated.stdout);
+  assert.match(gated.stdout, /QA gate: UNGRADED/);
   assert.match(gated.stdout, /Canonical: qa-board-teamwork\/v2/);
   assert.match(gated.stdout, /Source traceability: 1 source · 1 case link/);
 });

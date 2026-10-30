@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { assertNoTestSecrets, collectRunSecrets, maskSecrets, scanRunOutputs, secretsFromText } from '../../scripts/lib/test-secrets.mjs';
@@ -74,4 +74,88 @@ test('the diagnostic bundle masks the run\'s test passwords', async () => {
   const bundle = await diagnosticBundle({ run: 'r1', runsDir: join(ws, 'runs'), overrides });
   assert.equal(bundle.run['roster.json'].note, 'login hint [test-secret]');
   assert.ok(!JSON.stringify(bundle).includes(BUYER));
+});
+
+// 1.15.1: the shapes real accounts files take. Each value below is made up.
+test('keys in snake, kebab, camel and env form, Vietnamese labels, quoted values with spaces and short values under a key', () => {
+  const cases = [
+    ['ADMIN_EMAIL=admin@example.org\nADMIN_PASSWORD=Env-Secret-1\n', ['Env-Secret-1']],
+    ['export DB_PASS="two words here"\n', ['two words here']],
+    ["admin:\n  user_password: 'Yaml Secret 2'\n", ['Yaml Secret 2']],
+    ['dbPass: Camel-3x\n', ['Camel-3x']],
+    ['db-pass = Kebab-4x\n', ['Kebab-4x']],
+    ['T\u00e0i kho\u1ea3n: admin@example.org\nM\u1eadt kh\u1ea9u: Abc@12345\n', ['Abc@12345']],
+    ['user: admin@example.org\nmk: Mk-Value-5\n', ['Mk-Value-5']],
+    ['MAT_KHAU=Mat-Khau-6\nmatkhau: Mat-Khau-7\n', ['Mat-Khau-6', 'Mat-Khau-7']],
+    ['pass: Pass-6x\n', ['Pass-6x']],
+    ['password: "correct horse battery"\n', ['correct horse battery']],
+    ['Login: admin@example.org | Password: Pair-Secret-7\n', ['Pair-Secret-7']],
+    ['"password": "Json Line 8",\n', ['Json Line 8']],
+    ['pin: 1234\npassword: abcd\n', ['1234', 'abcd']],
+    ['x@example.org / abcd\n', []],
+    ['password: null\npassword: ********\npassword: <your password>\npassword: ${ADMIN_PASSWORD}\npassword: none\npin: abc\n', []],
+  ];
+  for (const [text, expected] of cases) assert.deepEqual(secretsFromText(text).sort(), expected.sort(), JSON.stringify(text));
+});
+
+test('JSON: numeric values and values with spaces under a password key; placeholders are not values', () => {
+  assert.deepEqual(secretsFromText(JSON.stringify({ pin: 123456, password: 98765432, note: 5555, otp: 7 })).sort(), ['123456', '98765432']);
+  assert.deepEqual(secretsFromText(JSON.stringify({ users: [{ email: 'a@example.org', password: 'correct horse battery', dbPass: 'Camel-9x' }] })).sort(), ['Camel-9x', 'correct horse battery']);
+  assert.deepEqual(secretsFromText(JSON.stringify({ password: null, pin: true, secret: '', token: 'string' })), []);
+});
+
+test('.env, creds and credential files are sources; symlinks are followed to regular files only; code files are not sources', () => {
+  const { ws, runDir } = workspace();
+  put(ws, '.env', 'TEST_USER_PASSWORD=Dot-Env-11\n');
+  put(ws, 'creds.txt', 'buyer@example.org / Creds-File-12\n');
+  put(ws, 'staging-credential.json', JSON.stringify({ adminPassword: 'Cred-Json-13' }));
+  put(ws, 'vite-env.d.ts', 'interface Env { readonly VITE_API_TOKEN: Code-Not-Source-14 }\n');
+  put(ws, 'private/real.txt', 'password: Linked-Secret-15\n');
+  symlinkSync(join(ws, 'private/real.txt'), join(ws, 'test-accounts.txt'));
+  symlinkSync(join(ws, 'private'), join(ws, 'logins'));
+  symlinkSync(join(ws, 'missing.txt'), join(ws, 'secrets.txt'));
+  put(ws, 'private/input.txt', 'password: Linked-Input-16\n');
+  symlinkSync(join(ws, 'private/input.txt'), join(runDir, 'exec-inputs/TC-01/logins.txt'));
+  const found = collectRunSecrets(runDir, { env: {} });
+  for (const value of ['Dot-Env-11', 'Creds-File-12', 'Cred-Json-13', 'Linked-Secret-15', 'Linked-Input-16']) assert.ok(found.secrets.includes(value), value);
+  assert.ok(!found.secrets.includes('Code-Not-Source-14'));
+  assert.equal(found.inputs, 3);
+});
+
+test('a value is found in any form it takes in an output, short values only as whole words, and maskSecrets agrees', () => {
+  const { runDir } = workspace();
+  const secrets = ['correct horse battery', 'abcd'];
+  put(runDir, 'summary-report.md', 'form body: password=correct+horse+battery\n');
+  put(runDir, 'rtm.md', 'url: /login?p=correct%20horse%20battery\n');
+  put(runDir, 'board/qa-board.json', JSON.stringify({ note: 'xabcdx and abcdef are other words' }));
+  put(runDir, 'plan.md', 'typed abcd at the prompt\n');
+  assert.deepEqual(scanRunOutputs(runDir, secrets).map((f) => f.file).sort(), ['plan.md', 'rtm.md', 'summary-report.md']);
+  assert.equal(maskSecrets('xabcdx abcd correct+horse+battery correct%20horse%20battery', secrets), 'xabcdx [test-secret] [test-secret] [test-secret]');
+});
+
+test('an output over 8 MB is scanned in chunks, including a value split across a chunk boundary', () => {
+  const { runDir } = workspace();
+  put(runDir, 'board/index.html', `${'x'.repeat(9 * 1024 * 1024)} ${BUYER}\n`);
+  assert.deepEqual(scanRunOutputs(runDir, [BUYER]), [{ file: 'board/index.html', values: 1 }]);
+  const word = 'M\u1eadt-Kh\u1ea9u-17';
+  put(runDir, 'board/index.html', `${'y'.repeat(1000)}${word}${'z'.repeat(1000)}`);
+  for (const chunkBytes of [1001, 1003, 1005, 1007, 1009]) assert.deepEqual(scanRunOutputs(runDir, [word], { chunkBytes }), [{ file: 'board/index.html', values: 1 }], `chunk ${chunkBytes}`);
+});
+
+test('teamqa secrets scan warns when credential inputs exist but no value is found', () => {
+  const env = { ...process.env }; delete env.TEAMQA_TEST_SECRETS_FILE;
+  const ws = mkdtempSync(join(tmpdir(), 'teamqa-secrets-none-')), runDir = join(ws, 'runs', 'r1');
+  put(runDir, 'exec-inputs/TC-01/products.csv', 'sku,name\n1,Tea\n');
+  const inputsOnly = spawnSync(process.execPath, [CLI, 'secrets', 'scan', '--run', 'r1'], { cwd: ws, encoding: 'utf8', env });
+  assert.equal(inputsOnly.status, 0, inputsOnly.stderr);
+  assert.match(inputsOnly.stderr, /verdict=warn TEST_SECRETS_NOT_FOUND values=0 sources=0 inputs=1/);
+  assert.doesNotMatch(inputsOnly.stdout + inputsOnly.stderr, /verdict=pass/);
+  put(ws, 'credentials.txt', 'Account for staging, ask the owner\n');
+  const unparsed = spawnSync(process.execPath, [CLI, 'secrets', 'scan', '--run', 'r1'], { cwd: ws, encoding: 'utf8', env });
+  assert.match(unparsed.stderr, /verdict=warn TEST_SECRETS_NOT_FOUND values=0 sources=1 inputs=1/);
+  const empty = mkdtempSync(join(tmpdir(), 'teamqa-secrets-empty-'));
+  mkdirSync(join(empty, 'runs', 'r1'), { recursive: true });
+  const none = spawnSync(process.execPath, [CLI, 'secrets', 'scan', '--run', 'r1'], { cwd: empty, encoding: 'utf8', env });
+  assert.equal(none.status, 0, none.stderr);
+  assert.match(none.stdout, /verdict=pass TEST_SECRETS_CLEAN values=0 sources=0 inputs=0/);
 });

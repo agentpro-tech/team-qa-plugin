@@ -1,11 +1,11 @@
 {
   "schema": "agentpro/skill-source/v1",
   "skill": "qa-gui",
-  "version": "2.17.0",
+  "version": "2.17.1",
   "repo": "https://github.com/agentpro-tech/qa-gui.git",
-  "commit": "f0400f6236d7c7cc28884b164ebeb5b7bb9e2da6",
-  "tree": "afc7a78ee661e396ea18c0422dde3dc0f8ed4b04",
-  "manifest_sha256": "c4fe9b6a8be58a739cf0cdcbca448eda0b166fc8bb413c438af4629ee51c2d6a",
-  "package_sha256": "fc5200e5e40f894bd377b382e08adf9850ee9fc910a09ff43d887d63194a0210",
-  "built_at": "2026-10-30T05:23:28.548Z"
+  "commit": "0213c535f7b236335f7191da08e5ccc7b5c9b842",
+  "tree": "73cb00172b3ce257a2544e9c1a112ac662e1bfa6",
+  "manifest_sha256": "8a2c702838dab4aad8657d691528d475a9aaf4118f3fff676c14c3ab72706492",
+  "package_sha256": "cf42cb2028405d21f636f9f2b8d5533ff77085f13caecb67e8f3d8393b566e5b",
+  "built_at": "2026-10-30T06:25:16.288Z"
 }

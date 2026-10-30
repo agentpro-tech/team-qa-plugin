@@ -1,16 +1,16 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "qa-code",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "files": [
     {
       "path": "SKILL.md",
-      "sha256": "80b3bf6d438df0b07b348d0a38af12ff90cb89bf366fc5af909c19440212b541",
+      "sha256": "2ba48c25708ca1d14ba4b2f934c47bb51aba1dccd37db651af5ded4c7f4815f6",
       "mode": "0644"
     },
     {
       "path": "VERSION",
-      "sha256": "74ee4d121463989183f9a9b848577eb2434f3f5d095de2a4b197bf29ffa2399b",
+      "sha256": "4f9416d650bd28343244b868dfebdb11e70d7b32423536cb87b8c31fde62f993",
       "mode": "0644"
     },
     {
@@ -85,7 +85,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "9c3be130b91c4c0b3022fd000374bd46132e7b8d8fa8b2850aadea44b2415acb",
+      "sha256": "9c73e2a3648c00518ef11ffd457acc533770ca38ba30d42454225b6aa2ee6ebc",
       "mode": "0644"
     },
     {
@@ -210,7 +210,7 @@
     },
     {
       "path": "scripts/lib/gate0.mjs",
-      "sha256": "48ecf216f8153f4ffacf6deae85a2a73f20ed0cd9471826efd087fbaf976b27d",
+      "sha256": "1e42b97bba4d04c4ae12b7b61fb96bb846c54a7b17d9fec5989d7146a05f48a2",
       "mode": "0755"
     },
     {
@@ -320,7 +320,7 @@
     },
     {
       "path": "scripts/verdict-validate.mjs",
-      "sha256": "225060dbd4ce65b281fe66e4b25ff2e18bf21fcff71721d9cb43224b4f519523",
+      "sha256": "7068d56804c229536e039174405f75221913b569ad2520aa9e56a0220be26117",
       "mode": "0644"
     },
     {

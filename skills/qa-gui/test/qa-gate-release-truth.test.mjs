@@ -332,11 +332,61 @@ test('QG9 L22: unknown fields are UNGRADED and named', () => {
   assert.match(result.stderr, /L22.*stateReceiptz/);
 });
 
-test('QG9: the shipped qa-board template passes the gate', () => {
+test('QG9: the shipped qa-board template is well-formed and, with no case run, UNGRADED', () => {
   const cwd = mkdtempSync(join(tmpdir(), 'qa-gui-template-gate-'));
   const result = runGate(join(root, 'assets/qa-board.html'), cwd);
-  assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.match(result.stdout, /QA gate: PASS/);
+  assert.equal(result.status, 20, result.stderr || result.stdout);
+  assert.match(result.stdout, /QA gate: UNGRADED/);
+  // The only issue is the unexecuted run: the template itself stays valid.
+  assert.deepEqual(result.stderr.trim().split('\n'), ['UNGRADED CASES_NOT_EXECUTED']);
+});
+
+function todoCase(id) {
+  return {
+    id, title: 'Chưa chạy', requirement: 'REQ-TODO', requirements: ['REQ-TODO'],
+    status: 'TODO', priority: 'P2', assignee: 'qa-agent',
+    functionVerdict: 'UNGRADED', uiVerdict: 'UNGRADED',
+    humanSummary: { function: 'Chưa chạy.', ui: 'Chưa chạy.' },
+    machine: { rule: 'UNGRADED', selector: 'replace-with-selector' },
+    kind: 'static', states: [], stateReceipts: [], results: [], evidence: [], comments: [], history: [],
+  };
+}
+
+test('QG12: the shipped example board, every case TODO, is UNGRADED exit 20, never PASS', () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'qa-gui-example-gate-'));
+  const result = runGate(join(root, 'scripts/teamwork/example-canonical.json'), cwd);
+  assert.equal(result.status, 20, result.stderr || result.stdout);
+  assert.match(result.stdout, /QA gate: UNGRADED/);
+  assert.doesNotMatch(result.stdout, /QA gate: PASS/);
+  assert.match(result.stderr, /UNGRADED CASES_NOT_EXECUTED/);
+});
+
+test('QG12: a board that declares GO with no case run is UNGRADED exit 20', () => {
+  const fixture = makeFixture();
+  fixture.board.cases = [todoCase('TC-01')];
+  fixture.board.release = { verdict: 'GO', risks: [] };
+  writeBoard(fixture);
+  const result = runGate(fixture.boardPath);
+  assert.equal(result.status, 20, result.stderr || result.stdout);
+  assert.match(result.stderr, /UNGRADED CASES_NOT_EXECUTED/);
+  assert.match(result.stderr, /UNGRADED RELEASE_GO_WITH_TODO_CASES:TC-01/);
+  assert.doesNotMatch(result.stdout, /QA gate: PASS/);
+});
+
+test('QG12: release GO while a TODO case remains is UNGRADED even when every run case passes', () => {
+  const fixture = makeFixture();
+  fixture.board.cases.push(todoCase('TC-02'));
+  writeBoard(fixture);
+  const result = runGate(fixture.boardPath);
+  assert.equal(result.status, 20, result.stderr || result.stdout);
+  assert.deepEqual(result.stderr.trim().split('\n'), ['UNGRADED RELEASE_GO_WITH_TODO_CASES:TC-02']);
+  assert.match(result.stdout, /QA gate: UNGRADED/);
+
+  fixture.board.release = { verdict: 'NO-GO', risks: ['TC-02 chưa chạy.'] };
+  writeBoard(fixture);
+  const noGo = runGate(fixture.boardPath);
+  assert.equal(noGo.status, 0, noGo.stderr || noGo.stdout);
+  assert.match(noGo.stdout, /QA gate: PASS/);
 });
 
 test('QG10 A16: disconnecting the release-truth checker flips the incident fixture to false PASS', () => {

@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-files/v1",
   "skill": "qa-code",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "include": [
     "SKILL.md",
     "VERSION",

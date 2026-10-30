@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pairFindingEvidence } from './board-gates.mjs';
 import { TEAMWORK_PRIORITIES, TEAMWORK_STATUSES, applyChanges, validateCanonical } from './canonical.mjs';
+import { isDirectExecution } from '../lib/is-direct-execution.mjs';
 
 const template = readFileSync(new URL('../../assets/qa-board-teamwork.html', import.meta.url), 'utf8');
 const EDITABLE_FIELDS = new Set(['status', 'priority', 'assignee']);
@@ -234,4 +235,4 @@ function cli() {
   }
 }
 
-if (process.argv[1] && new URL(`file://${process.argv[1]}`).href === import.meta.url) cli();
+if (isDirectExecution(import.meta.url)) cli();

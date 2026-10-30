@@ -37,6 +37,13 @@ function elapsedMsSince(start) {
 const LAYER_NAMES = [
   'secret', 'sast', 'cve', 'coverage', 'prompt_injection', 'threat_model', 'security_product_path',
 ];
+// The gitleaks config Gate 0 passes with --config: gitleaks' default rules and nothing from the repo under review.
+const GITLEAKS_QA_CONFIG = `# qa-code Gate 0: owned by QA, never read from the repository under review.
+title = "qa-code gate0"
+
+[extend]
+useDefault = true
+`;
 const layerBudgetMs = new Map();
 const layerDurationMs = {
   secret: 0, sast: 0, cve: 0, coverage: 0, prompt_injection: 0, threat_model: 0,
@@ -1267,23 +1274,38 @@ try {
       layers.secret = ungraded('gitleaks', 'missing binary gitleaks');
     } else {
       const reportPath = join(tempDir, 'gitleaks.json');
+      // The scanner config is QA's own, never the repo's: without --config gitleaks loads <source>/.gitleaks.toml, so
+      // the diff under review could allowlist its own secret, or ship a malformed file that makes gitleaks exit 1
+      // without a report. The QA config only extends gitleaks' default rules.
+      const configPath = join(tempDir, 'gitleaks.toml');
+      writeFileSync(configPath, GITLEAKS_QA_CONFIG);
       // F02 — probe the version BEFORE running the scan: if the scan uses up the budget the receipt still
       // records the real version, which avoids turning a timeout into "version could not be probed".
       const receipt = checkerReceipt('gitleaks');
       const result = run('gitleaks', [
-        'detect', '--no-git', '--source', repo, '--report-format', 'json',
+        'detect', '--no-git', '--source', repo, '--config', configPath, '--report-format', 'json',
         '--report-path', reportPath, '--exit-code', '1', '--no-banner',
       ]);
       if (result.timedOut) {
         layers.secret = ungraded('gitleaks', budgetNote('gitleaks'));
       } else if (result.error || (result.status !== 0 && result.status !== 1)) {
         layers.secret = ungraded('gitleaks', 'gitleaks crashed or returned invalid output');
+      } else if (!existsSync(reportPath)) {
+        // gitleaks writes the report whenever --report-path is given; none means it stopped early (a fatal error also
+        // exits 1), which is not evidence of a clean scan.
+        layers.secret = ungraded('gitleaks', `gitleaks exited ${result.status} without writing its JSON report`);
       } else {
         let raw = [];
         try {
-          raw = existsSync(reportPath) ? JSON.parse(readFileSync(reportPath, 'utf8') || '[]') : [];
+          raw = JSON.parse(readFileSync(reportPath, 'utf8') || '[]');
+          if (!Array.isArray(raw)) throw new Error('report is not an array');
         } catch {
           layers.secret = ungraded('gitleaks', 'cannot read JSON from gitleaks');
+        }
+        // --exit-code 1 means "leaks found", but a partial scan error exits 1 too; with an empty report that is
+        // a scanner failure, not a pass.
+        if (layers.secret.status !== 'ungraded' && result.status === 1 && raw.length === 0) {
+          layers.secret = ungraded('gitleaks', 'gitleaks exited 1 but its report has no finding: a scanner error, not a clean scan');
         }
         if (layers.secret.status !== 'ungraded') {
           const findings = raw
@@ -1446,6 +1468,10 @@ try {
         layers.cve = ungraded('osv-scanner', budgetNote('osv-scanner/cve-cmd'));
       } else if (result.error) {
         layers.cve = ungraded('osv-scanner', 'osv-scanner/cve-cmd crashed or returned invalid output');
+      } else if (result.status !== 0 && result.status !== 1) {
+        // 0 = no vulnerability, 1 = vulnerabilities found; anything else (127 query/network error, 128 no package
+        // source, a crashed --cve-cmd wrapper) is not a scan result, even when some JSON reached stdout.
+        layers.cve = ungraded('osv-scanner', `osv-scanner/cve-cmd exited ${String(result.status)}: not a scan result`);
       } else {
         try {
           const raw = JSON.parse(result.stdout || '{}');

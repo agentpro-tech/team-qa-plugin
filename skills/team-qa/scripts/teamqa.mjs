@@ -72,7 +72,7 @@ import {
   boardValidate as teamworkBoardValidate,
 } from './board-teamwork.mjs';
 import { selectRetestCases } from './lib/retest-scope.mjs';
-import { collectRunSecrets, scanRunOutputs } from './lib/test-secrets.mjs';
+import { collectRunSecrets, countSecretsInText, scanRunOutputs } from './lib/test-secrets.mjs';
 import { costMarkdown } from './lib/cost.mjs';
 import { RTM_EMPTY, RTM_REQUIREMENT, hasRtmEmpty, isRtmEmpty, isRtmRequirementHeaderLine, rtmRequirementIndex } from './lib/report-tokens.mjs';
 import { assertRunContract, assertArtifactPath, lockRunDocuments, transitionRun } from './lib/run-contract.mjs';
@@ -1315,7 +1315,7 @@ function reportRunOption(args) {
 function refuseTestSecrets(runDir, texts = []) {
   const { secrets } = collectRunSecrets(runDir);
   const findings = scanRunOutputs(runDir, secrets);
-  for (const [name, text] of texts) if (secrets.some((secret) => text.includes(secret))) findings.push({ file: name, values: secrets.filter((secret) => text.includes(secret)).length });
+  for (const [name, text] of texts) { const values = countSecretsInText(text, secrets); if (values) findings.push({ file: name, values }); }
   if (findings.length) fail(3, 'TEST_SECRET_IN_OUTPUT', findings.map((f) => `${f.file} (${f.values})`).join(', '), 'ungraded');
 }
 
@@ -1675,14 +1675,21 @@ async function runOffer(args) {
 }
 
 // teamqa secrets scan --run <id> (public v1, S6): is a test-account password anywhere in what people read?
+// 1.15.1: a run with executor inputs or a credential-named file from which no value was read is not called clean;
+// it gets the warning TEST_SECRETS_NOT_FOUND (exit 0) with what to do next.
 function secretsScan(args) {
   const options = parseFlags(args, { '--run': { key: 'runId', required: true } });
   const runDir = join(process.cwd(), 'runs', safeRunId(options.runId));
   if (!existsSync(runDir)) fail(2, 'RUN_NOT_FOUND', options.runId);
-  const { secrets, sources } = collectRunSecrets(runDir);
+  const { secrets, sources, inputs } = collectRunSecrets(runDir);
   const findings = scanRunOutputs(runDir, secrets);
   if (findings.length) fail(3, 'TEST_SECRET_IN_OUTPUT', findings.map((f) => `${f.file} (${f.values})`).join(', '), 'ungraded');
-  emit('pass', 'TEST_SECRETS_CLEAN', `values=${secrets.length}`, `sources=${sources}`, ...(secrets.length ? [] : ['note="no credential input found; nothing to look for"']));
+  const counts = [`values=${secrets.length}`, `sources=${sources}`, `inputs=${inputs}`];
+  if (!secrets.length && (sources || inputs)) {
+    emit('warn', 'TEST_SECRETS_NOT_FOUND', ...counts, 'next="the run has executor inputs or a credentials file but no password was read from them; write the test passwords as key: value (password: ...) or e-mail / password lines, or point TEAMQA_TEST_SECRETS_FILE at the file that holds them, and scan again"');
+    return;
+  }
+  emit('pass', 'TEST_SECRETS_CLEAN', ...counts, ...(secrets.length ? [] : ['note="no credential input found; nothing to look for"']));
 }
 
 // teamqa scroll <command> (public v1): runs the SCROLL CLI that ships with Team QA (or TEAMQA_SCROLL_ROOT), so an agent

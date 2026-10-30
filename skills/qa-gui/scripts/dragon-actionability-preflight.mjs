@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { isDirectExecution } from './lib/is-direct-execution.mjs';
 
 const RPC = process.env.DRAGON_RPC || 'http://localhost:9233/rpc';
 const STABLE_TOKEN_FILE = join(homedir(), '.dragon-browser', 'auth', 'service-token');
@@ -378,7 +378,7 @@ async function main() {
   if (cleanupError) throw cleanupError;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isDirectExecution(import.meta.url)) {
   main().catch((error) => {
     console.error(safeMessage(error));
     process.exitCode = 1;

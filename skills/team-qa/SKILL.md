@@ -326,7 +326,11 @@ allows a rehearsal, and it must not point at the official runtime.
 Release only after local `main` is clean and equal to GitHub `main` read live. The runtime must have
 `SOURCE.json`, `package-manifest.json` and `release-truth.json`; missing one layer means not complete.
 
-*v1.15.0 — 2026-10-30. Team QA as a Claude Code plugin (`team-qa@agentpro`): each skill finds the others next to
+*v1.15.1 — 2026-10-30. Gate fixes from the 1.15 review: roster and plan approval refuse any message with a negator or
+hold word (`isApprovalText`); the test-secret scan reads the credential forms real accounts files use (key styles,
+Vietnamese labels, quoted values, numbers, .env, links), scans outputs of any size and warns `TEST_SECRETS_NOT_FOUND`
+when it reads none.
+v1.15.0 — 2026-10-30. Team QA as a Claude Code plugin (`team-qa@agentpro`): each skill finds the others next to
 itself (`SIBLING_SKILL_MISSING` instead of another install); plugin mode for update, doctor and continuation (fixed
 registry, hooks through `scripts/plugin/plugin-gate.sh`, `{}` for sessions not registered); doctor names the release's
 Dragon runtime URL; `scripts/release-plugin.sh` builds the plugin from the signed suite.

@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "team-qa",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -20,12 +20,12 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "767a8c7b49b6082d66bbd5c27ef1e1977f59e57ccd18ddbca6f1aa17324abdbb",
+      "sha256": "b01a5af8bf7f252d2e323b042f5aa534099aeeb26d876a5147e3f510878dbc48",
       "mode": "0644"
     },
     {
       "path": "VERSION",
-      "sha256": "d5b1f46669d1cff3be556b1656732c8777ad8ad3f3d05459cfb11dadb1f17d19",
+      "sha256": "3a1d1ce0e8ef392e0cebe5f16555a12b8c6f035af8996a59992c42f617264050",
       "mode": "0644"
     },
     {
@@ -430,7 +430,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "4d52391460a75a3a06088a8cb5f6025d386a90639b0da108f19a8646114605a0",
+      "sha256": "83f1c2e8b751a146603e71a7c762fa0df169c4c3727c9d0813384696a82ee28d",
       "mode": "0644"
     },
     {
@@ -880,7 +880,7 @@
     },
     {
       "path": "scripts/lib/roster.mjs",
-      "sha256": "995a08704c76be50d3499efa229ced70339225537b561733a89ee363d8612701",
+      "sha256": "3f6086bca3cb83d32c37092261e27a08e834618669d366143f9e54b831cb977e",
       "mode": "0644"
     },
     {
@@ -915,7 +915,7 @@
     },
     {
       "path": "scripts/lib/test-secrets.mjs",
-      "sha256": "b0815beb8cdff5a3d1e3ad6c13ef76671f16cadcf2cc36b0f8dcfc5a2c052557",
+      "sha256": "55861d589ddc044a7b780d4d963a1388da94bf464370daf20c1466f5ead85e3c",
       "mode": "0644"
     },
     {
@@ -1005,7 +1005,7 @@
     },
     {
       "path": "scripts/teamqa.mjs",
-      "sha256": "d0552ee7f9a5f44e33c60f7a32a35dfc31ddf12a4c5a64b64c05d779712a57fc",
+      "sha256": "182dfcfb00be90821e83666dbecd6f7df12a7f97180f2172f45c96f859463d92",
       "mode": "0755"
     },
     {
@@ -1725,7 +1725,7 @@
     },
     {
       "path": "test/public-v1/test-secrets.test.mjs",
-      "sha256": "95599d5368d248ba4f04716c598dd3e55d5dc4950eafcfcb668274ddeedf12d1",
+      "sha256": "f87fe4bdd08ba6ab4d0b2aceedccd6c36f73ab6756ba4837d4ffe17df941880f",
       "mode": "0644"
     },
     {
@@ -1865,7 +1865,7 @@
     },
     {
       "path": "test/release-b/reliability-handoff.mutations.json",
-      "sha256": "aba7ab3ddea60cfe437364f2f5a4d01e3d2b4943d2ab77cf6bc6a0ed091cf157",
+      "sha256": "21373a526c6949a79565848f9fcc858b30f6feb0b3009c8e8a082c52dceba705",
       "mode": "0644"
     },
     {
@@ -2020,7 +2020,7 @@
     },
     {
       "path": "test/roster-hardening/roster-hardening.test.mjs",
-      "sha256": "09129839cd9c4f02c67900d124d7683d6605fea9db0742234118a0da0707f7dd",
+      "sha256": "02ee5214ee5cc14ffe734052213a4d3594445cc3cbf17cddf583d67df6611c9f",
       "mode": "0644"
     },
     {

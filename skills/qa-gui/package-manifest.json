@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "qa-gui",
-  "version": "2.17.0",
+  "version": "2.17.1",
   "files": [
     {
       "path": "SKILL.md",
@@ -10,7 +10,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "b7c9900f90f674500897abbc5467c0478cd7a7a7dc2e4e7797a85ae1cebe4ae6",
+      "sha256": "8eec80aaadd8d27ed7c2c7ec6874fb199df44092a8924a28254cb3acf177f610",
       "mode": "0644"
     },
     {
@@ -90,7 +90,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "d76410c4ca3597f16e706538ccd70ab9476beae419a5ac427c393eb91345c30b",
+      "sha256": "a29e5f01eb16c214c27d39aee356271aa6dec566ff4857f9b77ff31343b939c0",
       "mode": "0644"
     },
     {
@@ -220,27 +220,27 @@
     },
     {
       "path": "scripts/dragon-actionability-preflight.mjs",
-      "sha256": "1a827a749d44b3670a61249801f1d4c83b696a0cb7ee2c0e97d2061c47dc3085",
+      "sha256": "aa62eae2fb9e230524adea475a20c9c761f1cb43e3ceb885d004cb8a7956057c",
       "mode": "0644"
     },
     {
       "path": "scripts/dragon-hard-surface-preflight.mjs",
-      "sha256": "e8481ed926bc949336e24fae0dc6716f83459cc6ea8b8c95b75e79698fba8c9e",
+      "sha256": "0fe27846de7fef8cccdb8f6c3693ee543093599608f763422117eec5ac4d2370",
       "mode": "0644"
     },
     {
       "path": "scripts/dragon-interaction-readiness-preflight.mjs",
-      "sha256": "25bd430528abea309873616b07363b52756cf80ee7ec6c8a4d136bff90c0b4df",
+      "sha256": "b47777ffabcaeabd22f3ef398276fc95593d72cdf4f39e5e7f92d60c8dfb55e8",
       "mode": "0644"
     },
     {
       "path": "scripts/dragon-keyboard-focus-preflight.mjs",
-      "sha256": "57f9b5325415e88689945ad10f3adb5b2c8a4eefeaaeb5ca907736c0c844c061",
+      "sha256": "b001755eb7dbd555d118908e931d08df657497f15151aa437fee46a591e83b9c",
       "mode": "0644"
     },
     {
       "path": "scripts/dragon-responsive-matrix-preflight.mjs",
-      "sha256": "36088a4c45ce3c05e8947aff2d47d91c3dcbd5fa2d1423f9749ed30101d549ed",
+      "sha256": "a8154be31b24bb3165be412f5cd53f0c686be201a3b4c107cb8d79fcf7b5ef77",
       "mode": "0644"
     },
     {
@@ -256,6 +256,11 @@
     {
       "path": "scripts/lib/claude-stream-route.mjs",
       "sha256": "f8f4db18b34f703c17500186c6c39eabdb05fc7be059d4b6836d03deee776098",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/is-direct-execution.mjs",
+      "sha256": "29d1810b709a417cd166d0d132f06cacf9f0e89e1937ebb8b1de40e771fdd69f",
       "mode": "0644"
     },
     {
@@ -425,12 +430,12 @@
     },
     {
       "path": "scripts/qa-gate.mjs",
-      "sha256": "19fe163512c8c7b864f6e8a0ff4f0288c44251a06bd6789cb54fc96a255011fa",
+      "sha256": "6cc0f0e56e5404e70ddfae4c50269afaba6580dbe50bacdfaf4f596b9de0e7ad",
       "mode": "0644"
     },
     {
       "path": "scripts/qa_do.mjs",
-      "sha256": "2e015efbdaf8ae9dc0d03be983fdbefc30e4bbfe869698ee7b3b3270f8f8a281",
+      "sha256": "f5d2b1ab36a3622cf35874303ab98c6688f060737be4a2c7c286cd45553e5e7d",
       "mode": "0644"
     },
     {
@@ -460,22 +465,22 @@
     },
     {
       "path": "scripts/teamwork/cli.mjs",
-      "sha256": "d9f5f492e101c754cc3e9385ee62b3603dbc186d4ed92199b55cef0dd630459b",
+      "sha256": "d12823ca3f3e0ab0fa39ecf2e7d1ede97cc0be875620abeee710d7cfb7cc38dd",
       "mode": "0644"
     },
     {
       "path": "scripts/teamwork/doc-colab-hardener.mjs",
-      "sha256": "1f6a03bddcb519460bee2e2bec849cfd5789c1c4a4dc9d2c6ebe5c90a4e94bcc",
+      "sha256": "c7245122c8e03a1270485c40d8b5f7d16bb00fefd959b7067b7eddbb384efe8c",
       "mode": "0644"
     },
     {
       "path": "scripts/teamwork/doc-colab-renderer.mjs",
-      "sha256": "8295d77a9a584228c7a763e2a0e62b733eda63a3687ed47e4b36ef3dba861422",
+      "sha256": "d6820c2560d2001deaa1b9ed25750bab9c57ddc6c216f1d9a1d6c57282bfcc6e",
       "mode": "0644"
     },
     {
       "path": "scripts/teamwork/evidence-packager.mjs",
-      "sha256": "837d51c829346465b039ddd5fd6528546251ddb1bf29f9dadbcad874a70c1196",
+      "sha256": "d0bd50ad90bb4ac739c068f39f26ef554004d9f28f40ce308852cc1205025171",
       "mode": "0644"
     },
     {
@@ -495,7 +500,7 @@
     },
     {
       "path": "scripts/teamwork/native-renderer.mjs",
-      "sha256": "9a69a3aea40b6c7a5f8857f5374d7583ea8b8fd9b48a009bbf1a15da9787b75f",
+      "sha256": "ac127daf1ec0ae7187e278ffec9cd8c2d6c019845d97e1a730dab2e751abb19f",
       "mode": "0644"
     },
     {
@@ -621,6 +626,11 @@
     {
       "path": "test/dragon-responsive-matrix-preflight.test.mjs",
       "sha256": "b01b27da4c3f9616aff5e3b38c3b00819c1d564da68094c75345589ca07641d2",
+      "mode": "0644"
+    },
+    {
+      "path": "test/entry-symlink.test.mjs",
+      "sha256": "9397411dff7ea0658645c92b511ceb3c03d9e5f523b611afa49a64514548b3ad",
       "mode": "0644"
     },
     {
@@ -850,7 +860,7 @@
     },
     {
       "path": "test/loop8-v85-schema-v5-entrypoint-regression.test.mjs",
-      "sha256": "2b67211f0fe9ef576b68b2d044930e7bf3e72a0ef7823328062a18d0c0991ed6",
+      "sha256": "1271f3f3c079eae38ac13f4265429cf5d47d909aa4443cacfc5da766f9e609cd",
       "mode": "0644"
     },
     {
@@ -954,8 +964,13 @@
       "mode": "0644"
     },
     {
+      "path": "test/qa-do-verdict.test.mjs",
+      "sha256": "80469a15b72c6d40dafdee5504da035ad0e386ced2aa05c195ad825b391bfc08",
+      "mode": "0644"
+    },
+    {
       "path": "test/qa-gate-release-truth.test.mjs",
-      "sha256": "e9f29074c395f2e010359cdf7b73f81ec547036cc55deae617c780d67d1538d4",
+      "sha256": "4ac2f78a524e5936844ab57768ca315ffd5ee6fb626f35488b1e3f71f8981611",
       "mode": "0644"
     },
     {
@@ -985,7 +1000,7 @@
     },
     {
       "path": "test/session3-release-truth-v2.test.mjs",
-      "sha256": "cb06fbc36faca7e86ae7a91024ea5c06a4c8d668ec51aa96da90cfb7980e2af6",
+      "sha256": "2f1a06473dc8e7d118f2cc1b3456effac0966d6ab7d45263f636182bae186269",
       "mode": "0644"
     },
     {
@@ -1070,7 +1085,7 @@
     },
     {
       "path": "test/teamwork-qa-gate.test.mjs",
-      "sha256": "8f7c9a9c0a4bed00380345ea9fa920a4e6f811a01a0dec2060b6ec15b41b3f1a",
+      "sha256": "1300a67604f6fe2f20ddf82b2eb877aab9e7bd452d8a035aaa6ce3f83582cbd7",
       "mode": "0644"
     },
     {

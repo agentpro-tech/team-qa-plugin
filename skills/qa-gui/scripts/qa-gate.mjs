@@ -680,8 +680,10 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
     }
   }
   computed.acceptance = { covered, total };
-  computed.functionVerdict = triVerdict(computed.functionParts);
-  computed.uiVerdict = triVerdict(computed.uiParts);
+  // No completed case means no part to combine: that is UNGRADED, not the PASS triVerdict([]) gives. The empty case is
+  // handled here because the receipt-level callers of triVerdict compare its result with receipt-authored verdicts.
+  computed.functionVerdict = computed.functionParts.length ? triVerdict(computed.functionParts) : "UNGRADED";
+  computed.uiVerdict = computed.uiParts.length ? triVerdict(computed.uiParts) : "UNGRADED";
   notes.push(`Requirements: ${covered}/${total}`);
 }
 
@@ -858,7 +860,12 @@ function main() {
     for (const error of result.errors) addIssue(issues, `${error.path}: ${error.message}`, true);
     if (result.ok) checkReleaseTruthSemantics(data, boardPath, issues, notes, computed);
   }
-  if (cli.webMode && !(Array.isArray(data.cases) && data.cases.some((entry) => entry?.status !== 'TODO'))) addIssue(issues, 'WEB_CASES_NOT_EXECUTED', true);
+  // Every mode: a board on which no case ran has nothing to grade, and a GO cannot stand while a case is still TODO.
+  // Without this the default mode skipped TODO cases and graded an all-TODO board (the shipped example) as PASS.
+  const boardCases = Array.isArray(data.cases) ? data.cases : [];
+  const todoIds = boardCases.filter((entry) => entry?.status === 'TODO').map((entry) => String(entry?.id || '<unknown>'));
+  if (todoIds.length === boardCases.length) addIssue(issues, cli.webMode ? 'WEB_CASES_NOT_EXECUTED' : 'CASES_NOT_EXECUTED', true);
+  if (data.release?.verdict === 'GO' && todoIds.length > 0) addIssue(issues, `RELEASE_GO_WITH_TODO_CASES:${todoIds.join(',')}`, true);
   const semanticVerdict = boardVerdict(issues);
   for (const issue of issues) fail(`${issue.ungraded ? "UNGRADED " : ""}${issue.message}`);
   const completed = Array.isArray(data.cases) && data.cases.some((entry) => entry?.status !== "TODO");

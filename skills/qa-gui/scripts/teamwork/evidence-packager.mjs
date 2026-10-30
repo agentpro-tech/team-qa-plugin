@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { extname } from 'node:path';
 import { renderNativeBoard } from './native-renderer.mjs';
 import { validateCanonical } from './canonical.mjs';
+import { isDirectExecution } from '../lib/is-direct-execution.mjs';
 
 const DEFAULT_MAX_BYTES = 25 * 1024 * 1024;
 
@@ -95,4 +96,4 @@ function cli() {
   if (result.linkedVideos.length > 0) process.stdout.write(`Linked videos: ${result.linkedVideos.join(', ')}\n`);
 }
 
-if (process.argv[1] && new URL(`file://${process.argv[1]}`).href === import.meta.url) cli();
+if (isDirectExecution(import.meta.url)) cli();

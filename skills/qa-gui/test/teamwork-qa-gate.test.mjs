@@ -6,13 +6,15 @@ const root = new URL('..', import.meta.url);
 const gate = new URL('../scripts/qa-gate.mjs', import.meta.url);
 const canonical = new URL('../scripts/teamwork/example-canonical.json', import.meta.url);
 
-test('qa-gate accepts a standalone teamwork canonical JSON file', () => {
+test('qa-gate reads a standalone teamwork canonical JSON file and grades an unexecuted board UNGRADED', () => {
   const result = spawnSync(process.execPath, [gate.pathname, canonical.pathname], {
     cwd: root,
     encoding: 'utf8',
   });
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /QA gate: PASS/);
+  // The example board's only case is TODO: it loads and summarizes, but nothing ran, so it is UNGRADED (exit 20).
+  assert.equal(result.status, 20, result.stderr);
+  assert.match(result.stdout, /QA gate: UNGRADED/);
+  assert.deepEqual(result.stderr.trim().split('\n'), ['UNGRADED CASES_NOT_EXECUTED']);
   assert.match(result.stdout, /Canonical: qa-board-teamwork\/v2/);
   assert.match(result.stdout, /Source traceability: 1 source · 1 case link/);
 });

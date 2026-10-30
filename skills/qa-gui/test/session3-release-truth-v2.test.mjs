@@ -481,6 +481,27 @@ test('I14/QGg: v2 verifier rejects task base, source revision and lane mismatche
   assert.match(result.stderr + result.stdout, /VERIFICATION_LANE_MISMATCH/);
 });
 
+test('QGh: release-truth v2 never passes a board whose cases are all TODO, and GO with a TODO case is UNGRADED', () => {
+  const f = fixture('qgh-todo', { schemaVersion: 6 });
+  for (const id of GUI_IDS) addCase(f, id);
+  for (const entry of f.board.cases) entry.status = 'TODO';
+  writeBoard(f);
+  let result = runGate(f);
+  assert.notEqual(result.status, 0, result.stderr + result.stdout);
+  assert.match(result.stderr, /UNGRADED CASES_NOT_EXECUTED/);
+  assert.doesNotMatch(result.stdout, /QA gate: PASS/);
+  assert.equal(existsSync(receiptPath(f)), false);
+
+  const g = fixture('qgh-go-todo', { schemaVersion: 6 });
+  for (const id of GUI_IDS) addCase(g, id);
+  g.board.cases.push({ ...structuredClone(g.board.cases[0]), id: 'TC-TODO', status: 'TODO' });
+  writeBoard(g);
+  result = runGate(g);
+  assert.notEqual(result.status, 0, result.stderr + result.stdout);
+  assert.match(result.stderr, /UNGRADED RELEASE_GO_WITH_TODO_CASES:TC-TODO/);
+  assert.doesNotMatch(result.stdout, /QA gate: PASS/);
+});
+
 test('QGg: a schema-6 gate-issued v2 receipt verifies, then becomes stale after repository HEAD moves', () => {
   const f = fixture('qgg-valid', { schemaVersion: 6 });
   for (const id of GUI_IDS) addCase(f, id);

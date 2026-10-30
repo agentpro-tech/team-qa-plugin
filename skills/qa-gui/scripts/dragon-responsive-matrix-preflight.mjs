@@ -12,7 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { isDirectExecution } from './lib/is-direct-execution.mjs';
 
 import { attachFindingBboxes } from './loop8/index.mjs';
 import { verifyMobileEmulation } from './loop7/mobile-emulation.mjs';
@@ -522,7 +522,7 @@ async function main() {
   if (cleanupError) throw cleanupError;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isDirectExecution(import.meta.url)) {
   main().catch((error) => {
     console.error(safeMessage(error));
     process.exitCode = 1;

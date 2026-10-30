@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { isDirectExecution } from '../lib/is-direct-execution.mjs';
 
 import { applyNativePacket } from './native-renderer.mjs';
 
@@ -96,4 +96,4 @@ function cli() {
   }
 }
 
-if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) cli();
+if (isDirectExecution(import.meta.url)) cli();

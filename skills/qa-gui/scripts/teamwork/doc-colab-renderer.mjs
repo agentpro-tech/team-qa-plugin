@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { isDirectExecution } from '../lib/is-direct-execution.mjs';
 
 import { validateCanonical } from './canonical.mjs';
 
@@ -112,4 +112,4 @@ function cli() {
   }
 }
 
-if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) cli();
+if (isDirectExecution(import.meta.url)) cli();

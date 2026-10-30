@@ -100,10 +100,27 @@ export function checkRoster(roster) {
     if(roster.catalog_source.kind==='fixture')requireValue(realpathSync(seat.harness_bin)===realpathSync(join(ROOT,'test/roster-dynamic',`stub-${seat.harness}.mjs`)),'FIXTURE_HARNESS_NOT_TEST_STUB');
   }
 }
-// The approval regexes match what the user types in chat, in English and in Vietnamese. The Vietnamese words are
-// written as escapes: approve / confirm / agree, "do not" before them, and "not yet".
+// Approval text (1.15.1), one decision for the roster and the plan approval. A chat message approves only when it holds
+// an affirmative word (approve, ok, yes, confirm, lgtm; Vietnamese duyet / chot / dong y, approve / settle / agree, with
+// or without diacritics) and no negator or hold word anywhere (not, no, don't, never, cannot, disapprove, reject,
+// decline, wait, hold, stop, not yet; Vietnamese khong / ko / k, no; dung, don't / stop; chua, not yet; khoan, hold on;
+// huy, cancel; tu choi, refuse). Words are whole words (Unicode letters and digits), case-insensitive, after markdown is
+// stripped; a hyphen, underscore or dot keeps an identifier (a run id like shop-no-login) one word. In doubt it is not an approval: an empty message, a struck-through word or no affirmative word fails.
+// The Vietnamese words are written as escapes.
+const APPROVAL_WORDS=['approve','approved','ok','okay','yes','confirm','confirmed','lgtm','duy\u1ec7t','ch\u1ed1t','\u0111\u1ed3ng \u00fd','duyet','chot','dong y'];
+const APPROVAL_HOLDS=['not','no','dont','do not','never','cannot','cant','wont','disapprove','disapproved','reject','rejected','decline','declined','wait','hold','stop','not yet','cancel','abort',
+  'kh\u00f4ng','khong','ko','k','\u0111\u1eebng','dung','ch\u01b0a','chua','khoan','h\u1ee7y','hu\u1ef7','huy','t\u1eeb ch\u1ed1i','tu choi','d\u1eebng'];
+export function isApprovalText(text) {
+  if(typeof text!=='string')return false;
+  const plain=text.normalize('NFC').toLowerCase();
+  if(/~~|<\/?(?:s|del|strike)\b/.test(plain))return false;
+  const words=plain.replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[\u2018\u2019\u02bc\uff07`]/g,"'").match(/[\p{L}\p{M}\p{N}]+(?:['_.\-][\p{L}\p{M}\p{N}]+)*/gu)??[];
+  const line=` ${words.join(' ')} `,has=word=>line.includes(` ${word} `);
+  if(words.some(word=>/n't$/.test(word))||APPROVAL_HOLDS.some(has))return false;
+  return APPROVAL_WORDS.some(has);
+}
 function approvalEvent(e,roster,hash) {
-  exact(e,['schema','id','actor','text','run_id','round','roster_hash','source'],'APPROVAL_EVENT_FIELDS'); requireValue(e.schema==='team-qa/roster-user-event/v1'&&e.id&&e.actor==='user'&&typeof e.text==='string'&&e.text.trim()&&!/kh\u00f4ng\s+(duy\u1ec7t|ch\u1ed1t|\u0111\u1ed3ng \u00fd)|do not approve|reject/i.test(e.text)&&/(duy\u1ec7t|ch\u1ed1t|\u0111\u1ed3ng \u00fd|approve|^ok\b)/i.test(e.text),'USER_APPROVAL_REQUIRED'); requireValue(e.run_id===roster.run_id&&e.round===roster.round&&e.roster_hash===hash,'APPROVAL_BINDING');
+  exact(e,['schema','id','actor','text','run_id','round','roster_hash','source'],'APPROVAL_EVENT_FIELDS'); requireValue(e.schema==='team-qa/roster-user-event/v1'&&e.id&&e.actor==='user'&&typeof e.text==='string'&&e.text.trim()&&isApprovalText(e.text),'USER_APPROVAL_REQUIRED'); requireValue(e.run_id===roster.run_id&&e.round===roster.round&&e.roster_hash===hash,'APPROVAL_BINDING');
   if(roster.catalog_source.kind!=='fixture'){
     verifyHumanEventSource(e,{hash,runId:roster.run_id});
     assertRosterPresented(e,roster,hash);
@@ -361,10 +378,10 @@ export function verifyUserMessageSource(e,{hash,runId}={}) {
   else{const p=entry?.payload||entry?.message||entry;requireValue(p?.role==='user'&&extractHumanText(p)===e.text.trim(),'HUMAN_EVENT_NOT_USER');}
   return {e,prior};
 }
-// The same English and Vietnamese approval regexes as approvalEvent above.
+// The same approval decision as approvalEvent above (isApprovalText).
 export function verifyHumanEventSource(e,{hash,runId}) {
   const {prior}=verifyUserMessageSource(e,{hash,runId});
-  requireValue(!/kh\u00f4ng\s+(duy\u1ec7t|ch\u1ed1t|\u0111\u1ed3ng \u00fd)|do not approve|reject|^no\b|^ch\u01b0a\b/i.test(e.text)&&/(duy\u1ec7t|ch\u1ed1t|\u0111\u1ed3ng \u00fd|approve|^ok\b)/i.test(e.text),'USER_APPROVAL_REQUIRED');
+  requireValue(isApprovalText(e.text),'USER_APPROVAL_REQUIRED');
   requireValue(prior,'ARTIFACT_NOT_SHOWN_BEFORE_APPROVAL');return e;
 }
 export function verifyPlanUserEvent(e,{runId,round,rosterHash,planHash}) {

@@ -394,7 +394,9 @@ Missing Node or a required binary (`QA_CODE_NODE` points to a file that is not e
 
 ---
 
-*v1.11.0 — 2026-10-30 · The Team QA a review proof is checked against defaults to the one installed next to this QA Code
+*v1.11.1 — 2026-10-30 · Every PASS (tools or static) needs a green Gate 0; a gitleaks or CVE scanner failure is
+UNGRADED, and gitleaks runs with a QA-owned config the reviewed repo cannot change.
+v1.11.0 — 2026-10-30 · The Team QA a review proof is checked against defaults to the one installed next to this QA Code
 (the suite install or the Claude Code plugin `team-qa@agentpro`); a source checkout keeps `~/.agents/skills/team-qa`.
 v1.9.0 — 2026-10-23 · `claude` route: effort and model are observed from the original transcript of the worker session
 (`~/.claude/projects/<project>/<session-id>.jsonl`), because stream-json does not emit effort; an edited source,
