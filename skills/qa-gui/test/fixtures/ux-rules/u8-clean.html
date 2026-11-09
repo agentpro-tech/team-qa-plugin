@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U8 clean twin: delete asks for confirmation first</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  ul { list-style: none; padding: 0; width: 480px; }
+  li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ddd; }
+  button { font: inherit; padding: 6px 12px; }
+  .backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; }
+  .dialog { background: #fff; padding: 24px; border-radius: 8px; width: 360px; }
+  .dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <h1>Invoices</h1>
+  <ul id="list">
+    <li data-id="12"><span>Invoice 12</span><button type="button" class="delete">Delete</button></li>
+    <li data-id="13"><span>Invoice 13</span><button type="button" class="delete">Delete</button></li>
+  </ul>
+  <script>
+    document.getElementById('list').addEventListener('click', function (e) {
+      var b = e.target.closest('button.delete');
+      if (!b) return;
+      var row = b.closest('li');
+      var name = row.querySelector('span').textContent;
+      var back = document.createElement('div');
+      back.className = 'backdrop';
+      back.innerHTML = '<div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dt">'
+        + '<h2 id="dt">Delete ' + name + '?</h2><p>This cannot be undone.</p>'
+        + '<div class="actions"><button type="button" id="cancel">Cancel</button><button type="button" id="confirm">Delete</button></div></div>';
+      document.body.appendChild(back);
+      back.querySelector('#cancel').addEventListener('click', function () { back.remove(); });
+      back.querySelector('#confirm').addEventListener('click', function () { row.remove(); back.remove(); });
+      back.querySelector('#cancel').focus();
+    });
+  </script>
+</body>
+</html>

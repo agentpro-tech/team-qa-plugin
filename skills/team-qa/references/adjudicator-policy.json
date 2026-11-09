@@ -1,0 +1,34 @@
+{
+  "schema": "team-qa/adjudicator-policy/v1",
+  "default_mode": "shadow",
+  "modes": ["shadow", "enforce"],
+  "scope": "pass_only",
+  "scopes": ["pass_only", "all"],
+  "provider_families": {
+    "anthropic": "claude",
+    "openai": "gpt",
+    "google": "gemini",
+    "xai": "grok",
+    "mistral": "mistral",
+    "deepseek": "deepseek"
+  },
+  "executor_roles": ["executor_gui", "executor_code"],
+  "harnesses": ["claude", "codex"],
+  "fit_roles": ["adjudicator", "analyst", "test_manager"],
+  "tiers": ["reasoning", "general"],
+  "tools": ["fs.read"],
+  "permission_profile": "read-only",
+  "default_effort": "high",
+  "caps": { "timeout_ms": 600000, "max_turns": 30 },
+  "limits": {
+    "requirement_items_max": 12,
+    "item_text_chars_max": 500,
+    "evidence_files_max": 60,
+    "evidence_bytes_max": 67108864,
+    "actions_max": 400,
+    "action_result_chars": 2000,
+    "narrative_fragment_min_chars": 24,
+    "note_chars_max": 600,
+    "pointers_per_item_max": 8
+  }
+}

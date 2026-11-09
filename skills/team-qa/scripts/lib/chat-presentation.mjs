@@ -22,6 +22,14 @@ export function rosterChat(roster, hash) {
     return `| ${name} | ${cell(s.provider ?? '—')} / ${cell(s.model ?? 'Node')} | ${cell(s.effort)} | ${labels.routes[s.harness]} | ${task} |`;
   });
   const details = roster.roles.map(s => `- ${labels.roles[s.role][0]}: tools=${cell((s.tools ?? []).join(', '))}; permissions=${cell(s.permission_profile)}; timeout=${s.caps.timeout_ms}ms; max_turns=${s.caps.max_turns}.`);
+  // R2a: the adjudicator seat, only when the roster has one (a roster without it shows the table of before).
+  const a = roster.adjudicator;
+  if (a) {
+    const [name, task] = labels.adjudicator;
+    need(name && task && labels.routes[a.harness], 'ROSTER_CHAT_ROLE_UNKNOWN', 'adjudicator');
+    rows.push(`| ${name} (${cell(a.mode)}) | ${cell(a.provider)} / ${cell(a.model)} | ${cell(a.effort)} | ${labels.routes[a.harness]} | ${task} |`);
+    details.push(`- ${name}: family=${cell(a.family)}; executor families: ${Object.entries(a.executor_families).map(([role, family]) => `${role}=${cell(family)}`).join(', ')}; mode=${cell(a.mode)} (${labels.adjudicator_modes[a.mode]}); scope=${cell(a.scope)} (${labels.adjudicator_scopes[a.scope]}); tools=${cell(a.tools.join(', '))}; permissions=${cell(a.permission_profile)}; timeout=${a.caps.timeout_ms}ms; max_turns=${a.caps.max_turns}.`);
+  }
   return [`**${labels.roster_title}**`, '', `Run: ${cell(roster.run_id)} · Round: ${roster.round}`,
     `Scope: ${cell(roster.scope)}`, `Target: ${cell(roster.target.project_id)} · ${cell(roster.target.preview_url)} · ${cell(roster.target.version)}`,
     ...(roster.run_mode === 'unattended' ? ['Run mode: unattended (nobody watching). If the board review is still not PASS after 3 fix rounds, the board is not handed over and the run still reaches COMPLETE with board_delivery: blocked.'] : []), '',

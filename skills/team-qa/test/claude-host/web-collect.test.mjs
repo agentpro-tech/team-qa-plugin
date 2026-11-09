@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { DRAFT_MARKER, buildCaseEvidence, draftIssues, evidenceDrafts, mergeCaseIntoBoard, streamCalls, webCollect } from '../../scripts/lib/web-collect.mjs';
+import { DRAFT_MARKER, buildCaseEvidence, draftIssues, evidenceDrafts, mergeCaseIntoBoard, qaGuiEvidenceTools, streamCalls, webCollect } from '../../scripts/lib/web-collect.mjs';
 import { mkdirSync } from 'node:fs';
 
 // Upgrade U3: executor evidence drafts become state receipts and board cases from the attested stream alone. Synthetic
@@ -40,7 +40,7 @@ const events = [
   use('toolu_con', RPC, { method: 'getConsole', params: { ...S, tabId: 7 } }), result('toolu_con', ok({ count: 0, entries: [] })),
   use('toolu_net', RPC, { method: 'getNetwork', params: { ...S, tabId: 7 } }),
   result('toolu_net', ok({ count: 2, requests: [{ t: clock, method: 'POST', url: 'http://127.0.0.1:5411/rest/v1/orders', status: 201, type: 'Fetch' }, { t: clock, method: 'GET', url: 'http://127.0.0.1:5401/a.js', status: 200, type: 'Script' }] })),
-  use('toolu_stop', RPC, { method: 'stopRecording', params: { ...S, tabId: 7, id: 'rec-1' } }), result('toolu_stop', ok({ durationMs: 41000 })),
+  use('toolu_stop', RPC, { method: 'stopRecording', params: { ...S, tabId: 7, id: 'rec-1' } }), result('toolu_stop', ok({ durationMs: 41000, id: 'rec-1', dir: '/rec/rec-1' })),
   use('toolu_asm', RPC, { method: 'assembleRecording', params: { ...S, id: 'rec-1' } }), result('toolu_asm', ok({ video: MP4 })),
   use('toolu_bad', RPC, { method: 'getConsole', params: { ...S, tabId: 7 } }), result('toolu_bad', 'Error: tab closed', { is_error: true }),
   { type: 'assistant', message: { content: [{ type: 'text', text: `Case TC-02 done.\n\n${DRAFT_MARKER}\n\`\`\`json\n${JSON.stringify(draft, null, 2)}\n\`\`\`\n` }] } },
@@ -217,7 +217,7 @@ test('web collect refuses a board whose runUuid is not the binding\'s, and says 
     writeConfirmed: async (p, value) => { writes.push(p); mkdirSync(dirname(p), { recursive: true }); writeFileSync(p, value); }, stableJson: (v) => JSON.stringify(v),
     fail: (exit, code, detail) => { throw Object.assign(new Error(`${code} ${detail}`), { code, detail }); },
     assertRoleAttestation: () => ({ source: { kind: 'claude-stream', path: 'stream.jsonl', sha256: sha(Buffer.from(stream, 'utf8')) }, dispatch_case_id: 'TC-02', roster_hash: 'r' }),
-    runDirectory: () => runDir, safeRunId: (v) => v,
+    runDirectory: () => runDir, safeRunId: (v) => v, evidenceTools: stubTools(), detectorTools: null,
   };
   await assert.rejects(webCollect(['--run', 'r1', '--attestation', join(runDir, 'a.json'), '--board', boardFile], deps),
     (e) => e.code === 'WEB_COLLECT_BOARD_RUN_UUID' && e.detail.includes(`--run-uuid ${binding.run_uuid}`) && e.detail.includes(`--target-binding-sha256 ${binding.target_binding_sha256}`));
@@ -226,6 +226,10 @@ test('web collect refuses a board whose runUuid is not the binding\'s, and says 
   writeFileSync(boardFile, JSON.stringify({ runUuid: binding.run_uuid, viewport: '1440x900', cases: [{ id: 'TC-02', status: 'TODO' }] }));
   const done = await webCollect(['--run', 'r1', '--attestation', join(runDir, 'a.json'), '--board', boardFile], deps);
   assert.equal(done.cases[0].status, 'FAIL');
+  // The collected board turns QA GUI's evidence policy on, and the screenshot on disk is the fitted bytes.
+  const collected = JSON.parse(readFileSync(boardFile, 'utf8'));
+  assert.deepEqual(collected.evidencePolicy, { version: 1 });
+  assert.deepEqual(readFileSync(join(runDir, 'evidence/qa-gui/TC-02/tc02-after-save.png')), Buffer.concat([Buffer.from('fit:'), readFileSync(PNG)]));
   assert.deepEqual(done.cases[0].issues, ['VIEWPORT_MISMATCH:TC-02:tc02-after-save:1440x757:board=1440x900']);
   assert.equal(done.relocked, null);
   // A docs lock that pins this board gets the new revision's hash (through Team QA's own lockRunDocuments).
@@ -238,3 +242,127 @@ test('web collect refuses a board whose runUuid is not the binding\'s, and says 
   assert.deepEqual(locked.map((o) => [o.runDir, o.artifacts.plan.sha256, o.artifacts.board.path, o.artifacts.board.sha256]),
     [[runDir, 'p'.repeat(64), 'board/qa-board.json', sha(readFileSync(boardFile))]]);
 });
+
+// ── R1f: correct and light evidence, through QA GUI's evidence tools ────────────────────────────────────────────────
+function stubTools(calls = []) {
+  return {
+    EVIDENCE_POLICY_VERSION: 1, MAX_EVIDENCE_WIDTH: 1280,
+    fitPng: (bytes, options) => { calls.push(['fitPng', options]); const png = Buffer.concat([Buffer.from('fit:'), bytes]);
+      return { png, sha256: sha(png), fit: { fromSha256: sha(bytes), fromWidth: 2880, fromHeight: 1514, width: 1280, height: 673 } }; },
+    buildRecordingManifest: (input) => { calls.push(['buildRecordingManifest', input]);
+      return { schema: 'qa-gui/recording-manifest/v1', id: 'rec-1', startedAt: 0, frames: [{ t: 0 }, { t: 30000 }], actions: [{ t: 41500 }], video: { sha256: sha(input.video) } }; },
+    stateImageIssues: (input) => { calls.push(['stateImageIssues', input]); return []; },
+    recordingSegmentIssues: (input) => { calls.push(['recordingSegmentIssues', input]); return []; },
+  };
+}
+
+test('with QA GUI evidence tools: the screenshot is fitted, its receipt binds the capture, the recording gets its manifest', () => {
+  const seen = [];
+  const calls = streamCalls(stream);
+  Object.assign(calls.get('toolu_shot').json.result, { maskedRects: [{ kind: 'secret', x: 10, y: 10, w: 50, h: 20 }], domStable: true });
+  calls.get('toolu_g0').json.result.results[0].receipt = { actionId: 'act-1', ts: 1793143772686, action: { method: 'click' } };
+  const built = buildCaseEvidence({ draft, calls, binding, plannedCase: planned, boardCase: { id: 'TC-02', kind: 'behavioral', status: 'TODO' },
+    viewport: '1440x757', preflightRaw, fileSha, exists, tools: stubTools(seen), readFile: (path) => readFileSync(path) });
+  assert.deepEqual(built.issues, []);
+  assert.deepEqual(built.evidencePolicy, { version: 1 });
+  const [{ value: r }] = built.receipts;
+  // No getPageIdentity on tab 7 in this stream: the build is not measured on the captured tab.
+  assert.deepEqual(r.screenshot.capture, { tabId: '7', url: 'http://127.0.0.1:5401/orders/1', build: null, domHash: 'd'.repeat(64), sha256: sha(readFileSync(PNG)),
+    viewport: '1440x757', maskedRects: [{ kind: 'secret', x: 10, y: 10, w: 50, h: 20 }], domStable: true });
+  assert.deepEqual(r.screenshot.fit, { fromSha256: sha(readFileSync(PNG)), fromWidth: 2880, fromHeight: 1514, width: 1280, height: 673 });
+  const fitted = built.files.find((f) => f.rel.endsWith('.png'));
+  assert.equal(r.screenshot.sha256, sha(fitted.data));
+  assert.equal(built.manifest.find((m) => m.path === fitted.rel).sha256, sha(fitted.data));
+  assert.deepEqual(seen.find(([name]) => name === 'fitPng')[1], { maxWidth: 1280, masks: [{ kind: 'secret', x: 10, y: 10, w: 50, h: 20 }], cssWidth: 1440 });
+  // The manifest comes from the Dragon recording dir, with the action receipts of the calls made while it ran.
+  const man = seen.find(([name]) => name === 'buildRecordingManifest')[1];
+  assert.deepEqual([man.dir, man.receipts.map((x) => x.actionId)], ['/rec/rec-1', ['act-1']]);
+  assert.deepEqual(built.caseEntry.recordingSegments, [{ file: 'evidence/qa-gui/TC-02/TC-02-run.mp4', startMs: 0, endMs: 41500, manifest: 'evidence/qa-gui/TC-02/TC-02-run.recording.json' }]);
+  assert.deepEqual(built.manifest.find((m) => m.path.endsWith('.recording.json')).evidence_type, 'recording-manifest');
+  assert.ok(built.caseEntry.evidence.includes('evidence/qa-gui/TC-02/TC-02-run.recording.json'));
+  // What QA GUI's checks reject makes the case UNGRADED, with QA GUI's code.
+  const tools = { ...stubTools(), stateImageIssues: () => [{ code: 'EVIDENCE_IMAGE_BLANK', message: 'EVIDENCE_IMAGE_BLANK:TC-02:tc02-after-save:flat fix=re-capture' }] };
+  const blank = buildCaseEvidence({ draft: { ...draft, states: [{ ...draft.states[0], assertions: [{ assertion_id: 'TC-02-A1', verdict: 'PASS' }] }] }, calls, binding,
+    plannedCase: planned, boardCase: { id: 'TC-02', status: 'TODO' }, viewport: '1440x757', preflightRaw, fileSha, exists, tools, readFile: (path) => readFileSync(path) });
+  assert.deepEqual(blank.issues, ['EVIDENCE_IMAGE_BLANK:TC-02:tc02-after-save:flat fix=re-capture']);
+  // Function PASS becomes UNGRADED; this stream's Gate-0 UI FAIL still wins over UNGRADED.
+  assert.deepEqual([blank.caseEntry.functionVerdict, blank.caseEntry.uiVerdict, blank.caseEntry.status], ['UNGRADED', 'FAIL', 'FAIL']);
+  const next = mergeCaseIntoBoard({ cases: [{ id: 'TC-02' }], evidenceManifest: [] }, built);
+  assert.deepEqual(next.evidencePolicy, { version: 1 });
+});
+
+test('web collect stops when QA GUI has no evidence tools', async () => {
+  const empty = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-no-qa-gui-')));
+  assert.equal(await qaGuiEvidenceTools(empty), null);
+});
+
+// With a real QA GUI checkout (TEAMQA_WEB_TEST_QA_GUI_ROOT): a real PNG, a real recording dir, QA GUI's own checks.
+const QA_GUI = process.env.TEAMQA_WEB_TEST_QA_GUI_ROOT;
+test('a Team QA collect makes evidence QA GUI evidence policy v1 accepts, and QA GUI rejects a capture without its build or a frozen video',
+  { skip: QA_GUI ? false : 'set TEAMQA_WEB_TEST_QA_GUI_ROOT to a QA GUI checkout with evidence policy v1' }, async () => {
+    const tools = await qaGuiEvidenceTools(QA_GUI);
+    assert.ok(tools, 'QA GUI evidence tools');
+    const { deflateSync } = await import('node:zlib');
+    const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+    const crc = (b) => { let c = 0xffffffff; for (const x of b) c = crcTable[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+    const chunk = (type, data) => { const out = Buffer.alloc(12 + data.length); out.writeUInt32BE(data.length, 0); out.write(type, 4, 'ascii'); data.copy(out, 8); out.writeUInt32BE(crc(out.subarray(4, 8 + data.length)), 8 + data.length); return out; };
+    const W = 2880, H = 1514, raw = Buffer.alloc((W * 3 + 1) * H);
+    for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) raw.set([(x >> 3) & 255, (y >> 3) & 255, ((x + y) >> 4) & 255], y * (W * 3 + 1) + 1 + x * 3);
+    const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4); ihdr[8] = 8; ihdr[9] = 2;
+    const work = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-r1f-real-')));
+    const shotFile = join(work, 'TC-02-after-save.png'), video = join(work, 'capture.mp4'), recDir = join(work, 'rec-9');
+    writeFileSync(shotFile, Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]));
+    writeFileSync(video, Buffer.alloc(64 * 1024, 3));
+    const startedAt = 1793143771543;
+    const makeRec = (frozen) => {
+      mkdirSync(recDir, { recursive: true });
+      const frames = Array.from({ length: 17 }, (_, i) => ({ t: i * 250, file: `f-${String(i).padStart(6, '0')}.jpg` }));
+      for (const f of frames) writeFileSync(join(recDir, f.file), frozen || f.t < 1300 ? 'before-click frame' : 'after-click frame');
+      writeFileSync(join(recDir, 'events.json'), JSON.stringify({ id: 'rec-9', startedAt, durationMs: 4000, viewport: { deviceWidth: 1440, deviceHeight: 757 }, frames,
+        events: [{ t: 1200, kind: 'down', x: 70, y: 50 }, { t: 1260, kind: 'up', x: 70, y: 50 }], result: 'ok',
+        delivery: { extensionFrames: 17, persistedFrames: 17, ingestErrors: 0, captureErrors: 0, pushErrors: 0 } }));
+    };
+    const shotSha = sha(readFileSync(shotFile));
+    const ev = (identity) => [
+      use('r1', RPC, { method: 'session.create', params: { sessionId: 'exec-s9' } }), result('r1', ok({ ...S, sessionId: 'exec-s9' })),
+      use('r2', RPC, { method: 'openTab', params: { ...S, url: 'http://127.0.0.1:5401/orders' } }), result('r2', ok({ tabId: 7, sessionId: 'exec-s1' })),
+      ...(identity ? [use('r3', RPC, { method: 'getPageIdentity', params: { ...S, tabId: 7 } }), result('r3', ok({ digest: 'x' }))] : []),
+      use('r4', RPC, { method: 'startRecording', params: { ...S, tabId: 7, quality: 50, maxWidth: 960, maxHeight: 960 } }), result('r4', ok({ id: 'rec-9', dir: recDir, tabId: 7 })),
+      use('r5', RPC, { method: 'do', params: { ...S, tabId: 7, steps: [{ click: '#save', fast: false }] } }),
+      result('r5', ok({ completed: true, results: [{ step: 'click', ok: true, receipt: { actionId: 'act-9', ts: startedAt + 1201, action: { method: 'click' } } }] })),
+      use('r6', RPC, { method: 'screenshot', params: { ...S, tabId: 7, toFile: 'TC-02-after-save.png' } }),
+      result('r6', ok({ savedTo: shotFile, sha256: shotSha, domHash: 'd'.repeat(64), domStable: true, privacyMasked: true, maskedRects: [{ kind: 'secret', x: 100, y: 100, w: 200, h: 40 }],
+        dom: { url: 'http://127.0.0.1:5401/orders/1', viewport: '1440x757' } })),
+      use('r7', RPC, { method: 'do', params: { ...S, tabId: 7, steps: [{ read: 'gate0()', as: 'g0' }, { read: 'rect()', as: 'tgt' }] } }),
+      result('r7', ok({ completed: true, results: [{ step: 'read', as: 'g0', value: { ui: { v: 'PASS' }, a11y: { v: 'PASS' } } },
+        { step: 'read', as: 'tgt', value: { selector: '#save', rect: { x: 20, y: 30, width: 100, height: 40 } } }] })),
+      use('r8', RPC, { method: 'getConsole', params: { ...S, tabId: 7 } }), result('r8', ok({ count: 0, entries: [] })),
+      use('r9', RPC, { method: 'getNetwork', params: { ...S, tabId: 7 } }), result('r9', ok({ count: 1, requests: [{ t: clock, method: 'POST', url: 'http://127.0.0.1:5411/rest/v1/orders', status: 201, type: 'Fetch' }] })),
+      use('r10', RPC, { method: 'stopRecording', params: { ...S, tabId: 7, id: 'rec-9' } }), result('r10', ok({ id: 'rec-9', dir: recDir, durationMs: 4000 })),
+      use('r11', RPC, { method: 'assembleRecording', params: { ...S, id: 'rec-9' } }), result('r11', ok({ video })),
+    ];
+    const d = { case_id: 'TC-02', summary: { function: 'f', ui: 'u' }, lifecycle: {}, recording: true,
+      states: [{ state: 'after-save', screenshot: 'TC-02-after-save.png', gate0: 'g0', target: 'tgt', console: true, network: true, assertions: [{ assertion_id: 'TC-02-A1', verdict: 'PASS' }] }] };
+    const collect = (identity) => buildCaseEvidence({ draft: d, calls: streamCalls(ev(identity).map((e) => JSON.stringify(e)).join('\n')), binding, plannedCase: planned,
+      boardCase: { id: 'TC-02', kind: 'behavioral', status: 'TODO' }, viewport: '1440x757', preflightRaw, fileSha, exists, tools, readFile: (path) => readFileSync(path) });
+    makeRec(false);
+    const good = collect(true);
+    assert.deepEqual(good.issues, []);
+    assert.deepEqual([good.caseEntry.status, good.caseEntry.functionVerdict, good.caseEntry.uiVerdict], ['PASS', 'PASS', 'PASS']);
+    const r = good.receipts[0].value;
+    assert.deepEqual(r.screenshot.fit, { fromSha256: shotSha, fromWidth: 2880, fromHeight: 1514, width: 1280, height: 673 });
+    assert.equal(r.screenshot.capture.build, binding.target.frontend_build.id);
+    assert.deepEqual(r.target, { selector: '#save', rect: { x: 20, y: 30, width: 100, height: 40 } });
+    const manifest = JSON.parse(good.files.find((f) => f.rel.endsWith('.recording.json')).data);
+    assert.deepEqual([manifest.actionSource, manifest.actions.map((a) => a.t), manifest.video.sha256], ['recording-events', [1200], sha(readFileSync(video))]);
+    assert.deepEqual(tools.stateImageIssues({ png: good.files.find((f) => f.rel.endsWith('.png')).data, receipt: r, caseId: 'TC-02', state: 'after-save' }), []);
+    // No identity read on the captured tab: the capture has no measured build, so QA GUI refuses the binding.
+    const unbound = collect(false);
+    assert.ok(unbound.issues.some((x) => x.startsWith('EVIDENCE_IMAGE_BINDING:TC-02:after-save:') && x.endsWith('fix=re-capture')), unbound.issues.join('\n'));
+    assert.deepEqual([unbound.caseEntry.functionVerdict, unbound.caseEntry.uiVerdict], ['UNGRADED', 'UNGRADED']);
+    // A frozen recording (every frame the same bytes) is refused as stale.
+    makeRec(true);
+    const frozen = collect(true);
+    assert.ok(frozen.issues.some((x) => x.startsWith('EVIDENCE_VIDEO_STALE:TC-02:segment-0:') && x.endsWith('fix=re-record')), frozen.issues.join('\n'));
+    assert.deepEqual([frozen.caseEntry.functionVerdict, frozen.caseEntry.uiVerdict], ['UNGRADED', 'PASS']);
+  });

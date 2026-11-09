@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orders (R1e width fixture)</title>
+<!-- Synthetic fixture for the R1e width sweep tests. Not a product page. -->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; font: 14px/1.4 sans-serif; }
+  header { padding: 8px 16px; background: #eef; }
+  .shell { display: flex; flex-wrap: wrap; }
+  nav { flex: 0 0 180px; padding: 8px; }
+  main { flex: 1 1 400px; padding: 8px; }
+  @media (max-width: 767px) { nav { flex-basis: 100%; } }
+  .toolbar { display: flex; gap: 8px; max-width: 100%; }
+  .toolbar button { flex: 0 1 auto; }
+</style>
+</head>
+<body>
+<header>Orders</header>
+<div class="shell">
+  <nav>Menu</nav>
+  <main>
+    <div class="toolbar"><button>New order</button><button>Export</button><button>Filter</button></div>
+    <p>Three orders.</p>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Orders (R1e overlay fixture)</title>
+<!-- Synthetic fixture for the R1e overlay check. "Edit order" is a well-behaved dialog with a nested picker; "Delete
+     order" does not close on Esc and drops focus when it closes. Not a product page. -->
+<style>
+  body { margin: 0; font: 14px/1.4 sans-serif; }
+  .filler { height: 2400px; padding: 16px; }
+  .backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); display: none; }
+  .backdrop.open { display: block; }
+  .panel { position: absolute; top: 80px; left: 50%; width: 320px; margin-left: -160px; background: #fff; padding: 16px; }
+  body.locked { overflow: hidden; }
+</style>
+</head>
+<body>
+<main class="filler">
+  <h1>Orders</h1>
+  <button id="edit-trigger" aria-haspopup="dialog" aria-controls="edit-dialog">Edit order</button>
+  <button id="delete-trigger" aria-haspopup="dialog" aria-controls="delete-dialog">Delete order</button>
+  <p>Many orders below.</p>
+</main>
+<div class="backdrop" id="edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+  <div class="panel">
+    <h2 id="edit-title">Edit order</h2>
+    <label>Quantity <input id="qty" value="5"></label>
+    <button id="pick-trigger" aria-haspopup="dialog" aria-controls="pick-dialog">Pick a customer</button>
+    <button id="edit-close" aria-label="Close">×</button>
+  </div>
+</div>
+<div class="backdrop" id="pick-dialog" role="dialog" aria-modal="true" aria-labelledby="pick-title">
+  <div class="panel" style="top: 140px">
+    <h2 id="pick-title">Pick a customer</h2>
+    <button id="pick-a">Acme</button>
+    <button id="pick-close" aria-label="Close">×</button>
+  </div>
+</div>
+<div class="backdrop" id="delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+  <div class="panel">
+    <h2 id="delete-title">Delete order?</h2>
+    <button id="delete-confirm">Delete</button>
+    <button id="delete-close" aria-label="Close">×</button>
+  </div>
+</div>
+<script>
+  const stack = [];
+  const focusables = (el) => [...el.querySelectorAll('button, input, [href], [tabindex]:not([tabindex="-1"])')];
+  function open(dialog, trigger, { escape = true, restore = true } = {}) {
+    stack.push({ dialog, trigger, escape, restore });
+    dialog.classList.add('open');
+    document.body.classList.add('locked');
+    focusables(dialog)[0].focus();
+  }
+  function close() {
+    const top = stack.pop();
+    if (!top) return;
+    top.dialog.classList.remove('open');
+    if (!stack.length) document.body.classList.remove('locked');
+    if (top.restore) top.trigger.focus(); else document.activeElement.blur();
+  }
+  const edit = document.getElementById('edit-dialog'), pick = document.getElementById('pick-dialog'), del = document.getElementById('delete-dialog');
+  document.getElementById('edit-trigger').addEventListener('click', (e) => open(edit, e.currentTarget));
+  document.getElementById('pick-trigger').addEventListener('click', (e) => open(pick, e.currentTarget));
+  document.getElementById('delete-trigger').addEventListener('click', (e) => open(del, e.currentTarget, { escape: false, restore: false }));
+  for (const id of ['edit-close', 'pick-close', 'delete-close', 'pick-a']) document.getElementById(id).addEventListener('click', close);
+  document.getElementById('delete-confirm').addEventListener('click', close);
+  // Close on click, not mousedown: after a mousedown handler the browser still moves focus to what was pressed.
+  for (const dialog of [edit, pick, del]) dialog.addEventListener('click', (e) => { if (e.target === dialog) close(); });
+  document.addEventListener('keydown', (e) => {
+    const top = stack.at(-1);
+    if (!top) return;
+    if (e.key === 'Escape' && top.escape) { e.preventDefault(); close(); }
+    if (e.key === 'Tab') {
+      const items = focusables(top.dialog);
+      const at = items.indexOf(document.activeElement);
+      e.preventDefault();
+      items[(at + (e.shiftKey ? items.length - 1 : 1)) % items.length].focus();
+    }
+  });
+</script>
+</body>
+</html>

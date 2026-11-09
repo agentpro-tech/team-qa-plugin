@@ -1,0 +1,13 @@
+{
+  "schema": "team-qa/model-catalog/v1",
+  "collected_at": "2026-11-04T00:00:00.000Z",
+  "source": { "kind": "fixture", "reference": "adjudicator-catalog-v1" },
+  "harnesses": [
+    { "id": "claude", "version": "2.1.284", "bin": "stub-adjudicator-claude.mjs" },
+    { "id": "codex", "version": "0.151.0", "bin": "stub-adjudicator-codex.mjs" }
+  ],
+  "models": [
+    { "id": "claude-sonnet-5-5", "provider": "anthropic", "harness": "claude", "efforts": ["low", "medium", "high"], "tools": ["fs.read"], "roles": ["analyst", "test_manager"], "tier": "general", "status": "available", "min_harness_version": "2.1.284" },
+    { "id": "gpt-6.1-sol", "provider": "openai", "harness": "codex", "efforts": ["medium", "high"], "tools": ["fs.read"], "roles": ["test_manager"], "tier": "general", "status": "available" }
+  ]
+}

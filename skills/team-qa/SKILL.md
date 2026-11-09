@@ -32,9 +32,9 @@ Team QA, QA GUI and QA Code ship together as one suite signed by the owner: `tea
 Installed with `/plugin marketplace add agentpro-tech/team-qa-releases` and `/plugin install team-qa@agentpro`, Team QA, QA GUI and QA Code sit in the plugin's `skills/` folder, file for file as the suite installs them; each skill finds the others next to itself. In the plugin:
 
 - Claude Code updates Team QA (`/plugin update team-qa@agentpro`, or auto-update for the `agentpro` marketplace); `teamqa update` refuses with `UPDATE_MANAGED_BY_PLUGIN`.
-- The Team QA hooks are already on (the plugin's `hooks/hooks.json`). `teamqa continuation register --run <id> --session <id>` binds a run in the fixed registry `~/.agentpro/teamqa/continuation`; leave out `--registry`. `stage-hooks` refuses with `PLUGIN_HOOKS_ACTIVE`. A session that is not registered gets `{}` from every hook.
+- The Team QA hooks are already on (the plugin's `hooks/hooks.json`). `teamqa continuation register --run <id> --session <id>` binds a run in the fixed registry `~/.agentpro/teamqa/continuation`; leave out `--registry`. `teamqa continuation unregister --session <id>` ends the binding (moved to the registry's `archive/`); a binding that drifted from its run (new round, run deleted, Team QA updated) refuses only Dragon and board writes until it is registered again or unregistered. `stage-hooks` refuses with `PLUGIN_HOOKS_ACTIVE`. A session that is not registered gets `{}` from every hook.
 - When `teamqa doctor` reports the Dragon runtime missing, it prints `teamqa dragon install --from <the release's dragon-runtime.dbrc URL>`; the signature is checked before anything runs.
-- `teamqa doctor` notes how Team QA is installed and warns about a second install (`DUPLICATE_INSTALL`), a staged hook left in a Claude Code settings file (`HOOKS_TWICE`) and plugin files that differ from the signed copies in `scripts/plugin` (`PLUGIN_FILES_DRIFT`).
+- `teamqa doctor` notes how Team QA is installed and warns when Claude Code loads Team QA twice, as the plugin and from its own skills folder (`DUPLICATE_INSTALL`; a suite install in `~/.agents/skills` that only Codex links to is fine), a staged hook left in a Claude Code settings file (`HOOKS_TWICE`) and plugin files that differ from the signed copies in `scripts/plugin` (`PLUGIN_FILES_DRIFT`).
 
 ## A roster confirmed for each run and round
 
@@ -46,7 +46,7 @@ Roster approval does not replace plan SIGN, permission to write Test data, or a 
 
 In a Codex chat with `collaboration.spawn_agent`, prefer native with exact `model`, `reasoning_effort`, `fork_turns: none`. Use `prepare-native` after the roster is confirmed, call the tool with the exact locked payload, then `attest-native` to match the original call/result and the child session log. Prepare locks role, skill and prompt into a context packet; the agent must read the packet with its first tool call, then read the facts separately. Intake checks the hash of the actual output of both reads; the encrypted spawn text is still unobservable and does not prove understanding. Native Code goes through the QA Code static adapter; native GUI goes through the original Dragon trajectory + QA GUI checker, see [native child adapters](references/native-child-adapters.md). Do not switch to CLI just to collect logs more easily; CLI is a separate route only when native does not meet the role's capability, and it must be shown in the roster before running. Native has no per-role sandbox or timeout flag; accept only the trajectory and the actual limits that were checked, and do not claim that the host blocked every action.
 
-In Claude Code, the interactive session is the orchestrating root: the roster/plan is shown in the assistant chat, the user types “Approve”, and preflight and continuation read the original transcript `~/.claude/projects/<project>/<session-id>.jsonl`. LLM roles run through the `claude` seat (`claude -p` with exact `--model`/`--effort`, a separate session, with the parent session's environment variables removed); effort is observed from the worker's original transcript through QA Code ≥ 1.9.0. The hook uses `continuation stage-hooks --host claude`. Details, trusted sources and limits are in [Claude Code as root](references/claude-host.md).
+In Claude Code, the interactive session is the orchestrating root: the roster/plan is shown in the assistant chat, the user types “Approve”, and preflight and continuation read the original transcript `~/.claude/projects/<project>/<session-id>.jsonl` (`$CLAUDE_CONFIG_DIR/projects/…` when that variable is set; a symlinked `~/.claude` is followed). LLM roles run through the `claude` seat (`claude -p` with exact `--model`/`--effort`, a separate session, with the parent session's environment variables removed); effort is observed from the worker's original transcript through QA Code ≥ 1.9.0. The hook uses `continuation stage-hooks --host claude`. Details, trusted sources and limits are in [Claude Code as root](references/claude-host.md).
 
 A run with a roster/current phase uses the current contract; legacy utilities and reports that carry `historical_diagnostic=true current_run_graded=false` are only for historical diagnosis, even when the old calculation gives GO. An official receipt/handoff must re-verify approval, roles, docs, child evidence and coverage; a legacy signature/receipt does not certify a new run.
 
@@ -57,6 +57,27 @@ A native worker still gets one turn; hand over the remaining work with a [new at
 Dragon through code mode must be one separate RPC in the form `text(await tools.<tool_name>(<JSON>));`, with a valid JSON argument and double-quoted key names. Do not merge RPCs, add pragmas/statements, use variables, or use a JavaScript object with unquoted keys: Dragon may run it, but the native parser will reject the provenance.
 
 ## Teamwork QA board — Space first, Notion next, Doc-Colab last
+
+**Never write a QA board by hand.** Not as a Notion page, a Notion database you design, a Doc, a Drive file, an
+artifact or a chat table. The board exists only as `qa-board.json` (from `board init`, changed with `board apply`),
+and it reaches people only through `teamqa board publish`. In a registered run the hook refuses every other Notion,
+Claude Docs, Google Drive and Space write (`BOARD_WRITE_NOT_PLANNED`); in any run the report lists board writes made
+outside `board publish` under "Board written outside Team QA" and they are never handed over.
+
+```bash
+teamqa board publish --run <run_id> --to notion --parent <Notion page id or URL> --quality-review <review-receipt.json>
+teamqa board publish-next --run <run_id>      # after each planned call, until it prints integrity=verified
+teamqa board publish --run <run_id> --to html --quality-review <review-receipt.json>
+```
+
+`--to notion` (Claude Code or Codex with a Notion MCP connection) creates two databases, Cases and Defects, from the
+canonical board. It prints one Notion call at a time: call that tool with the JSON of `board-notion/next-input.json`
+as its input, unchanged (no field added, removed or reworded), then run `publish-next`. After the rows it asks for the
+readback queries; `publish-next` compares the readback with the canonical board and, at 100%, prints the database
+links and the two artifacts to lock (`board_notion`, `board_quality`). A mismatch or a failed call stops with its
+code; do not repair the databases by hand. Without a Notion connection use `--to html`, say that Notion is not
+connected, and hand over the local board. `teamqa board audit --run <run_id>` shows any board write made outside
+`publish`.
 
 Each run creates a board draft from `qa-gui` canonical JSON in PLAN, before SIGN; after DESIGN it updates a new revision with the tracked cases. The board helps developers find the
 **defects to fix** first; all cases, Function/UI, source refs and history are still kept in full.
@@ -71,6 +92,10 @@ a mismatched readback needs diagnosis/re-reading; do not create another board on
 teamqa board init --run <run_id> --title "<app> QA" --tracked runs/<run_id>/tracked-plan.json --environment TEST --database <db> --out runs/<run_id>/qa-board.json
 teamqa board prepare --file <qa-board.json> --capabilities <connector-probes.json> --out <page-payload.json> --quality-review <review-receipt.json>
 ```
+
+`board init --evidence-policy 1` turns on QA GUI's evidence policy v1 (every screenshot and recording is machine-checked before it
+can back a PASS); on the deployed-build lane `web collect` makes that evidence and turns it on itself
+([claude-host](references/claude-host.md), [evidence draft](references/executor-evidence.md)).
 
 `prepare` only prepares the payload when Space/Notion is chosen; it does not confirm a remote write.
 For Space, use `title` and `initial_blocks` from the payload with the `create_page` tool, read the Page independently
@@ -108,7 +133,7 @@ through `board apply`/the qa-gui hardener, validated and rendered/read back befo
 
 Read [chat and operational preflight](references/chat-and-preflight.md). `roster approve` requires basic preflight; `run show-plan` locks the board link/readback, and the content must appear unchanged in the chat before SIGN. Executor dispatch/intake checks the preflight of the exact role; the canary below does not replace evidence that the tools work.
 
-Cost: the roster table carries a cost estimate at API list prices (planning roles per round, each GUI case); `teamqa cost estimate --run <run_id>` gives the run total once the tracked plan exists. When the user names a budget, set it with `teamqa cost cap --run <run_id> --usd <amount>`: a case that would start after the cap is spent is refused with `RUN_COST_CAP_REACHED`; keep the evidence of finished cases and report NOT COMPLETE with the cases left. `report build` adds the actual tokens and cost per role (`teamqa cost report --run <run_id>` shows them any time).
+Cost: the roster table carries a cost estimate at API list prices (planning roles per round, each GUI case); `teamqa cost estimate --run <run_id>` gives the run total once the tracked plan exists. When the user names a budget, set it with `teamqa cost cap --run <run_id> --usd <amount>`: a dispatch or case that would start after the cap is spent is refused with `RUN_COST_CAP_REACHED` (an attempt with no reported price, such as a Codex worker or one that timed out or still runs, counts at its role's measured maximum); keep the evidence of finished cases and report NOT COMPLETE with the cases left. `report build` adds the actual tokens and cost per role (`teamqa cost report --run <run_id>` shows them any time).
 
 ## Prepare the run
 
@@ -130,10 +155,32 @@ Cost: the roster table carries a cost estimate at API list prices (planning role
 
 Keep `roles.json` compatible for historical tooling checks; old aliases are not an executable default/fallback. Only the `roster.json` confirmed by the user is the authority for the current run.
 
+**Adjudicator (optional seat).** A roster request with `"adjudicator": {"provider": …}` adds one read-only seat of a
+model family other than every executor's (`roster.mjs select … --adjudicator-catalog <catalog of that provider>`);
+the roster validator refuses the executor's family. It judges PASS cases only unless the request says
+`"scope": "all"`. It is **shadow** unless the request says `"mode": "enforce"`: its
+results are recorded and the report shows what the verdicts would be if it were on. It only ever lowers a PASS to
+UNGRADED (CONTEST); it never makes a case PASS or FAIL. Contract, schemas and validator rules:
+[adjudicator contract](references/adjudicator-contract.md).
+
 ## Phase 1 — PLAN
 
 1. After roster approval and the separate attestations of Test Manager/Analyst, lock the source with version/refs/target; the Analyst builds a risk-based dossier; the Test Manager writes `test-plan.md` with a `TEAMQA_PLAN_START/END` block per `schemas/plan.json`.
 2. By default GUI runs sequentially by lane. Set `parallel_ok:true` only when `vi_sao` proves that no data is shared.
+   Speed flags (upgrade R3): every speed-up that skips work is off unless the plan's `speed` block, signed with the plan,
+   sets it to `shadow` or `on`; parallel GUI lanes, vision by diff, the cost ladder, fast-click and the action cache are
+   described, with what each one skips and what always still runs, in [speed flags](references/speed-flags.md).
+   QA GUI's detectors (upgrade integration) are not a flag: on the web lane a GUI case dispatch carries a
+   `TEAMQA_DETECTORS` section when something applies to it (the transient probe of a risky main action: the case's
+   `data.main_action` (a label, or `{label, inForm, inList, inDialog}`) or else the last quoted control of its steps,
+   never a sign-in or navigation step; a write with no `data.reset` gets no trial, N/A; the U1/U2/U3
+   states a case forces through `data.ux` or a `request=` condition, the exploration of a cell case), and `web collect`
+   carries what QA GUI rebuilds from the stream into the run ([evidence draft](references/executor-evidence.md)); QA GUI
+   grades it. The width sweep and the overlay check run once per screen (each route and role of a GUI case; `teamqa web
+   screens --run <run_id>` lists them), before the cases: `roster.mjs dispatch --role executor_gui --screen-id <S1..>`
+   (three attempts per screen), then `teamqa web
+   collect-screen --run <run_id> --attestation <its attestation>`; every case on that screen gets its result at collect.
+   A case without a route has no screen check (N/A).
 3. Run `teamqa plan validate runs/<run_id>/test-plan.md`. A missing number, a wrong type, a broken marker or an unknown field is rejected.
 4. Lock source/dossier/plan with `teamqa run lock-docs --run <run_id> --manifest <artifact-map.json>`, then `teamqa run transition --run <run_id> --to PLAN`; create/read back the board draft and run `teamqa run show-plan --run <run_id>`, put the output unchanged into the chat, then SIGN. The plan declares the scope `preflight:{code,gui,recording}`; record BLOCKED explicitly when a lane is not ready. Fixed before EXECUTE: P0 at most 0; P1 at most 0 except a waiver signed per case; FULL coverage 100%; SMOKE coverage from 70%.
 
@@ -154,6 +201,9 @@ After plan SIGN on the exact SHA, dispatch the Designer separately, read back th
    registry, and each case has `title` and `sourceRefs[]` besides id, requirement, lane, steps,
    expected, data, priority, kind and coverage axes. One source can link to many cases and one case can
    link to many sources; the registry order and the case order are the canonical order.
+   To gate coverage by cell (route × state × action × viewport row × condition), add the root `coverage` block
+   (viewport rows, static routes, screens with data) and a `route` on each GUI case; N/A cells go in the signed
+   plan with a reason. See [coverage cells](references/coverage-cells.md).
 2. Run `teamqa design validate --file runs/<run_id>/tracked-plan.json`.
 3. Run `teamqa rtm build --plan <plan> --tracked <tracked> --out runs/<run_id>/rtm.md`.
 4. Do not hide gaps: a requirement with no case and a source with no case must show `**EMPTY**` (the RTM gap marker). RTM v2
@@ -208,12 +258,25 @@ Lock tracked v2, the exact RTM/source edges, the canonical board/template, and t
 8. Re-test at most 3 times per case per SCROLL §26. When the tries run out, record the failure proof and continue with the next case; on gate denied, stop at once.
 9. To offer a re-run for an official verdict (a new round, or the next attempt of a case): run `teamqa run offer --run <run_id> --kind round|attempt --cases <id,id> --reason <CODE>` and paste the `TEAMQA_OFFER …` line it prints, unchanged, into the assistant chat right before the question. The command rejects cases outside the tracked plan, cases that are out of tries, and runs that are already COMPLETE; the marker keeps the approved roster and target. A proposal to change the target, roster or plan does not use this marker. A new round still goes through the roster and plan approval of that round.
 
+When the approved roster has an adjudicator seat: freeze each case's checklist before its evidence exists
+(`teamqa adjudicate checklist --run <run_id> --case <id>`, any time after DESIGN), and after each executed record run
+`teamqa adjudicate run --run <run_id> --case <id> --attestation <the executor's case attestation> --board <qa-board.json>`.
+Never pass it the executor's verdict, draft or notes; it reads only the raw evidence. In shadow mode change nothing
+else and do not wait for it: start it after the case's verdict is recorded (`run_in_background`) and go on with the next
+case; with an enforcing seat apply `teamqa adjudicate board-change` through `teamqa board apply`. Before `teamqa report build`,
+wait for every background adjudication you started to finish (each writes its `result.json`); a report built while one
+still runs leaves that case's shadow decision out.
+
 ## Phase 5 — COMPLETE
 
 Fill the RTM from the ledger, run the [authenticated independent board review](references/board-review-workflow.md), verify the exact artifact/Page and lock `board_quality` together with `board_render` or `board_payload`; re-lock the changed artifacts, then `teamqa run transition --run <run_id> --to COMPLETE`. In an unattended run (`TEAMQA_RUN_MODE=unattended` on the approved roster) where the board review is still not PASS after 3 fix rounds, do not ask the user: run `teamqa board deliver-blocked --run <run_id> --reviews <r1,r2,r3>`, do not hand over or publish the board, and still go to COMPLETE, report and receipt (`board_delivery: "blocked"`); an interactive run keeps the old behavior. The gate checks every case/child proof, separates Function/UI and does not count BLOCKED/NOT RUN/DEFERRED as coverage. When the chain is incomplete, `teamqa report diagnose --run <run_id>` outputs a diagnostic NO_GO and issues no completion receipt.
 
 1. Run `teamqa report build --run <run_id>`. The command uses only the exit criteria of the signed plan SHA and cross-checks plan + tracked plan + board + RTM. It also refuses `TEST_SECRET_IN_OUTPUT` when a test-account password from the run's credential inputs appears in the board, report, RTM or plan (`teamqa secrets scan --run <run_id>` names the files): remove it from that file and build again. Never copy a password into a case step, note or evidence caption.
 2. Coverage counts only graded cases (`pass` or `fail`); `verdict=ungraded` does not cover a requirement.
+   With the tracked plan's `coverage` block the Coverage Gate counts only cells that have a state receipt: a graded
+   case whose declared cell has none is `COVERAGE_CELL_UNGRADED` and does not cover its requirement. The report
+   gives the cells by two state groupings, the frontier, Û = f1/n and the stop reason separately, and writes
+   `coverage-map.json`; put QA GUI's app map v2 at `runs/<run_id>/app-map.json` first ([coverage cells](references/coverage-cells.md)).
 3. One missed criterion produces `decision: "NO_GO"` and `reasons[]`; only when all criteria pass is it `GO`.
 4. Run `teamqa report verify --run <run_id>` to catch any hand-edited number.
    Report v2 carries the registry and rows in the order `sourceRef, caseId, verdict, evidence`; an edit to source,
@@ -326,7 +389,14 @@ allows a rehearsal, and it must not point at the official runtime.
 Release only after local `main` is clean and equal to GitHub `main` read live. The runtime must have
 `SOURCE.json`, `package-manifest.json` and `release-truth.json`; missing one layer means not complete.
 
-*v1.15.1 — 2026-10-30. Gate fixes from the 1.15 review: roster and plan approval refuse any message with a negator or
+*v1.16.0 — 2026-11-10. GUI cases run QA GUI's detectors through Dragon R1a (Dragon 1.7.0; on an older Dragon they
+are reported, not run): forced loading and error states (U1–U3), the transient probe of the case's main action (a save
+without a reset path gets fresh-value trials, a delete is N/A), the entry probe of each screen, and the width sweep and
+overlay check once per screen, also for a screen a case reaches from a share link. An executor proves the build with
+`openTab {proveIdentity:true}`. Coverage cells from state receipts; an optional adjudicator seat from another model
+family (shadow by default); speed flags in the signed plan, off unless it says shadow or on; light, bounded evidence;
+dispatch, hook and update fixes.
+v1.15.1 — 2026-10-30. Gate fixes from the 1.15 review: roster and plan approval refuse any message with a negator or
 hold word (`isApprovalText`); the test-secret scan reads the credential forms real accounts files use (key styles,
 Vietnamese labels, quoted values, numbers, .env, links), scans outputs of any size and warns `TEST_SECRETS_NOT_FOUND`
 when it reads none.

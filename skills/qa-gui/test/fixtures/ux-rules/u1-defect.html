@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U1 defect: a save that succeeds with no visible feedback</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  label { display: block; margin: 12px 0 4px; }
+  input { font: inherit; padding: 6px; width: 260px; }
+  button { font: inherit; padding: 8px 16px; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <h1>Profile</h1>
+  <form id="f">
+    <label for="name">Display name</label>
+    <input id="name" name="name">
+    <button id="save" type="submit">Save</button>
+  </form>
+  <script>
+    document.getElementById('f').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = JSON.stringify({ name: document.getElementById('name').value });
+      window.fetch('/api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+        .then(function (r) {
+          // Defect: the write succeeds, but nothing the user can see changes.
+          document.body.dataset.lastSave = String(r.status);
+        });
+    });
+  </script>
+</body>
+</html>

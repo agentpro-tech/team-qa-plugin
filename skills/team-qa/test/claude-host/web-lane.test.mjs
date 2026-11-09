@@ -25,6 +25,8 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const SCROLL = process.env.TEAMQA_SCROLL_ROOT || join(homedir(), 'Dev', 'scroll');
 const HOME = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-web-home-')));
 process.env.HOME = HOME;
+// Transcripts are written under HOME/.claude; a CLAUDE_CONFIG_DIR of the machine running the tests would point elsewhere.
+delete process.env.CLAUDE_CONFIG_DIR;
 const hash = value => createHash('sha256').update(value).digest('hex');
 const text = value => `${JSON.stringify(value, null, 2)}\n`;
 const read = path => JSON.parse(readFileSync(path, 'utf8'));

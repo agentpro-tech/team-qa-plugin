@@ -108,8 +108,17 @@ test('C2/C5: doctor in the plugin finds the siblings in the plugin and names the
 });
 
 test('C2: doctor warns about a second install, a staged hook and plugin files that are not the signed ones', async () => {
-  const twice = await doctorChecks(pluginMachine({ extra: ['/h/.agents/skills/team-qa/SOURCE.json'] }));
+  const twice = await doctorChecks(pluginMachine({ extra: ['/h/.agents/skills/team-qa/SOURCE.json', '/h/.claude/skills/team-qa'] }));
   assert.equal(twice.notes.find(n => n.id === 'duplicate-install')?.code, 'DUPLICATE_INSTALL');
+  assert.match(twice.notes.find(n => n.id === 'duplicate-install').help, /Codex keeps using ~\/\.agents\/skills/);
+  // The suite install that only Codex links to is not a second install for Claude Code.
+  const codex = await doctorChecks(pluginMachine({ extra: ['/h/.agents/skills/team-qa/SOURCE.json'] }));
+  assert.equal(codex.notes.find(n => n.id === 'duplicate-install'), undefined);
+  assert.equal(codex.notes.find(n => n.id === 'codex-install')?.status, 'info');
+  assert.deepEqual(codex.notes.filter(n => n.status === 'warn'), []);
+  // CLAUDE_CONFIG_DIR names the skills folder Claude Code reads.
+  const config = await doctorChecks({ ...pluginMachine({ extra: ['/c/skills/team-qa'] }), env: { CLAUDE_CONFIG_DIR: '/c' } });
+  assert.match(config.notes.find(n => n.id === 'duplicate-install').detail, /\/c\/skills\/team-qa/);
   const hooks = await doctorChecks(pluginMachine({ files: { '/w/.claude/settings.json': '{"hooks":{"Stop":[{"hooks":[{"command":"node /x/scripts/hooks/qa-lifecycle.mjs"}]}]}}' } }));
   const staged = hooks.notes.find(n => n.id === 'hooks');
   assert.equal(staged.code, 'HOOKS_TWICE');
@@ -123,14 +132,17 @@ test('C2: doctor warns about a second install, a staged hook and plugin files th
   assert.equal(twice.first_failure.code, 'DRAGON_RUNTIME_MISSING');
 });
 
-test('C2: a suite install warns when the plugin is installed too', async () => {
+test('C2: a suite install warns when the plugin is installed too and Claude Code links the suite', async () => {
   const m = pluginMachine();
-  const r = await doctorChecks({ ...m, teamqaRoot: '/h/.agents/skills/team-qa',
-    exists: p => p === '/h/.agents/skills/team-qa/SOURCE.json' || p.startsWith('/h/.agents/skills/qa-') || p.endsWith('effects.js'),
+  const suite = linked => doctorChecks({ ...m, teamqaRoot: '/h/.agents/skills/team-qa',
+    exists: p => p === '/h/.agents/skills/team-qa/SOURCE.json' || p.startsWith('/h/.agents/skills/qa-') || p.endsWith('effects.js') || (linked && p === '/h/.claude/skills/team-qa'),
     readText: p => p === '/h/.claude/plugins/installed_plugins.json' ? '{"version":2,"plugins":{"team-qa@agentpro":[{}]}}' : m.readText(p),
     scrollRoot: () => '/h/.agents/skills/team-qa/vendor/scroll', updateCheck: async () => ({ status: 'no_channel' }) });
+  const r = await suite(true);
   assert.match(r.notes.find(n => n.id === 'install').detail, /^skills \/h\/\.agents\/skills$/);
   assert.equal(r.notes.find(n => n.id === 'duplicate-install')?.code, 'DUPLICATE_INSTALL');
+  // Codex's install beside the plugin, with no ~/.claude/skills link: no warning.
+  assert.equal((await suite(false)).notes.find(n => n.id === 'duplicate-install'), undefined);
 });
 
 test('C2: teamqa update leaves the plugin to Claude Code', () => {
@@ -243,4 +255,32 @@ test('C3/C6: the plugin manifest, README and command that Team QA ships', () => 
     assert.equal(noNode.status, 127);
     assert.match(noNode.stderr, /needs Node\.js 20 or later/);
   }
+});
+
+// L6: a blank line in the hygiene id list matched every line, so every plugin build failed PLUGIN_PERSONAL_ID.
+test('the plugin build ignores blank and comment lines of the hygiene id list', async () => {
+  const { mkdirSync: mkdir, mkdtempSync: mkdtemp, readFileSync: read, writeFileSync: write } = await import('node:fs');
+  const { tmpdir: tmp } = await import('node:os');
+  const { join: joinPath } = await import('node:path');
+  const { spawnSync: run } = await import('node:child_process');
+  const script = read(new URL('../../scripts/release-plugin.sh', import.meta.url), 'utf8');
+  const start = script.indexOf('IDS="${TEAMQA_HYGIENE_IDS'), end = script.indexOf('\nif command -v claude', start);
+  assert.ok(start > 0 && end > start, 'the hygiene block of release-plugin.sh');
+  const dir = mkdtemp(joinPath(tmp(), 'teamqa-plugin-ids-')), out = joinPath(dir, 'out'), work = joinPath(dir, 'work');
+  for (const sub of ['.claude-plugin', 'bin', 'hooks']) mkdir(joinPath(out, sub), { recursive: true });
+  mkdir(work);
+  write(joinPath(out, '.claude-plugin', 'plugin.json'), '{"name":"team-qa"}\n');
+  write(joinPath(out, 'README.md'), '# Team QA\n\nA plugin.\n');
+  write(joinPath(out, 'bin', 'teamqa'), '#!/bin/sh\n');
+  write(joinPath(out, 'hooks', 'hooks.json'), '{}\n');
+  const ids = joinPath(dir, 'ids.txt');
+  write(ids, '\n# the owner list\nexample-handle   # a handle\n   \n');
+  const check = () => run('bash', ['-c', `set -euo pipefail; OUT=${JSON.stringify(out)}; WORK=${JSON.stringify(work)}\n${script.slice(start, end)}\necho HYGIENE_OK`], { encoding: 'utf8', env: { ...process.env, TEAMQA_HYGIENE_IDS: ids } });
+  const clean = check();
+  assert.equal(clean.status, 0, clean.stderr);
+  assert.match(clean.stdout, /HYGIENE_OK/);
+  write(joinPath(out, 'README.md'), '# Team QA\n\nBuilt by Example-Handle.\n');
+  const leaked = check();
+  assert.equal(leaked.status, 4);
+  assert.match(leaked.stderr, /PLUGIN_PERSONAL_ID/);
 });

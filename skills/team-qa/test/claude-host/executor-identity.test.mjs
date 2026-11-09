@@ -87,3 +87,64 @@ test('the executor identity is refused with the code of the check that fails', (
   refused(run({ page: { isError: true } }), 'PREFLIGHT_DRAGON_OPERATION');
   refused(new Stream().text(), 'PREFLIGHT_WEB_EXECUTOR_IDENTITY_MISSING');
 });
+
+// Round G (G3): Dragon's openTab {proveIdentity:true} makes the three reads inside the call that opens the tab
+// (Dragon tests/qa-identity.test.mjs shapes). Field evidence: dogfood 2026-11-05 lost two GUI dispatches to
+// PREFLIGHT_WEB_EXECUTOR_IDENTITY_SEQUENCE / _MISSING when an executor opened the preview URL and skipped the reads.
+function inlineRun(o = {}) {
+  const s = new Stream(), session = SESSION, tabParams = { ...SESSION, tabId: TAB };
+  s.rpc('session.create', { sessionId: session.sessionId, forbidSyntheticDOM: false }, { ...session, forbidSyntheticDOM: false, policy: { requireTrusted: true } });
+  if (o.shotFirst) s.rpc('screenshot', tabParams, { savedTo: '/tmp/x.png', privacyMasked: true });
+  const t0 = s.t + 1000, at = (ms) => new Date(t0 + ms).toISOString();
+  const read = (method, params, result, from) => ({ method, params, result, called_at: at(from), answered_at: at(from + 200) });
+  const identity = { ok: true, settle: { settled: true, waitedMs: 40 },
+    page: read('getPageIdentity', tabParams, identityRead(html(o.entry)), 100),
+    network: read('getNetwork', { ...tabParams, summary: true }, summary(t0 + 50), 400),
+    tab: read('getTabInfo', tabParams, { tabId: TAB, url: PREVIEW, title: 'Sample Shop' }, 700) };
+  const answer = o.noIdentity ? { tabId: TAB } : { tabId: TAB, identity: o.mutate ? o.mutate(identity, at) : identity };
+  const open = s.rpc('openTab', { ...session, url: PREVIEW, active: false, proveIdentity: true }, answer, { wait: 3000 });
+  if (o.thenReads) {
+    s.rpc('getPageIdentity', tabParams, identityRead(html()));
+    s.rpc('getNetwork', { ...tabParams, summary: true }, summary(s.t - 1500));
+    s.rpc('getTabInfo', tabParams, { tabId: TAB, url: PREVIEW, title: 'Sample Shop' });
+  }
+  s.rpc('screenshot', tabParams, { savedTo: '/tmp/state.png', privacyMasked: true });
+  return { stream: s.text(), open };
+}
+
+test('G3: the identity triple inside openTab {proveIdentity} proves the build', () => {
+  const { stream, open } = inlineRun();
+  const proved = executorIdentity({ stream, target: TARGET });
+  assert.deepEqual(proved.observation.frontend_build, { kind: 'vite', id: BUILD });
+  assert.equal(proved.observation.backend_origin, BACKEND);
+  assert.deepEqual(proved.session, SESSION);
+  assert.equal(proved.tabId, TAB);
+  assert.deepEqual(proved.calls, { open, page: `${open}#identity.page`, network: `${open}#identity.network`, tab: `${open}#identity.tab` });
+});
+
+test('G3: the inline triple is refused like the separate reads, and its own shape is checked', () => {
+  refused(inlineRun({ entry: 'index-OtHeRbLd' }).stream, 'PREFLIGHT_WEB_CURRENT_BUILD');
+  refused(inlineRun({ noIdentity: true }).stream, 'PREFLIGHT_WEB_EXECUTOR_IDENTITY_SEQUENCE');
+  refused(inlineRun({ shotFirst: true }).stream, 'PREFLIGHT_WEB_EXECUTOR_IDENTITY_ORDER');
+  refused(inlineRun({ mutate: (id) => ({ ...id, ok: false }) }).stream, 'PREFLIGHT_DRAGON_OPERATION');
+  refused(inlineRun({ mutate: (id) => { const { tab, ...rest } = id; return rest; } }).stream, 'PREFLIGHT_WEB_EXECUTOR_IDENTITY_SEQUENCE');
+  refused(inlineRun({ mutate: (id) => ({ ...id, tab: { ...id.tab, params: { ...id.tab.params, tabId: TAB + 1 } } }) }).stream, 'PREFLIGHT_WEB_EXECUTOR_IDENTITY_SEQUENCE');
+  refused(inlineRun({ mutate: (id, at) => ({ ...id, tab: { ...id.tab, answered_at: at(5000) } }) }).stream, 'PREFLIGHT_WEB_EXECUTOR_IDENTITY_ORDER');
+  refused(inlineRun({ mutate: (id, at) => ({ ...id, network: { ...id.network, called_at: at(150) } }) }).stream, 'PREFLIGHT_WEB_EXECUTOR_IDENTITY_ORDER');
+  refused(inlineRun({ mutate: (id) => ({ ...id, tab: { ...id.tab, result: { ...id.tab.result, url: 'http://127.0.0.1:5401/auth' } } }) }).stream, 'PREFLIGHT_WEB_PASSIVE_URL');
+});
+
+test('G3: an openTab answer without identity (a Dragon without it) falls back to the three separate reads', () => {
+  const proved = executorIdentity({ stream: inlineRun({ noIdentity: true, thenReads: true }).stream, target: TARGET });
+  assert.deepEqual(proved.observation.frontend_build, { kind: 'vite', id: BUILD });
+  assert.ok(!proved.calls.page.includes('#identity'));
+  // The old path without the flag is unchanged.
+  assert.equal(executorIdentity({ stream: run(), target: TARGET }).observation.frontend_build.id, BUILD);
+});
+
+test('G3: an inline triple taken before sign-in (no backend call yet) gives way to the separate reads after it', () => {
+  const noBackend = (id) => ({ ...id, network: { ...id.network, result: summary(Date.parse(id.network.called_at), 'http://127.0.0.1:5401') } });
+  refused(inlineRun({ mutate: noBackend }).stream, 'PREFLIGHT_WEB_BACKEND_OBSERVATION');
+  const proved = executorIdentity({ stream: inlineRun({ mutate: noBackend, thenReads: true }).stream, target: TARGET });
+  assert.ok(!proved.calls.page.includes('#identity'));
+});

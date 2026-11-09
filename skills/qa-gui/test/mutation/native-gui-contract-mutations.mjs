@@ -17,6 +17,8 @@ function prepare(name, source) {
   mkdirSync(join(dir, 'scripts/lib'), { recursive: true });
   mkdirSync(join(dir, 'test'), { recursive: true });
   writeFileSync(join(dir, 'scripts/lib/native-gui-trajectory.mjs'), source);
+  // R1d: the policy reads the Dragon R1a surface (lane builds, RPCs, conditions record) from this module.
+  cpSync(join(repo, 'scripts/lib/dragon-env.mjs'), join(dir, 'scripts/lib/dragon-env.mjs'));
   cpSync(testPath, join(dir, 'test/native-gui-trajectory.test.mjs'));
   writeFileSync(join(dir, 'package.json'), '{"type":"module"}\n');
   return dir;

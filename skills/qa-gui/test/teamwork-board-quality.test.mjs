@@ -179,10 +179,11 @@ test('source mutation disabling required handoff is killed after the original po
   const canonicalUrl = moduleUrl('../scripts/teamwork/canonical.mjs');
   const pageUrl = moduleUrl('../scripts/teamwork/page-exporter.mjs');
   const notionUrl = moduleUrl('../scripts/teamwork/notion-sync.mjs');
+  const notionMcpUrl = moduleUrl('../scripts/teamwork/notion-mcp.mjs');
   const nativeUrl = moduleUrl('../scripts/teamwork/native-renderer.mjs');
   const docColabUrl = moduleUrl('../scripts/teamwork/doc-colab-renderer.mjs');
   source = source.replace("'../loop8/caption.mjs'", `'${captionUrl}'`).replace("'./canonical.mjs'", `'${canonicalUrl}'`)
-    .replaceAll("'./page-exporter.mjs'", `'${pageUrl}'`).replaceAll("'./notion-sync.mjs'", `'${notionUrl}'`)
+    .replaceAll("'./page-exporter.mjs'", `'${pageUrl}'`).replaceAll("'./notion-sync.mjs'", `'${notionUrl}'`).replaceAll("'./notion-mcp.mjs'", `'${notionMcpUrl}'`)
     .replaceAll("'./native-renderer.mjs'", `'${nativeUrl}'`).replaceAll("'./doc-colab-renderer.mjs'", `'${docColabUrl}'`);
   const mutant = await import(`data:text/javascript,${encodeURIComponent(source)}#mutation-${Date.now()}`);
   assert.equal(mutant.inspectBoardQuality(baseline).verdict, 'PASS');
@@ -340,7 +341,7 @@ test('source mutations removing applicability or broadening it to defect boards 
   const loadMutant = async (before, after) => {
     let mutated = original.replace(before, after);
     assert.notEqual(mutated, original, 'mutation target must exist');
-    for (const relative of ['../loop8/caption.mjs', './canonical.mjs', './page-exporter.mjs', './notion-sync.mjs', './native-renderer.mjs', './doc-colab-renderer.mjs']) {
+    for (const relative of ['../loop8/caption.mjs', './canonical.mjs', './page-exporter.mjs', './notion-sync.mjs', './notion-mcp.mjs', './native-renderer.mjs', './doc-colab-renderer.mjs']) {
       const absolute = pathToFileURL(fileURLToPath(new URL(`../scripts/teamwork/${relative}`, import.meta.url))).href;
       mutated = mutated.replaceAll(`'${relative}'`, `'${absolute}'`);
     }

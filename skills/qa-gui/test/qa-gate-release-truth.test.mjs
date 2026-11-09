@@ -433,3 +433,19 @@ test('QG11: schema 6 gates exact source references and prints deterministic cove
   assert.match(unknown.stderr, /cases\[0\]\.sourceRefs\[0\].*unknown source ref SRC-UNKNOWN/);
   assert.match(unknown.stdout, /QA gate: UNGRADED/);
 });
+
+// L1: the receipt went to <cwd>/.teamcode, which is inside the plugin cache or a skill install when the gate runs from
+// there.
+test('a gate run from inside a plugin or skill install writes its receipt next to the board', () => {
+  const fixture = makeFixture();
+  const home = mkdtempSync(join(tmpdir(), 'qa-gui-receipt-home-'));
+  for (const inside of [join(home, '.claude', 'plugins', 'cache', 'agentpro', 'team-qa', '1.15.2', 'skills', 'qa-gui'), join(home, '.agents', 'skills', 'qa-gui')]) {
+    mkdirSync(inside, { recursive: true });
+    const result = spawnSync(process.execPath, [gate, fixture.boardPath], { cwd: inside, encoding: 'utf8', env: { ...process.env, HOME: home } });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    const receipt = join(dirname(fixture.boardPath), '.teamcode/runs', RUN_UUID, 'receipts/qa-gui.receipt.json');
+    assert.ok(readFileSync(receipt, 'utf8').includes(RUN_UUID), 'the receipt is next to the board');
+    assert.equal(spawnSync('find', [inside, '-name', '*.receipt.json'], { encoding: 'utf8' }).stdout.trim(), '', `no receipt inside ${inside}`);
+    assert.match(result.stdout, new RegExp(`Receipt: ${dirname(fixture.boardPath).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+  }
+});

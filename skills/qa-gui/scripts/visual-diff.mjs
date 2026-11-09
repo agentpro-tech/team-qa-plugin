@@ -144,7 +144,9 @@ function normalizeRectangles(mask, state, width, height) {
 
 export function comparePngBuffers(baselineBuffer, actualBuffer, { state = "", mask = null } = {}) {
   const baseline = decodePng(baselineBuffer), actual = decodePng(actualBuffer);
-  if (baseline.width !== actual.width || baseline.height !== actual.height) throw new Error(`PNG dimensions differ: ${baseline.width}x${baseline.height} vs ${actual.width}x${actual.height}`);
+  // A baseline and a round screenshot are compared only at the same size: under evidence policy v1 both go through
+  // the same `qa-gui evidence fit --max-width 1280` (box filter), so a full-size baseline must be fitted, never scaled here.
+  if (baseline.width !== actual.width || baseline.height !== actual.height) throw new Error(`PNG dimensions differ: ${baseline.width}x${baseline.height} vs ${actual.width}x${actual.height}; fit both with node scripts/qa-gui.mjs evidence fit --max-width 1280 before comparing`);
   const { width, height } = baseline;
   const rectangles = normalizeRectangles(mask, state, width, height);
   const diffData = Buffer.alloc(width * height * 4);

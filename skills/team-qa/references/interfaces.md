@@ -8,6 +8,10 @@ Read this file when configuring `roles.json` or replacing an adapter. Do not rea
 - Receipt schema: `~/.agents/skills/qa-gui/contracts/release-truth-contract/v2/qa-gui.receipt.schema.json` (major 2).
 - Declared gate: `node ~/.agents/skills/qa-gui/scripts/qa-gate.mjs <board>`.
 - Team QA accepts only verdicts/evidence that passed the gate; it does not import UI grading logic.
+- Coverage cells (R1b): Team QA reads QA GUI app map v2 (`qa-gui/app-map/v2`, written by
+  `node ~/.agents/skills/qa-gui/scripts/qa-gui.mjs app-map --log <log> --out runs/<run_id>/app-map.json`) and the
+  optional `cell` (`qa-gui/coverage-cell/v1`) of the state receipts the gate checked. See
+  [coverage cells](coverage-cells.md).
 - Teamwork canonical current `qa-board-teamwork/v2` / schema 6 (legacy v1 schemas 4/5 remain
   readable): `~/.agents/skills/qa-gui/scripts/teamwork/canonical.schema.json`.
 - Teamwork CLI: `node ~/.agents/skills/qa-gui/scripts/teamwork/cli.mjs

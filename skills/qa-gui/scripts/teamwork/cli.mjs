@@ -10,6 +10,7 @@ import { validateCanonical } from './canonical.mjs';
 import { hardenDocColabPacket } from './doc-colab-hardener.mjs';
 import { renderDocColabBoard } from './doc-colab-renderer.mjs';
 import { applyNotionPull, compareNotionRows, mapCanonicalRows } from './notion-sync.mjs';
+import { compareNotionMcp, notionMcpProjection } from './notion-mcp.mjs';
 import { migrateCanonicalSourceTraceability } from './source-traceability-migration.mjs';
 
 const CURRENT_SCHEMA_VERSION = 6;
@@ -154,6 +155,9 @@ function commandInit(options) {
   if (targetBinding !== undefined && options.commit !== undefined) {
     throw new Error('--commit and --target-binding-sha256 are exclusive: a deployed-build board has no commit');
   }
+  // Evidence policy v1 (R1f): --evidence-policy 1 turns on the gate's image and recording checks for this board.
+  const evidencePolicy = options['evidence-policy'];
+  if (evidencePolicy !== undefined && evidencePolicy !== '1') throw new Error('--evidence-policy supports only 1');
   const seeded = sourceSeed(options, language);
   const canonical = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -176,6 +180,7 @@ function commandInit(options) {
     role: options.role || 'qa-agent',
     testProfile: options['test-profile'] || 'plan-not-run',
     evidenceManifest: [],
+    ...(evidencePolicy !== undefined ? { evidencePolicy: { version: 1 } } : {}),
     currentRound: round,
     sourceItems: seeded.sourceItems,
     cases: seeded.cases,
@@ -291,6 +296,31 @@ function commandCompareNotion(options) {
   return { ok: true, operation: 'compare-notion', ...comparison };
 }
 
+// Notion through the hosted Notion MCP: the projection Team QA turns into exact tool calls, and the comparison of a
+// readback of both databases against a fresh projection of the canonical board.
+function notionMcpOptions(options, sha256) {
+  return { version: required(options, 'version'), runId: required(options, 'run'), boardSha256: sha256 };
+}
+
+function commandExportNotionMcp(options) {
+  const { data, sha256 } = validated(required(options, 'file'));
+  const projection = notionMcpProjection(data, notionMcpOptions(options, sha256));
+  const output = writeNewJson(required(options, 'out'), projection);
+  return { ok: true, operation: 'export-notion-mcp', output, cases: projection.rows.cases.length, defects: projection.rows.defects.length, sha256: sha256File(output), board_sha256: sha256 };
+}
+
+function commandCompareNotionMcp(options) {
+  const { data, sha256 } = validated(required(options, 'file'));
+  const readback = readJson(required(options, 'readback'), 'Notion readback');
+  const comparison = compareNotionMcp(data, readback, notionMcpOptions(options, sha256));
+  if (!comparison.ok) {
+    const error = new Error('Notion comparison is not 100%');
+    error.receipt = comparison;
+    throw error;
+  }
+  return { operation: 'compare-notion-mcp', board_sha256: sha256, ...comparison };
+}
+
 function commandSyncNotion(options) {
   const file = path.resolve(required(options, 'file'));
   const output = path.resolve(required(options, 'out'));
@@ -322,6 +352,8 @@ function dispatch(command, options) {
   if (command === 'export-notion') return commandExportNotion(options);
   if (command === 'compare-notion') return commandCompareNotion(options);
   if (command === 'sync-notion') return commandSyncNotion(options);
+  if (command === 'export-notion-mcp') return commandExportNotionMcp(options);
+  if (command === 'compare-notion-mcp') return commandCompareNotionMcp(options);
   throw new Error(`unknown teamwork command ${command || '<missing>'}`);
 }
 

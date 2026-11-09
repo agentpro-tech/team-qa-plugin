@@ -40,9 +40,10 @@ is validated against the deployed-build variant of
 `scripts/teamwork/canonical.schema.json`: `targetBindingSha256` replaces
 `commit` (a `commit` field is rejected), evidence metadata follows
 `$defs/evidenceMetadataWeb`, and a case may carry the `recordingSegments`
-(`[{file,startMs,endMs}]`, `$defs/recordingSegments`) that the semantic gate
-requires for every behavioral case. Every other board is validated exactly as
-before.
+(`[{file,startMs,endMs,manifest?}]`, `$defs/recordingSegments`) that the semantic gate
+requires for every behavioral case; under `evidencePolicy:{version:1}` each segment names its
+recording manifest (`state-receipt-v1.md`), and a Git board may carry segments too. Every other
+board is validated exactly as before.
 
 Programmatic grading:
 

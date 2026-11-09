@@ -144,6 +144,12 @@ export function prepareBoardReview({ file, outDir, parentSourcePath, authorSourc
   const factsPath = join(dir, 'facts.json'), packetPath = join(dir, 'context.md');
   const values = reviewValues({ ...checked, factsPath, packetPath, rubric, limits });
   const texts = reviewTexts(host, values, factsBytes);
+  // Dogfood 05/11 (BOARD_REVIEW_CANONICAL_DRIFT): every repair round rewrites the same board file, so a review of an
+  // earlier revision could no longer be authenticated when an unattended run records its blocked delivery. The exact
+  // bytes reviewed are kept next to the review; only that historical check reads them (snapshotFor).
+  const reviewed = readFileSync(checked.canonical.path, 'utf8');
+  requireValue(sha256(reviewed) === checked.canonical.sha256, 'BOARD_REVIEW_CANONICAL_DRIFT');
+  writeOnce(join(dir, CANONICAL_SNAPSHOT), reviewed);
   writeOnce(factsPath, factsBytes);
   writeOnce(packetPath, texts.packet);
   const intent = { schema: 'team-qa/board-review-intent/v1', created_at: new Date().toISOString(), canonical: checked.canonical,
@@ -155,12 +161,29 @@ export function prepareBoardReview({ file, outDir, parentSourcePath, authorSourc
   if (isClaudeHost(host)) return { intentPath, intentSha256: sha256File(intentPath), dispatch_command: claudeDispatchCommand(intentPath, intent.prepare.node.path) };
   return { intentPath, intentSha256: sha256File(intentPath), spawn: intent.spawn };
 }
-function loadIntent(intentPath, file) {
+// The board bytes a review read, kept in its directory at prepare time. Only the historical check of an unattended
+// run's blocked delivery may use them, for the reviews of revisions the repair rounds later replaced; a review that
+// backs the current board is always checked against the live file.
+const CANONICAL_SNAPSHOT = 'canonical.json';
+function snapshotFor(intentPath, ref) {
+  const snapshot = join(dirname(realpathSync(intentPath)), CANONICAL_SNAPSHOT);
+  return existsSync(snapshot) && sha256File(snapshot) === ref?.sha256 ? snapshot : null;
+}
+// The reviewed board: { canonical (the path the review names), read (the file to read its bytes from) }.
+export function reviewedCanonical(intentPath, ref, { historical = false } = {}) {
+  const live = ref && typeof ref.path === 'string' && existsSync(ref.path) && sha256File(ref.path) === ref.sha256;
+  if (live || !historical) { const canonical = verifyRef(ref, 'BOARD_REVIEW_CANONICAL_DRIFT'); return { canonical, read: canonical }; }
+  exact(ref, ['path','sha256'], 'BOARD_REVIEW_CANONICAL_DRIFT');
+  const read = snapshotFor(intentPath, ref);
+  requireValue(read, 'BOARD_REVIEW_CANONICAL_DRIFT');
+  return { canonical: ref.path, read };
+}
+function loadIntent(intentPath, file, { historical = false } = {}) {
   const i = readJson(intentPath);
   exact(i, ['schema','created_at','canonical','boardId','revision','ruleVersion','host','author','pins','rubric','facts','packet','caps','spawn','prepare'], 'BOARD_REVIEW_INTENT_FIELDS');
   requireValue(i.schema === 'team-qa/board-review-intent/v1' && same(i.pins, pins()) && same(i.caps, policy()), 'BOARD_REVIEW_RULES_DRIFT');
-  const canonical = verifyRef(i.canonical, 'BOARD_REVIEW_CANONICAL_DRIFT');
-  if (file) requireValue(realpathSync(file) === canonical, 'BOARD_REVIEW_CANONICAL_PATH');
+  const { canonical, read } = reviewedCanonical(intentPath, i.canonical, { historical });
+  if (file) requireValue(resolve(file) === canonical || (existsSync(file) && realpathSync(file) === canonical), 'BOARD_REVIEW_CANONICAL_PATH');
   for (const ref of [i.rubric, i.facts, i.packet]) verifyRef(ref, 'BOARD_REVIEW_CONTEXT_DRIFT');
   verifyHost(i.host); verifyHost(i.author);
   requireValue(same(i.host, i.author), 'BOARD_REVIEW_AUTHOR_MUST_BE_PARENT');
@@ -169,7 +192,9 @@ function loadIntent(intentPath, file) {
   requireValue(i.spawn.fork_turns === 'none' && /^[a-z][a-z0-9_]{0,63}$/.test(i.spawn.task_name)
     && typeof i.spawn.model === 'string' && i.spawn.model.trim()
     && ['low','medium','high','xhigh','max','ultra'].includes(i.spawn.reasoning_effort), 'BOARD_REVIEW_SPAWN_FIELDS');
-  const checked = checkBoardQuality({ file: canonical });
+  const readChecked = checkBoardQuality({ file: read });
+  // The packet and facts were made from the live path; a snapshot stands in for those exact bytes.
+  const checked = { ...readChecked, canonical: { path: canonical, sha256: readChecked.canonical.sha256 } };
   requireValue(checked.data.boardId === i.boardId && checked.data.rev === i.revision && checked.result.ruleVersion === i.ruleVersion, 'BOARD_REVIEW_BOARD_BINDING');
   const facts = { canonicalSha256: i.canonical.sha256, ruleVersion: i.ruleVersion, board: gui('boardReviewFacts', checked.data) };
   requireValue(readFileSync(i.facts.path, 'utf8') === stableJson(facts), 'BOARD_REVIEW_FACTS_DRIFT');
@@ -201,9 +226,9 @@ export function locateBoardReviewSources({ intentPath }) {
   requireValue(prepare.length === 1 && spawn.length === 1, 'BOARD_REVIEW_SOURCE_AMBIGUOUS', `prepare=${prepare.length} spawn=${spawn.length}`);
   return { prepare_source: prepare[0], parent_source: spawn[0] };
 }
-function replayReview({ intentPath, childSourcePath, parentSource, prepareSource, file }) {
-  if (isClaudeHost(readJson(intentPath).host)) return replayClaudeReview({ intentPath, childSourcePath, parentSource, prepareSource, file });
-  const { intent: i, data } = loadIntent(intentPath, file);
+function replayReview({ intentPath, childSourcePath, parentSource, prepareSource, file, historical = false }) {
+  if (isClaudeHost(readJson(intentPath).host)) return replayClaudeReview({ intentPath, childSourcePath, parentSource, prepareSource, file, historical });
+  const { intent: i, data } = loadIntent(intentPath, file, { historical });
   let prepareRaw='';
   scanOriginalSource(i.host.path,(raw,index)=>{if(index===prepareSource.line-1)prepareRaw=raw;});
   requireValue(prepareSource.path === i.host.path && Number.isInteger(prepareSource.line)
@@ -293,9 +318,9 @@ function claudeSources({ intentPath }) {
   requireValue(claudeSourcesOrdered(prepare[0], dispatch[0]), 'BOARD_REVIEW_SOURCE_ORDER');
   return { prepare_source: prepare[0].result, parent_source: dispatch[0].result };
 }
-function replayClaudeReview({ intentPath, childSourcePath, parentSource, prepareSource, file }) {
+function replayClaudeReview({ intentPath, childSourcePath, parentSource, prepareSource, file, historical = false }) {
   intentPath = realpathSync(intentPath);
-  const { intent: i, data } = loadIntent(intentPath, file);
+  const { intent: i, data } = loadIntent(intentPath, file, { historical });
   const sources = claudeSources({ intentPath });
   requireValue(same(sources.prepare_source, prepareSource), 'BOARD_REVIEW_PREPARE_SOURCE');
   requireValue(same(sources.parent_source, parentSource), 'BOARD_REVIEW_PARENT_SOURCE');
@@ -329,13 +354,13 @@ export function verifyBoardReview({ file, receiptPath }) {
   requireValue(r.validation.verdict === 'PASS', 'BOARD_QUALITY_REVIEW_NOT_PASS', JSON.stringify(r.validation.errors));
   return r;
 }
-export function verifyBoardReviewEvidence({ file, receiptPath }) {
+export function verifyBoardReviewEvidence({ file, receiptPath, historical = false }) {
   requireValue(typeof receiptPath === 'string' && existsSync(receiptPath), 'BOARD_QUALITY_REVIEW_REQUIRED');
   const r = readJson(receiptPath);
   exact(r, ['schema','canonical','ruleVersion','intent','childSourcePath','prepare_source','parent_source','reviewerSessionId','childStreamSha256','review','validation','verdict'], 'BOARD_REVIEW_RECEIPT_FIELDS');
   requireValue(r.schema === 'team-qa/board-quality-review/v1', 'BOARD_REVIEW_RECEIPT_SCHEMA');
   const intentPath = verifyRef(r.intent, 'BOARD_REVIEW_INTENT_DRIFT');
-  const result = replayReview({ intentPath, childSourcePath: r.childSourcePath, parentSource: r.parent_source, prepareSource: r.prepare_source, file });
+  const result = replayReview({ intentPath, childSourcePath: r.childSourcePath, parentSource: r.parent_source, prepareSource: r.prepare_source, file, historical });
   requireValue(same(r.canonical, result.intent.canonical) && r.ruleVersion === result.intent.ruleVersion
     && r.reviewerSessionId === result.parsed.session_id && r.childStreamSha256 === result.parsed.stream_sha256
     && same(r.review, result.review) && same(r.validation, result.validation) && r.verdict === result.validation.verdict, 'BOARD_REVIEW_RECEIPT_DRIFT');
@@ -361,7 +386,7 @@ function projectionSource(renderer, options) {
   return { root, source: fileRef(sourcePath) };
 }
 export function sealBoardDelivery({ file, reviewPath, artifactPath, renderer, projectionOptions = {} }) {
-  requireValue(['space','notion','native','doc-colab'].includes(renderer), 'BOARD_QUALITY_RENDERER');
+  requireValue(['space','notion','notion-mcp','native','doc-colab'].includes(renderer), 'BOARD_QUALITY_RENDERER');
   const review = verifyBoardReview({ file, receiptPath: reviewPath });
   const provider = projectionSource(renderer, projectionOptions);
   if (provider) projectionOptions = { ...projectionOptions, docColabRoot: provider.root };
@@ -376,7 +401,7 @@ export function verifyBoardDelivery({ file, artifactPath, renderer }) {
   const r = readJson(artifactPath + '.quality.json');
   exact(r, ['schema','canonical','artifact','renderer','projectionOptions','projectionSource','ruleVersion','review','verdict'], 'BOARD_DELIVERY_RECEIPT_FIELDS');
   requireValue(r.schema === 'team-qa/board-quality-delivery/v1' && r.verdict === 'PASS'
-    && ['space','notion','native','doc-colab'].includes(r.renderer) && (!renderer || renderer === r.renderer), 'BOARD_DELIVERY_RECEIPT_SCHEMA');
+    && ['space','notion','notion-mcp','native','doc-colab'].includes(r.renderer) && (!renderer || renderer === r.renderer), 'BOARD_DELIVERY_RECEIPT_SCHEMA');
   requireValue(realpathSync(file) === verifyRef(r.canonical, 'BOARD_DELIVERY_CANONICAL_DRIFT')
     && realpathSync(artifactPath) === verifyRef(r.artifact, 'BOARD_DELIVERY_ARTIFACT_DRIFT'), 'BOARD_DELIVERY_PATH_BINDING');
   const review = verifyBoardReview({ file, receiptPath: verifyRef(r.review, 'BOARD_DELIVERY_REVIEW_DRIFT') });

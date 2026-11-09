@@ -1,0 +1,101 @@
+{
+  "recordedWith": "Dragon env-controller (extension/env-controller.js) at lane build 1.6.9-qa.f108af9 over a Playwright CDP session, Chromium headless, viewport 800x600",
+  "fixture": "u6-clean.html",
+  "call": {
+    "method": "paintSnapshot",
+    "params": {
+      "selector": "#search"
+    }
+  },
+  "result": {
+    "ok": true,
+    "t": 1793794607464,
+    "selector": "#search",
+    "count": 1,
+    "scroll": {
+      "x": 0,
+      "y": 0
+    },
+    "viewport": {
+      "w": 800,
+      "h": 600
+    },
+    "elements": [
+      {
+        "selector": "#search",
+        "index": 0,
+        "found": true,
+        "node": "input#search",
+        "paintOrder": 2,
+        "style": {
+          "display": "inline-block",
+          "visibility": "visible",
+          "opacity": "1",
+          "contentVisibility": "visible"
+        },
+        "opacity": 1,
+        "rect": {
+          "x": 24,
+          "y": 96,
+          "w": 260,
+          "h": 34
+        },
+        "visibleFraction": 1,
+        "points": [
+          {
+            "x": 154,
+            "y": 113,
+            "covered": false,
+            "by": null
+          },
+          {
+            "x": 76,
+            "y": 103,
+            "covered": false,
+            "by": null
+          },
+          {
+            "x": 232,
+            "y": 103,
+            "covered": false,
+            "by": null
+          },
+          {
+            "x": 76,
+            "y": 123,
+            "covered": false,
+            "by": null
+          },
+          {
+            "x": 232,
+            "y": 123,
+            "covered": false,
+            "by": null
+          }
+        ],
+        "coveredPoints": 0,
+        "reasons": [],
+        "shown": true
+      }
+    ],
+    "conditions": {
+      "v": 1,
+      "caseId": null,
+      "role": "test",
+      "network": null,
+      "cpu": null,
+      "timezone": null,
+      "locale": null,
+      "media": null,
+      "animation": null,
+      "requests": [],
+      "probes": {
+        "sensors": false,
+        "frames": false
+      },
+      "verified": null,
+      "setAt": null,
+      "expiresAt": null
+    }
+  }
+}

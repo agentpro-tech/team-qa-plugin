@@ -51,3 +51,31 @@ test('videos remain inline below the threshold and all become disclosed links ab
   assert.doesNotMatch(large.html, /data:video\/mp4;base64,/);
   assert.match(large.html, /vượt 25MB/);
 });
+
+// M12: the "self-contained" board put the asset paths as given on the command line (/Users/<name>/...) into alt text,
+// captions and video links: a personal path that also broke on any other machine.
+test('the packaged board holds no absolute machine path; a linked video is copied next to the board', async () => {
+  const { mkdirSync, mkdtempSync, existsSync, readFileSync, realpathSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { spawnSync } = await import('node:child_process');
+  const work = realpathSync(mkdtempSync(join(tmpdir(), 'qa-gui-package-')));
+  const home = join(work, 'Users', 'someone', 'Desktop', 'shots'), board = join(work, 'out');
+  mkdirSync(home, { recursive: true }); mkdirSync(join(board, 'evidence'), { recursive: true });
+  writeFileSync(join(home, 'login.png'), Buffer.from([137, 80, 78, 71]));
+  writeFileSync(join(home, 'run.mp4'), Buffer.alloc(25 * 1024 * 1024 + 1));
+  writeFileSync(join(board, 'evidence', 'inside.png'), Buffer.from([137, 80, 78, 71]));
+  writeFileSync(join(work, 'canonical.json'), JSON.stringify(fixture));
+  const out = join(board, 'board.html');
+  const run = spawnSync(process.execPath, [new URL('../scripts/teamwork/evidence-packager.mjs', import.meta.url).pathname, join(work, 'canonical.json'),
+    '--asset', join(home, 'login.png'), '--asset', join(home, 'run.mp4'), '--asset', join(board, 'evidence', 'inside.png'), '--out', out], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  const html = readFileSync(out, 'utf8');
+  assert.equal(html.includes(work), false, 'an absolute path of this machine is in the board');
+  assert.equal(html.includes('someone'), false, 'the home folder name is in the board');
+  assert.match(html, /alt="login\.png"/);
+  assert.match(html, /alt="evidence\/inside\.png"/);
+  const href = /<a class="linked-video" href="([^"]+)"/.exec(html)?.[1];
+  assert.ok(href && !href.startsWith('/') && !href.includes('..'), href);
+  assert.ok(existsSync(join(board, href)), `the linked video is inside the package at ${href}`);
+});

@@ -9,6 +9,6 @@
     { "id": "RBQ-M05", "file": "scripts/lib/reliability-handoff.mjs", "from": "assertEqual(handoff.capsule_digest, expected.capsule_digest, 'HANDOFF_BINDING_MISMATCH:capsule_digest');", "to": "assertEqual(handoff.capsule_digest, handoff.capsule_digest, 'HANDOFF_BINDING_MISMATCH:capsule_digest');", "acceptance": "TQB03" },
     { "id": "RBQ-M06", "file": "scripts/lib/reliability-handoff.mjs", "from": "if (ack.handoff_latency_ms > maxLatencyMs) throw new ReliabilityHandoffError('HANDOFF_SLO_EXCEEDED');", "to": "if (ack.handoff_latency_ms < 0) throw new ReliabilityHandoffError('HANDOFF_SLO_EXCEEDED');", "acceptance": "TQB04" },
     { "id": "RBQ-M07", "file": "scripts/lib/reliability-handoff.mjs", "from": "exactKeys(handoff, HANDOFF_FIELDS, 'HANDOFF_FIELDS');", "to": "void HANDOFF_FIELDS;", "acceptance": "TQB05" },
-    { "id": "RBQ-M08", "file": "VERSION", "from": "1.15.1", "to": "1.3.0", "acceptance": "TQB06" }
+    { "id": "RBQ-M08", "file": "VERSION", "from": "1.16.0", "to": "1.3.0", "acceptance": "TQB06" }
   ]
 }

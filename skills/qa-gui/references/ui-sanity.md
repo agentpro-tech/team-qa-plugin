@@ -68,3 +68,15 @@ Reference test: `.teamcode/browser-harness/p2-acceptance.mjs` (real Chrome via P
 
 ## Layer B — a11y (Phase 3, promoted to Gate-0)
 `scripts/a11y-gate0.js` → `__a11yB({minTarget:24})` returns v:'a11y-b/1.0'. Rules: B6 contrast, B8 target-size, B9 reflow (current viewport — run every row from `scripts/loop7/responsive-matrix.mjs`). B7 focus-visible via `__a11yFocusProbe(el)` after the flow focuses the control. axe-core bundled offline at scripts/vendor/axe.min.js (4.10.2).
+
+## Layer U — UX rules in the same sweeps (R1c)
+`__uiSanity(label, {ux})` now also runs **U9 occluded-control-partial**: the controls A3 checks, hit-tested at the
+centre and the 20%/80% corners of their part in view; a control with at least 2 of the 5 points covered fails (warn by
+default). It closes blind spot 2 above: A3 still reports a covered centre, U9 adds the half-covered control whose
+centre is free. `__a11yB({minTarget, ux})` runs **U4** (field error not tied to its field), **U5** (status message
+outside every live region) and **U6** (focused element fully covered, block by default). Each report carries
+`ux.rules` with PASS / FAIL / UNGRADED per rule; a U issue has an `id` (`"U9"`) next to its `rule`. The A/B issues
+are unchanged (checked on every fixture and board template in this repo); a warn-level U finding never changes the
+verdict, and with the default levels only U6 (focus fully hidden) can turn a passing a11y sweep into FAIL. `__uxObserve(opts)` (same file) returns the
+observation the Node graders of U1/U2/U3/U8/U10 compare. All rules, levels, thresholds and forced-state recipes:
+`references/ux-rules.md`.

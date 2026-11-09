@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U6 clean twin: the focused field is below the fixed header</title>
+<style>
+  body { font: 16px sans-serif; margin: 0; color: #222; }
+  header { position: fixed; left: 0; top: 0; right: 0; height: 80px; background: #0f172a; color: #fff; display: flex; align-items: center; padding: 0 24px; z-index: 10; }
+  main { padding: 96px 24px 16px; }
+  input { font: inherit; padding: 6px; width: 260px; }
+  p { max-width: 560px; }
+</style>
+</head>
+<body>
+  <header><strong>Acme Store</strong></header>
+  <main>
+    <input id="search" type="search" aria-label="Search products" placeholder="Search">
+    <p>Results appear below as you type.</p>
+    <a id="help" href="#help">Help</a>
+  </main>
+</body>
+</html>

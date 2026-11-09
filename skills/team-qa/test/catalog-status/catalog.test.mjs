@@ -45,7 +45,7 @@ test('Codex catalog uses current read-only harness probes and safe cache whiteli
     assert.ok(!JSON.stringify(catalog).includes('DO_NOT_COPY_PRIVATE_MARKER'));
     const calls=readFileSync(s.log,'utf8').trim().split('\n').map(JSON.parse);
     assert.deepEqual(calls.map(x=>x.args),[['--version'],['--help'],['exec','--help']]);
-    assert.ok(calls.every(x=>x.home.startsWith(join(tmpdir(),'teamqa-catalog-probe-'))&&x.config.startsWith(x.home)));
+    assert.ok(calls.every(x=>x.home.startsWith(join(realpathSync(tmpdir()),'teamqa-catalog-probe-'))&&x.config.startsWith(x.home)));
     assert.ok(ref.child_interfaces.qa_code && ref.child_interfaces.qa_gui);
     assert.equal(ref.child_interfaces.mcp_read,'not-read');
   }finally{s.cleanup();}
@@ -66,7 +66,7 @@ test('Claude catalog distinguishes documented fit from installed CLI compatibili
     assert.deepEqual(haiku.roles,[]);
     const calls=readFileSync(s.log,'utf8').trim().split('\n').map(JSON.parse);
     assert.deepEqual(calls.map(x=>x.args),[['--version'],['--help']]);
-    assert.ok(calls.every(x=>x.home.startsWith(join(tmpdir(),'teamqa-catalog-probe-'))&&x.config.startsWith(x.home)));
+    assert.ok(calls.every(x=>x.home.startsWith(join(realpathSync(tmpdir()),'teamqa-catalog-probe-'))&&x.config.startsWith(x.home)));
   }finally{s.cleanup();}
 });
 
@@ -117,4 +117,17 @@ for(const [name,data] of [
 ])test(`collector rejects ${name} instead of creating a GUI route`,()=>{
  const s=setup(),p=join(s.dir,'bad.json');writeFileSync(p,JSON.stringify(data));
  assert.throws(()=>collectCatalog({provider:'openai',codexBin:s.codex,codexCachePath:fixture('codex-models.json'),modelFitPath:fixture('model-fit.json'),sandboxProbes:false,mcpConfigPath:p}),/MCP_CONFIG_ROOT|GUI_DIRECT_DRAGON_ROUTE_REQUIRED|MCP_SERVER_FIELDS/);
+});
+
+// L6: macOS sandbox-exec matches real paths; a probe root under /var/folders (really /private/var/folders) was not the
+// folder the profile let the probe write to.
+test('the probe root (the only folder a sandboxed probe may write) is a real path', async () => {
+  const { symlinkSync } = await import('node:fs');
+  const s = setup(), real = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-probe-real-'))), link = join(s.dir, 'linked-tmp');
+  symlinkSync(real, link);
+  collectCatalog({ provider: 'openai', codexBin: s.codex, codexCachePath: fixture('codex-models.json'), modelFitPath: fixture('model-fit.json'), repoRoot: resolve(here, '../..'),
+    qaCodeRoot: join(s.dir, 'missing-code'), qaGuiRoot: join(s.dir, 'missing-gui'), sandboxProbes: false, probeDir: join(link, 'probe'),
+    now: () => new Date('2026-10-02T14:00:00.000Z'), env: { PATH: process.env.PATH, HOME: process.env.HOME, CATALOG_TEST_CALL_LOG: s.log } });
+  const homes = new Set(readFileSync(s.log, 'utf8').trim().split('\n').map(line => JSON.parse(line).home));
+  assert.deepEqual([...homes], [join(real, 'probe')]);
 });

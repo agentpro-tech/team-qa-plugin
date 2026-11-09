@@ -1,0 +1,133 @@
+{
+  "_fixture": "Exploration log of a synthetic Orders app with a list (/orders), a form (/orders/new) and a modal (dialog:delete-order), at the desktop-1280 row. Built by hand for the R1b tests; not evidence of a product run.",
+  "observations": [
+    {
+      "step": 1,
+      "action": "goto",
+      "url": "/orders",
+      "readyState": "loading",
+      "route": "/orders",
+      "domHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "viewport": "desktop-1280"
+    },
+    {
+      "step": 2,
+      "action": "goto",
+      "url": "/orders",
+      "readyState": "settled",
+      "node": "screen:orders-list",
+      "domHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "rows": 3,
+      "viewport": "desktop-1280",
+      "candidates": [
+        {
+          "target": "button:New Order"
+        },
+        {
+          "target": "button:Delete"
+        },
+        {
+          "target": "button:Sort by date"
+        },
+        {
+          "target": "menu:Export",
+          "blocked": "HOVER_ONLY",
+          "detail": "the export menu opens on hover only"
+        },
+        {
+          "target": "link:Admin",
+          "blocked": "AUTH",
+          "leadsTo": "/admin",
+          "detail": "the test account has no admin role"
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "action": "click",
+      "target": "button:New Order",
+      "resultRoute": "/orders/new",
+      "readyState": "settled",
+      "node": "screen:order-new",
+      "domHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "viewport": "desktop-1280",
+      "candidates": [
+        {
+          "target": "button:Save"
+        },
+        {
+          "target": "button:Cancel"
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "action": "click",
+      "target": "button:Cancel",
+      "resultRoute": "/orders",
+      "readyState": "settled",
+      "node": "screen:orders-list",
+      "domHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "rows": 3,
+      "viewport": "desktop-1280"
+    },
+    {
+      "step": 5,
+      "action": "click",
+      "target": "button:Delete",
+      "readyState": "settled",
+      "node": "dialog:delete-order",
+      "domHash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "viewport": "desktop-1280",
+      "candidates": [
+        {
+          "target": "button:Confirm"
+        },
+        {
+          "target": "button:Cancel"
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "action": "click",
+      "target": "button:Confirm",
+      "blocked": "NEEDS_APPROVAL",
+      "detail": "deleting an order is destructive and the plan does not approve it"
+    },
+    {
+      "step": 7,
+      "action": "click",
+      "target": "button:Cancel",
+      "readyState": "settled",
+      "node": "screen:orders-list",
+      "domHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "rows": 3,
+      "viewport": "desktop-1280"
+    },
+    {
+      "step": 8,
+      "action": "click",
+      "target": "button:Sort by date",
+      "readyState": "settled",
+      "node": "screen:orders-list",
+      "domHash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "rows": 3,
+      "viewport": "desktop-1280"
+    },
+    {
+      "step": 9,
+      "action": "skip",
+      "route": "/orders",
+      "state": "empty",
+      "reason": "NO_DATA",
+      "detail": "the test tenant always has orders; an empty list cannot be forced at the environment layer"
+    },
+    {
+      "step": 10,
+      "action": "stop",
+      "reason": "BUDGET_EXHAUSTED",
+      "detail": "the step budget of 8 actions is used"
+    }
+  ]
+}

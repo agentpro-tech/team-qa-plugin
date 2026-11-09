@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U3 defect: a server error clears the form</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  label { display: block; margin: 12px 0 4px; }
+  input, textarea { font: inherit; padding: 6px; width: 320px; }
+  button { font: inherit; padding: 8px 16px; margin-top: 16px; }
+  #error { color: #b00020; min-height: 1.4em; }
+</style>
+</head>
+<body>
+  <h1>Contact us</h1>
+  <form id="f">
+    <label for="name">Name</label>
+    <input id="name" name="name">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email">
+    <label for="message">Message</label>
+    <textarea id="message" name="message" rows="4"></textarea>
+    <button id="send" type="submit">Send</button>
+  </form>
+  <p id="error" role="alert"></p>
+  <script>
+    var form = document.getElementById('f');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = JSON.stringify({ name: form.name.value, email: form.email.value, message: form.message.value });
+      window.fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+        .then(function (r) {
+          if (r.ok) { document.getElementById('error').textContent = ''; form.reset(); return; }
+          // Defect: on a server error the form is reset, so everything the user typed is gone.
+          form.reset();
+          document.getElementById('error').textContent = 'Something went wrong. Please try again.';
+        }, function () {
+          form.reset();
+          document.getElementById('error').textContent = 'Something went wrong. Please try again.';
+        });
+    });
+  </script>
+</body>
+</html>

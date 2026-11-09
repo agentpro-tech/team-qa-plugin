@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# The real path of a folder, a link to one followed, without the realpath command (macOS 12 and older have none);
+# empty when it cannot be resolved, and an empty result never matches.
+real_dir() { (CDPATH= cd -P -- "$1" 2>/dev/null && pwd -P) || true; }
 ENVELOPE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 DEST_ROOT="$HOME/.agents/skills"; COMPAT_ROOT="$HOME"; BACKUP_ROOT=""; ALLOW_LOCAL_CANDIDATE=no; DEST_ROOT_EXPLICIT=0; COMPAT_ROOT_EXPLICIT=0
 while [ "$#" -gt 0 ]; do case "$1" in --dest-root) DEST_ROOT="${2:?}"; DEST_ROOT_EXPLICIT=1; shift 2;; --compat-root) COMPAT_ROOT="${2:?}"; COMPAT_ROOT_EXPLICIT=1; shift 2;; --archive-root) BACKUP_ROOT="${2:?}"; shift 2;; --allow-local-candidate) ALLOW_LOCAL_CANDIDATE="${2:?}"; shift 2;; *) echo "install: unknown flag $1" >&2; exit 2;; esac; done
@@ -38,7 +41,7 @@ rollback() {
   echo "install: post-check failed; rolled back, the failed copy is in $failed" >&2; exit 23
 }
 for scope in "$COMPAT_ROOT/.claude/skills" "$COMPAT_ROOT/.codex/skills"; do
-  link="$scope/$SKILL"; [ -L "$link" ] && [ "$(realpath "$link" 2>/dev/null || true)" = "$(realpath "$DEST")" ] && continue
+  link="$scope/$SKILL"; [ -L "$link" ] && [ -n "$(real_dir "$DEST")" ] && [ "$(real_dir "$link")" = "$(real_dir "$DEST")" ] && continue
   label="$(basename "$(dirname "$scope")")"
   if [ -e "$link" ] || [ -L "$link" ]; then compat="$BACKUP_ROOT/${SKILL}-compat-$label-$STAMP"; mv "$link" "$compat" || rollback; [ "$label" = .claude ] && CLAUDE_PREVIOUS="$compat" || CODEX_PREVIOUS="$compat"; fi
   ln -s "$DEST" "$link" || rollback

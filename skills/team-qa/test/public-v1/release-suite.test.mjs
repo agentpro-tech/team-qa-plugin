@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, generateKeyPairSync } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -143,10 +143,12 @@ test('a channel offers the newer suite, the update installs it, and a tampered c
 
   mkdirSync(join(cwd, 'runs', 'r1'), { recursive: true });
   writeFileSync(join(cwd, 'runs', 'r1', 'phase.json'), JSON.stringify({ phase: 'EXECUTE' }));
-  assert.deepEqual(activeRuns(cwd), ['r1']);
-  assert.throws(() => applyUpdate({ channel, compatRoot: tmp('compat'), destRoot: dest, publicKey: OWNER.publicKey, cwd }), /UPDATE_RUN_ACTIVE/);
+  // The continuation registry of this machine is not part of the fixture.
+  const registryDir = tmp('registry');
+  assert.deepEqual(activeRuns(cwd, Date.now(), { registryDir }), ['r1']);
+  assert.throws(() => applyUpdate({ channel, compatRoot: tmp('compat'), destRoot: dest, publicKey: OWNER.publicKey, cwd, registryDir }), /UPDATE_RUN_ACTIVE/);
   writeFileSync(join(cwd, 'runs', 'r1', 'phase.json'), JSON.stringify({ phase: 'COMPLETE' }));
-  const done = applyUpdate({ channel, compatRoot: tmp('compat'), destRoot: dest, publicKey: OWNER.publicKey, cwd });
+  const done = applyUpdate({ channel, compatRoot: tmp('compat'), destRoot: dest, publicKey: OWNER.publicKey, cwd, registryDir });
   assert.deepEqual([done.status, done.from, done.to], ['updated', '1.14.0', '1.15.0']);
   assert.equal(JSON.parse(readFileSync(join(dest, 'team-qa', 'SOURCE.json'), 'utf8')).version, '1.15.0');
   assert.ok(existsSync(join(dest, 'team-qa', 'release-signature.json')));
@@ -312,6 +314,28 @@ test('an install outside the default root needs a compat root, and every install
   const dest = tmp('dest');
   assert.throws(() => installSuite(out, { destRoot: dest, compatRoot: tmp('compat'), publicKey: OWNER.publicKey }), /SUITE_INSTALLER_COMPAT_ROOT qa-gui/);
   assert.equal(existsSync(join(dest, 'qa-gui')), false);
+  // M8: checked for every installer before the first one runs.
+  assert.equal(existsSync(join(dest, 'qa-code')), false, 'QA Code was installed before the QA GUI installer was checked');
+});
+
+// M8: a suite install that failed midway left the skills at mixed versions.
+test('a suite install that fails midway puts every skill back at its previous version and keeps the failed copies', () => {
+  const dest = tmp('dest'), compat = tmp('compat');
+  installSuite(suiteDir('1.14.0'), { destRoot: dest, compatRoot: compat, publicKey: OWNER.publicKey });
+  const versions = () => Object.fromEntries(['qa-code', 'qa-gui', 'team-qa'].map(skill => [skill, existsSync(join(dest, skill, 'SOURCE.json')) ? JSON.parse(readFileSync(join(dest, skill, 'SOURCE.json'), 'utf8')).version : null]));
+  assert.deepEqual(versions(), { 'qa-code': '1.9.2', 'qa-gui': '2.15.0', 'team-qa': '1.14.0' });
+  writeFileSync(join(dest, 'qa-gui', 'user-note.txt'), 'kept');
+  const build = tmp('fail'), out = join(build, 'suite'), teamqa = envelope(build, 'team-qa', '1.15.0');
+  const folder = 'team-qa-1.15.0-release', base = join(build, 'build-team-qa1.15.0');
+  writeFileSync(join(base, folder, 'install.sh'), '#!/usr/bin/env bash\n# takes --compat-root)\nwhile [ "$#" -gt 0 ]; do case "$1" in --dest-root) mkdir -p "$2/team-qa"; echo partial > "$2/team-qa/half.txt"; shift 2;; *) shift;; esac; done\necho "install: post-check failed" >&2; exit 23\n');
+  assert.equal(spawnSync('zip', ['-qr', teamqa, folder], { cwd: base }).status, 0);
+  buildSuite({ releases: [envelope(build, 'qa-code', '1.9.3'), envelope(build, 'qa-gui', '2.16.0'), teamqa], out, privatePath: OWNER.privatePath, requirements: REQ, licenseRequired: false });
+  assert.throws(() => installSuite(out, { destRoot: dest, compatRoot: compat, publicKey: OWNER.publicKey }), /SUITE_INSTALL_FAILED team-qa: .*rolled back qa-code, qa-gui, team-qa/);
+  assert.deepEqual(versions(), { 'qa-code': '1.9.2', 'qa-gui': '2.15.0', 'team-qa': '1.14.0' }, 'every skill is back at its previous version');
+  assert.equal(readFileSync(join(dest, 'qa-gui', 'user-note.txt'), 'utf8'), 'kept');
+  for (const skill of ['qa-code', 'qa-gui']) verifyInstalledRelease(join(dest, skill), { publicKey: OWNER.publicKey, skill });
+  const backups = readdirSync(join(dest, '.backups'));
+  for (const skill of ['qa-code', 'qa-gui', 'team-qa']) assert.ok(backups.some(name => name.startsWith(`${skill}-failed-`)), `the failed ${skill} copy is kept: ${backups.join(', ')}`);
 });
 
 test('a payload whose manifest names another version than SOURCE.json is refused at build time', () => {
@@ -321,4 +345,20 @@ test('a payload whose manifest names another version than SOURCE.json is refused
   assert.equal(spawnSync('zip', ['-qr', join(base, folder, 'payload.zip'), 'qa-code'], { cwd: payload }).status, 0);
   assert.equal(spawnSync('zip', ['-qr', qc, folder], { cwd: base }).status, 0);
   assert.throws(() => buildSuite({ releases: [qc, envelope(dir, 'qa-gui', '2.15.0'), envelope(dir, 'team-qa', '1.14.0')], out: tmp('o'), privatePath: OWNER.privatePath, requirements: REQ }), /SUITE_PAYLOAD_HYGIENE qa-code: VERSION_SPLIT package-manifest\.json says 1\.8\.1, SOURCE\.json says 1\.9\.2/);
+});
+
+// M9: the "a run is active" guard looked only at ./runs, so an update from ~ replaced the Team QA a run in ~/app used.
+test('a run registered for continuation counts as active wherever it is, so an update waits for it', () => {
+  const cwd = tmp('home'), app = tmp('app'), registryDir = tmp('registry'), now = Date.now();
+  const run = (id, phase) => { const dir = join(app, 'runs', id); mkdirSync(dir, { recursive: true }); writeFileSync(join(dir, 'phase.json'), JSON.stringify({ phase })); return dir; };
+  const bind = (session, runDir) => writeFileSync(join(registryDir, `${session}.json`), JSON.stringify({ schema: 'team-qa/continuation-binding/v1', session_id: session, run_dir: runDir, run_id: runDir.split('/').at(-1) }));
+  bind('s-active', run('r2', 'EXECUTE'));
+  bind('s-done', run('r3', 'COMPLETE'));
+  mkdirSync(join(registryDir, 'archive'));
+  writeFileSync(join(registryDir, 'archive', 's-old.json'), JSON.stringify({ run_dir: run('r4', 'EXECUTE'), run_id: 'r4' }));
+  writeFileSync(join(registryDir, 's-broken.json'), '{');
+  assert.deepEqual(activeRuns(cwd, now, { registryDir }), [`r2 (${join(app, 'runs', 'r2')})`]);
+  assert.deepEqual(activeRuns(app, now, { registryDir }), ['r2', 'r4'], 'a run of this folder is named once');
+  assert.deepEqual(activeRuns(cwd, now + 13 * 3600000, { registryDir }), [], 'a run untouched for 12 hours is not running');
+  assert.throws(() => applyUpdate({ channel: tmp('no-channel'), destRoot: tmp('dest'), compatRoot: tmp('compat'), publicKey: OWNER.publicKey, cwd, registryDir }), /UPDATE_RUN_ACTIVE wait for r2/);
 });

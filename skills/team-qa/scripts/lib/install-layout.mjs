@@ -61,3 +61,25 @@ export function claudeSettingsFiles({ env = process.env, home = homedir(), cwd =
   const config = env.CLAUDE_CONFIG_DIR ? resolve(env.CLAUDE_CONFIG_DIR) : join(home, '.claude');
   return [join(config, 'settings.json'), join(cwd, '.claude', 'settings.json'), join(cwd, '.claude', 'settings.local.json')];
 }
+
+// roles.json names the child skills at the default suite install (~/.agents/skills/<skill>/...). An installed Team QA
+// uses the children installed next to it (siblingSkillRoot), so a role path under that default follows the same root;
+// an environment root wins. A source checkout without an environment root keeps the paths as written.
+export function anchorChildSkillPaths(skills, { root = TEAMQA_ROOT, env = process.env, exists = existsSync, realpath = realpathSync } = {}) {
+  if (!skills || typeof skills !== 'object' || Array.isArray(skills)) return skills;
+  const out = structuredClone(skills);
+  const installed = isInstalledRoot(root, { exists });
+  for (const name of Object.keys(ENV_KEYS)) {
+    const entry = out[name];
+    if (!entry || typeof entry !== 'object') continue;
+    if (!installed && !env[ENV_KEYS[name]]) continue;
+    const prefix = `~/.agents/skills/${name}/`;
+    const base = siblingSkillRoot(name, { root, env, exists, realpath });
+    const fix = value => typeof value === 'string' && value.startsWith(prefix) ? join(base, value.slice(prefix.length)) : value;
+    for (const key of ['verdict_schema', 'receipt_schema']) if (key in entry) entry[key] = fix(entry[key]);
+    if (entry.commands && typeof entry.commands === 'object') {
+      for (const [command, argv] of Object.entries(entry.commands)) if (Array.isArray(argv)) entry.commands[command] = argv.map(fix);
+    }
+  }
+  return out;
+}

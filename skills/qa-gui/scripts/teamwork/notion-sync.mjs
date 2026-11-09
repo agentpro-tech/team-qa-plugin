@@ -17,6 +17,11 @@ function labels(language) {
   return STATUS_LABELS[language] || STATUS_LABELS.en;
 }
 
+// The status label a Notion row shows for a canonical status, in the board language (English for any other).
+export function statusLabel(status, language) {
+  return labels(language)[status];
+}
+
 function machineStatus(value, language) {
   if (TEAMWORK_STATUSES.includes(value)) return value;
   const entry = Object.entries(labels(language)).find(([, label]) => label === value);

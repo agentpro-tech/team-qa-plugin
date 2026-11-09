@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U9 defect: a button half covered by a banner</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  .bar { position: relative; height: 64px; }
+  #checkout { position: absolute; left: 0; top: 8px; width: 240px; height: 48px; font: inherit; }
+  /* Defect: the promo starts at 55% of the button, so the centre is free (A3 silent) but the right half is covered. */
+  .promo { position: absolute; left: 132px; top: 0; width: 220px; height: 64px; background: #fde68a; display: flex; align-items: center; padding: 0 12px; box-sizing: border-box; }
+</style>
+</head>
+<body>
+  <h1>Cart</h1>
+  <div class="bar">
+    <button id="checkout" type="button">Go to checkout</button>
+    <div class="promo">Free shipping today</div>
+  </div>
+</body>
+</html>

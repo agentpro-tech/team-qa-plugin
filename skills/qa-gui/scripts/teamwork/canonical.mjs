@@ -39,6 +39,27 @@ const deployedBuildSchema = (() => {
   return web;
 })();
 
+// A Git-target board under evidence policy v1 maps its behavioral recordings the same way (R1f).
+const evidencePolicySchema = (() => {
+  const git = structuredClone(schema);
+  git.$defs.case.properties.recordingSegments = { $ref: '#/$defs/recordingSegments' };
+  return git;
+})();
+
+// A board that declares a speed policy (upgrade R3) carries `speedPolicy` at its root, and its vision assertions may
+// carry `inherited` (vision by diff). Applied on top of whichever variant above the board uses; a board without a speed
+// policy validates exactly as before.
+const speedVariants = new Map();
+function withSpeedPolicy(base) {
+  if (!speedVariants.has(base)) {
+    const speed = structuredClone(base);
+    speed.properties.speedPolicy = { $ref: '#/$defs/speedPolicy' };
+    speed.$defs.visionAssertion.properties.inherited = { $ref: '#/$defs/visionInherited' };
+    speedVariants.set(base, speed);
+  }
+  return speedVariants.get(base);
+}
+
 export function isDeployedBuildBoard(data) {
   return data !== null && typeof data === 'object' && !Array.isArray(data) && Object.hasOwn(data, 'targetBindingSha256');
 }
@@ -277,7 +298,9 @@ function semanticErrors(data) {
 
 export function validateCanonical(data) {
   const errors = [];
-  const root = isDeployedBuildBoard(data) ? deployedBuildSchema : schema;
+  const base = isDeployedBuildBoard(data) ? deployedBuildSchema
+    : Object.hasOwn(data ?? {}, 'evidencePolicy') ? evidencePolicySchema : schema;
+  const root = Object.hasOwn(data ?? {}, 'speedPolicy') ? withSpeedPolicy(base) : base;
   validateNode(root, data, '', errors, root);
   errors.push(...semanticErrors(data));
   const result = { ok: errors.length === 0, errors };

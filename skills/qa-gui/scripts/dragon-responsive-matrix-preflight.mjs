@@ -12,6 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { isDirectExecution } from './lib/is-direct-execution.mjs';
 
 import { attachFindingBboxes } from './loop8/index.mjs';
@@ -22,8 +23,10 @@ const RPC = process.env.DRAGON_RPC || 'http://localhost:9233/rpc';
 const STABLE_TOKEN_FILE = join(homedir(), '.dragon-browser', 'auth', 'service-token');
 const LEGACY_TOKEN_FILE = join(homedir(), '.dragon-browser', 'auth', 'token');
 const RPC_TIMEOUT_MS = 15_000;
-const UI_GATE_FILE = join(import.meta.dirname, 'ui-sanity.js');
-const A11Y_GATE_FILE = join(import.meta.dirname, 'a11y-gate0.js');
+// From import.meta.url, which every Node 20 has (the dirname field of import.meta came in 20.11).
+const HERE = fileURLToPath(new URL('.', import.meta.url));
+const UI_GATE_FILE = join(HERE, 'ui-sanity.js');
+const A11Y_GATE_FILE = join(HERE, 'a11y-gate0.js');
 const MIN_TARGET_PX = 24;
 const MOBILE_SAMPLE_COUNT = 5;
 const MOBILE_IDENTITY = 'Android Chrome';

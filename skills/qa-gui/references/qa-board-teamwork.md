@@ -31,7 +31,8 @@ node scripts/teamwork/cli.mjs render --file qa-evidence/<round>/canonical.json \
 
 The wrapper also exposes `init`, `migrate-sources`, `apply`, `export-page`, `compare-page`,
 `export-notion`, `compare-notion`,
-and `sync-notion`. `init` accepts an optional `--source-seed`; `migrate-sources`, `apply`, and
+and `sync-notion`. `init` accepts an optional `--source-seed`, and `--evidence-policy 1` writes
+`evidencePolicy:{version:1}` (the gate's screenshot and recording checks, `state-receipt-v1.md`); `migrate-sources`, `apply`, and
 `sync-notion` require a distinct `--out` path so the prior canonical revision remains recoverable.
 
 Delivery prose has a separate strict check: use `inspectBoardQuality(data)` and

@@ -3,9 +3,11 @@
  *
  * Only the features that have actually been implemented are exported. The
  * remaining exports stay absent on purpose: an unimplemented feature must read
- * as a miss, never as a guessed answer.
+ * as a miss, never as a guessed answer. `buildAppMapV2` (R1b) is an addition the
+ * frozen checker does not read: it adds the frontier, the stop reason and the
+ * state observations to the same log (references/coverage-cells.md).
  */
-export { buildAppMap } from './app-map.mjs';
+export { buildAppMap, buildAppMapV2 } from './app-map.mjs';
 export { baToPlan } from './ba-plan.mjs';
 export { diagnoseFailure } from './diagnose.mjs';
 export { evaluateRegressionJob } from './regression-job.mjs';

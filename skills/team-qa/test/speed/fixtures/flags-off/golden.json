@@ -1,0 +1,553 @@
+{
+  "plan": {
+    "sequential": [],
+    "parallel": [],
+    "parallel_no_reason": [
+      "PLAN_PARALLEL_REASON lanes[0].vi_sao"
+    ],
+    "unknown_root": [
+      "PLAN_UNKNOWN_FIELD turbo"
+    ]
+  },
+  "collect": {
+    "result": {
+      "run_id": "r1",
+      "board": "runs/r1/board/qa-board.json",
+      "attestation": "runs/r1/a.json",
+      "cases": [
+        {
+          "case": "TC-01",
+          "status": "BLOCKED",
+          "function": "PASS",
+          "ui": "UNGRADED",
+          "states": 1,
+          "files": 4,
+          "issues": []
+        }
+      ],
+      "relocked": null
+    },
+    "board": {
+      "runUuid": "44444444-4444-4444-8444-444444444444",
+      "viewport": "1280x800",
+      "cases": [
+        {
+          "id": "TC-01",
+          "status": "BLOCKED",
+          "kind": "behavioral",
+          "functionVerdict": "PASS",
+          "uiVerdict": "UNGRADED",
+          "requirement": "REQ-1",
+          "requirements": [
+            "REQ-1"
+          ],
+          "humanSummary": {
+            "function": "Saved.",
+            "ui": "Clean."
+          },
+          "states": [
+            "after-save"
+          ],
+          "stateReceipts": [
+            {
+              "state": "after-save",
+              "file": "evidence/qa-gui/TC-01/after-save.receipt.json"
+            }
+          ],
+          "recordingSegments": [
+            {
+              "file": "evidence/qa-gui/TC-01/TC-01-run.mp4",
+              "startMs": 0,
+              "endMs": 5000,
+              "manifest": "evidence/qa-gui/TC-01/TC-01-run.recording.json"
+            }
+          ],
+          "results": [
+            {
+              "round": 1,
+              "functionVerdict": "PASS",
+              "uiVerdict": "UNGRADED",
+              "recordedAt": "<TS>",
+              "evidence": [
+                "evidence/qa-gui/TC-01/TC-01-run.mp4",
+                "evidence/qa-gui/TC-01/TC-01-run.recording.json",
+                "evidence/qa-gui/TC-01/after-save.png",
+                "evidence/qa-gui/TC-01/after-save.receipt.json"
+              ]
+            }
+          ],
+          "evidence": [
+            "evidence/qa-gui/TC-01/TC-01-run.mp4",
+            "evidence/qa-gui/TC-01/TC-01-run.recording.json",
+            "evidence/qa-gui/TC-01/after-save.png",
+            "evidence/qa-gui/TC-01/after-save.receipt.json"
+          ],
+          "history": [
+            {
+              "who": "qa-agent",
+              "field": "status",
+              "from": "TODO",
+              "to": "BLOCKED",
+              "when": "<TS>",
+              "source": "agent"
+            }
+          ]
+        }
+      ],
+      "evidencePolicy": {
+        "version": 1
+      },
+      "evidenceManifest": [
+        {
+          "path": "evidence/qa-gui/TC-01/TC-01-run.mp4",
+          "sha256": "99ca4e14d8a99de2d95129ff3178409324c0b2d445619603d244d0d16f592ecd",
+          "evidence_type": "gui-recording",
+          "metadata": {
+            "run_uuid": "44444444-4444-4444-8444-444444444444",
+            "target_binding_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "captured_at": "<TS>"
+          }
+        },
+        {
+          "path": "evidence/qa-gui/TC-01/TC-01-run.recording.json",
+          "sha256": "6d03f5a1750682d0fa26b56859aa0ae659a5e6f8dd11dac1c3d109450d6ad8d0",
+          "evidence_type": "recording-manifest",
+          "metadata": {
+            "run_uuid": "44444444-4444-4444-8444-444444444444",
+            "target_binding_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "captured_at": "<TS>"
+          }
+        },
+        {
+          "path": "evidence/qa-gui/TC-01/after-save.png",
+          "sha256": "ad0b6c32c201f4343acfe146558940eaf254102223771ff8ac4ae35a09f1cb34",
+          "evidence_type": "gui-screenshot",
+          "metadata": {
+            "run_uuid": "44444444-4444-4444-8444-444444444444",
+            "target_binding_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "captured_at": "<TS>"
+          }
+        },
+        {
+          "path": "evidence/qa-gui/TC-01/after-save.receipt.json",
+          "sha256": "85e0750f65dade68012209f2281dc4aaffcaad08e1907521e98224e8ad985d93",
+          "evidence_type": "machine-receipt",
+          "metadata": {
+            "run_uuid": "44444444-4444-4444-8444-444444444444",
+            "target_binding_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "captured_at": "<TS>"
+          }
+        }
+      ],
+      "vision": {
+        "version": 2,
+        "assertions": [
+          {
+            "assertion_id": "TC-01-after-save-C10",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "rule": "C10",
+            "verdict": "PASS",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          },
+          {
+            "assertion_id": "TC-01-after-save-C11",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "rule": "C11",
+            "verdict": "PASS",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          },
+          {
+            "assertion_id": "TC-01-after-save-C12",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "rule": "C12",
+            "verdict": "FAIL",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          },
+          {
+            "assertion_id": "TC-01-after-save-C13",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "rule": "C13",
+            "verdict": "PASS",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          },
+          {
+            "assertion_id": "TC-01-after-save-C14",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "rule": "C14",
+            "verdict": "PASS",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          },
+          {
+            "assertion_id": "TC-01-after-save-C15",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "rule": "C15",
+            "verdict": "PASS",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          },
+          {
+            "assertion_id": "TC-01-after-save-C16",
+            "case_id": "TC-01",
+            "state": "after-save",
+            "rule": "C16",
+            "verdict": "PASS",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          }
+        ]
+      }
+    },
+    "files": [
+      "binding.json",
+      "board/qa-board.json",
+      "evidence/qa-gui/TC-01/TC-01-run.mp4",
+      "evidence/qa-gui/TC-01/TC-01-run.recording.json",
+      "evidence/qa-gui/TC-01/after-save.png",
+      "evidence/qa-gui/TC-01/after-save.receipt.json",
+      "stream.jsonl",
+      "test-plan.md",
+      "tracked-plan.json"
+    ],
+    "receipt": {
+      "schema": "qa-gui/state-receipt/v1",
+      "caseId": "TC-01",
+      "state": "after-save",
+      "capturedAt": "<TS>",
+      "url": "https://app.test/orders/1",
+      "build": "build-5",
+      "viewport": "1280x800",
+      "domHash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "dragon": {
+        "sessionId": "exec-s1",
+        "actionId": "screenshot:u4",
+        "browserInstanceId": "bi-1",
+        "tabId": "7",
+        "innerOk": true
+      },
+      "screenshot": {
+        "path": "evidence/qa-gui/TC-01/after-save.png",
+        "sha256": "ad0b6c32c201f4343acfe146558940eaf254102223771ff8ac4ae35a09f1cb34",
+        "capture": {
+          "tabId": "7",
+          "url": "https://app.test/orders/1",
+          "build": null,
+          "domHash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "sha256": "ad0b6c32c201f4343acfe146558940eaf254102223771ff8ac4ae35a09f1cb34",
+          "viewport": "1280x800",
+          "maskedRects": []
+        },
+        "fit": {
+          "fromSha256": "ad0b6c32c201f4343acfe146558940eaf254102223771ff8ac4ae35a09f1cb34",
+          "width": 1280,
+          "height": 800
+        }
+      },
+      "function": {
+        "verdict": "PASS",
+        "assertions": [
+          {
+            "requirement_id": "REQ-1",
+            "assertion_id": "TC-01-A1",
+            "verdict": "PASS",
+            "evidence_ref": "evidence/qa-gui/TC-01/after-save.png",
+            "evidence_type": "gui-screenshot"
+          }
+        ]
+      },
+      "ui": {
+        "verdict": "UNGRADED",
+        "uiSanity": {
+          "id": "ui-sanity",
+          "verdict": "PASS",
+          "evidence": "{\"v\":\"PASS\"}"
+        },
+        "a11y": {
+          "id": "a11y",
+          "verdict": "PASS",
+          "evidence": "{\"v\":\"PASS\"}"
+        },
+        "console": {
+          "id": "console",
+          "verdict": "PASS",
+          "evidence": "{\"ok\":true,\"result\":{\"count\":0,\"entries\":[]}}"
+        },
+        "network": {
+          "id": "network",
+          "verdict": "PASS",
+          "evidence": "{\"ok\":true,\"result\":{\"count\":1,\"requests\":[{\"t\":1793761210000,\"method\":\"POST\",\"url\":\"https://api.test/orders\",\"status\":201,\"type\":\"Fetch\"}]}}"
+        }
+      },
+      "preflight": {
+        "id": "preflight",
+        "verdict": "UNGRADED",
+        "evidence": "not measurable: runs/<id>/preflight.json missing"
+      },
+      "network": [
+        {
+          "method": "POST",
+          "url": "https://api.test/orders",
+          "status": 201,
+          "ts": "<TS>"
+        }
+      ],
+      "network_summary": {
+        "failed_requests": 0
+      },
+      "readback": {
+        "value": {
+          "lifecycle": {
+            "before": "b",
+            "action": "a",
+            "network": "n",
+            "readback": "r",
+            "refresh": "f",
+            "postcondition": "p"
+          }
+        },
+        "evidence_ref": "evidence/qa-gui/TC-01/after-save.png"
+      },
+      "targetBindingSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  },
+  "dispatch": {
+    "started": [
+      {
+        "caseId": "TC-01",
+        "used": 1,
+        "left": 2,
+        "run_used": 0,
+        "run_limit": 6
+      },
+      {
+        "caseId": "TC-02",
+        "used": 1,
+        "left": 2,
+        "run_used": 1,
+        "run_limit": 6
+      },
+      {
+        "caseId": "TC-01",
+        "used": 2,
+        "left": 1,
+        "run_used": 2,
+        "run_limit": 6
+      }
+    ],
+    "ledger": [
+      {
+        "case_id": "TC-01",
+        "attempt": "attempt-off-1",
+        "started_at": "<TS>"
+      },
+      {
+        "case_id": "TC-02",
+        "attempt": "attempt-off-2",
+        "started_at": "<TS>"
+      },
+      {
+        "case_id": "TC-01",
+        "attempt": "attempt-off-3",
+        "started_at": "<TS>"
+      }
+    ]
+  },
+  "timing": {
+    "timing": {
+      "schema": "team-qa/run-timing/v1",
+      "run_id": "r1",
+      "wall": {
+        "started_at": "<TS>",
+        "ended_at": "<TS>",
+        "duration_ms": 11900
+      },
+      "sources": {
+        "root_transcript": "missing",
+        "worker_transcripts": {
+          "found": 1,
+          "missing": 0
+        }
+      },
+      "summary": {
+        "by_role": {
+          "executor_gui": {
+            "count": 6,
+            "total_ms": 11900,
+            "p50_ms": 2000,
+            "p95_ms": 4000
+          }
+        },
+        "by_phase": {
+          "PLAN": {
+            "count": 6,
+            "total_ms": 11900,
+            "p50_ms": 2000,
+            "p95_ms": 4000
+          }
+        },
+        "by_kind": {
+          "dragon.do": {
+            "count": 1,
+            "total_ms": 900,
+            "p50_ms": 900,
+            "p95_ms": 900
+          },
+          "gate.qa-gui": {
+            "count": 1,
+            "total_ms": 4000,
+            "p50_ms": 4000,
+            "p95_ms": 4000
+          },
+          "model": {
+            "count": 3,
+            "total_ms": 6000,
+            "p50_ms": 2000,
+            "p95_ms": 2000
+          },
+          "vision.read": {
+            "count": 1,
+            "total_ms": 1000,
+            "p50_ms": 1000,
+            "p95_ms": 1000
+          }
+        },
+        "by_case_step": {
+          "TC-01": {
+            "count": 6,
+            "total_ms": 11900,
+            "p50_ms": 2000,
+            "p95_ms": 4000
+          }
+        },
+        "attempts_by_role": {
+          "executor_gui": {
+            "count": 1,
+            "total_ms": 11900,
+            "p50_ms": 11900,
+            "p95_ms": 11900
+          }
+        },
+        "cases": {
+          "TC-01": {
+            "attempts": 1,
+            "total_ms": 11900
+          }
+        },
+        "case_p50_ms": 11900,
+        "case_p95_ms": 11900
+      },
+      "attempts": [
+        {
+          "role": "executor_gui",
+          "attempt": "5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+          "case_id": "TC-01",
+          "status": "done",
+          "started_at": "<TS>",
+          "ended_at": "<TS>",
+          "duration_ms": 11900,
+          "transcript": "found",
+          "phase": "PLAN"
+        }
+      ],
+      "steps": [
+        {
+          "source": "executor_gui/5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+          "role": "executor_gui",
+          "case_id": "TC-01",
+          "kind": "model",
+          "tool": null,
+          "started_at": "<TS>",
+          "duration_ms": 2000,
+          "phase": "PLAN"
+        },
+        {
+          "source": "executor_gui/5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+          "role": "executor_gui",
+          "case_id": "TC-01",
+          "kind": "dragon.do",
+          "tool": "mcp__Dragon_Browser__dragon_rpc",
+          "started_at": "<TS>",
+          "duration_ms": 900,
+          "is_error": false,
+          "phase": "PLAN"
+        },
+        {
+          "source": "executor_gui/5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+          "role": "executor_gui",
+          "case_id": "TC-01",
+          "kind": "model",
+          "tool": null,
+          "started_at": "<TS>",
+          "duration_ms": 2000,
+          "phase": "PLAN"
+        },
+        {
+          "source": "executor_gui/5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+          "role": "executor_gui",
+          "case_id": "TC-01",
+          "kind": "vision.read",
+          "tool": "Read",
+          "started_at": "<TS>",
+          "duration_ms": 1000,
+          "is_error": false,
+          "phase": "PLAN"
+        },
+        {
+          "source": "executor_gui/5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+          "role": "executor_gui",
+          "case_id": "TC-01",
+          "kind": "model",
+          "tool": null,
+          "started_at": "<TS>",
+          "duration_ms": 2000,
+          "phase": "PLAN"
+        },
+        {
+          "source": "executor_gui/5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+          "role": "executor_gui",
+          "case_id": "TC-01",
+          "kind": "gate.qa-gui",
+          "tool": "Bash",
+          "started_at": "<TS>",
+          "duration_ms": 4000,
+          "is_error": false,
+          "phase": "PLAN"
+        }
+      ],
+      "decisions": {
+        "schema": "team-qa/run-decisions/v1",
+        "root": [],
+        "gui_actions": [
+          {
+            "source": "executor_gui/5a5a5a5a-1b1b-4c4c-8d8d-000000000001",
+            "role": "executor_gui",
+            "case_id": "TC-01",
+            "at": "<TS>",
+            "tool": "mcp__Dragon_Browser__dragon_rpc",
+            "kind": "dragon.do",
+            "observation_sha256": null
+          }
+        ]
+      }
+    },
+    "markdown": "\n## Time\n\nWall time 0.2 min. Per GUI case (all attempts): P50 0.2 min, P95 0.2 min. Not read: the root transcript (their steps are BLOCKED here, not zero).\n\n| Role | Steps | Minutes | P50 step | P95 step |\n|---|---|---|---|---|\n| executor_gui | 6 | 0.2 | 2.0 s | 4.0 s |\n\n| Step kind | Steps | Minutes | P50 | P95 |\n|---|---|---|---|---|\n| model | 3 | 0.1 | 2.0 s | 2.0 s |\n| gate.qa-gui | 1 | 0.1 | 4.0 s | 4.0 s |\n| vision.read | 1 | 0.0 | 1.0 s | 1.0 s |\n| dragon.do | 1 | 0.0 | 0.9 s | 0.9 s |\n\n| Phase | Steps | Minutes |\n|---|---|---|\n| PLAN | 6 | 0.2 |\n\n| Case | Attempts | Minutes |\n|---|---|---|\n| TC-01 | 1 | 0.2 |\n"
+  }
+}

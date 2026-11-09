@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { blockedDeliveryRecord, boardDeliverySummary, deliveryPath, recordBlockedBoardDelivery, verifyBlockedBoardDelivery, REVIEW_ROUNDS } from '../../scripts/lib/board-delivery.mjs';
 import { rosterRunMode, runModeOf } from '../../scripts/lib/roster.mjs';
@@ -72,4 +72,42 @@ test('the record is written once and verified again: changed bytes, a changed bo
   writeFileSync(board, JSON.stringify({ revision: 4 }));
   assert.throws(() => verifyBlockedBoardDelivery({ runDir: f.runDir, roster: ROSTER, boardPath: board, verifyReview }), (e) => ['BOARD_DELIVERY_REVIEW_STALE', 'BOARD_DELIVERY_DRIFT'].includes(e.code));
   assert.equal(verifyBlockedBoardDelivery({ runDir: realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-delivery-none-'))), roster: ROSTER, boardPath: board, verifyReview }), null);
+});
+
+// Dogfood 05/11 run 6 (BOARD_REVIEW_CANONICAL_DRIFT): every repair round rewrites the SAME board file, so the reviews
+// of earlier revisions could not be authenticated and the blocked delivery could never be recorded.
+test('dogfood 05/11: three rounds over one rewritten board file; earlier reviews are checked against their kept bytes', async () => {
+  const { reviewedCanonical } = await import('../../scripts/lib/board-quality.mjs');
+  const runDir = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-delivery-same-')));
+  const board = join(runDir, 'qa-board.json');
+  const reviews = [], kept = [];
+  for (const n of [1, 2, 3]) {
+    writeFileSync(board, JSON.stringify({ revision: n }));
+    const dir = join(runDir, 'control', 'board-review', `final-r${n}`); mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'canonical.json'), readFileSync(board));
+    writeFileSync(join(dir, 'intent.json'), '{}');
+    const ref = { path: realpathSync(board), sha256: sha(board) };
+    kept.push({ dir, ref });
+    const p = join(dir, 'receipt.json');
+    writeFileSync(p, JSON.stringify({ schema: 'team-qa/board-quality-review/v1', canonical: ref, verdict: 'FAIL', validation: { verdict: 'FAIL', errors: [`round ${n}`] } }));
+    reviews.push(p);
+  }
+  // The real rule, applied to each review's own intent directory: live bytes, or (historical only) the kept ones.
+  const flags = [];
+  const verify = ({ file, receiptPath, historical = false }) => {
+    flags.push(historical);
+    const r = JSON.parse(readFileSync(receiptPath, 'utf8'));
+    reviewedCanonical(join(dirname(receiptPath), 'intent.json'), r.canonical, { historical });
+    assert.equal(r.canonical.path, realpathSync(file));
+    return r;
+  };
+  const record = blockedDeliveryRecord({ runDir, roster: ROSTER, phase: 'EXECUTE', boardPath: board, reviews, createdAt: 'x', verifyReview: verify });
+  assert.deepEqual(flags, [true, true, false]);
+  assert.deepEqual(record.reviews.map((r) => r.verdict), ['FAIL', 'FAIL', 'FAIL']);
+  // Without the historical allowance the first review is the drift run 6 hit; with a tampered kept copy it still is.
+  assert.throws(() => reviewedCanonical(join(kept[0].dir, 'intent.json'), kept[0].ref), (e) => e.code === 'BOARD_REVIEW_CANONICAL_DRIFT');
+  writeFileSync(join(kept[0].dir, 'canonical.json'), JSON.stringify({ revision: 'forged' }));
+  assert.throws(() => reviewedCanonical(join(kept[0].dir, 'intent.json'), kept[0].ref, { historical: true }), (e) => e.code === 'BOARD_REVIEW_CANONICAL_DRIFT');
+  // The current board is always read live, historical or not.
+  assert.equal(reviewedCanonical(join(kept[2].dir, 'intent.json'), kept[2].ref, { historical: true }).read, realpathSync(board));
 });

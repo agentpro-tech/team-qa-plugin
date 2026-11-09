@@ -16,6 +16,7 @@ import { constants as fsConstants } from 'node:fs';
 import { copyFile, mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -124,9 +125,11 @@ const FONT_FILES = Object.freeze({ regular: 'NotoSans-Regular.ttf', bold: 'NotoS
  * board's typeface, not the fixture's answer: the geometry and the copy still come from the
  * findings.
  */
+// From import.meta.url, which every Node 20 has (the dirname field of import.meta came in 20.11).
+const HERE = fileURLToPath(new URL('.', import.meta.url));
 const BUNDLED_FONT_DIRECTORIES = Object.freeze([
-  path.resolve(import.meta.dirname, '../../assets/fonts/noto-sans'),
-  path.resolve(import.meta.dirname, '../../test/loop8/corpus/fonts/noto-sans'),
+  path.resolve(HERE, '../../assets/fonts/noto-sans'),
+  path.resolve(HERE, '../../test/loop8/corpus/fonts/noto-sans'),
 ]);
 
 const SENTENCE_BOUNDARY = /(?<=[.!?。！？])\s+/;

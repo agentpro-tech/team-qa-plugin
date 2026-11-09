@@ -1,16 +1,16 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "qa-code",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "files": [
     {
       "path": "SKILL.md",
-      "sha256": "2ba48c25708ca1d14ba4b2f934c47bb51aba1dccd37db651af5ded4c7f4815f6",
+      "sha256": "d2c4af3ec1b2225363be108453d03674df8c598ca734393e7b295ffc7f998fce",
       "mode": "0644"
     },
     {
       "path": "VERSION",
-      "sha256": "4f9416d650bd28343244b868dfebdb11e70d7b32423536cb87b8c31fde62f993",
+      "sha256": "79ea1b5b251f3bf7e847a39e5723f6606ce22c8edef3115d9368d267382ae7e1",
       "mode": "0644"
     },
     {
@@ -85,7 +85,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "9c73e2a3648c00518ef11ffd457acc533770ca38ba30d42454225b6aa2ee6ebc",
+      "sha256": "7255182c9e1cbe033edeef0ddf20a555f419d484e012b350567d5f8990f1c4ce",
       "mode": "0644"
     },
     {
@@ -190,7 +190,7 @@
     },
     {
       "path": "scripts/install-package.sh",
-      "sha256": "eba90d59a08ab7b588984a54e7940100661308055743813927a998dc9b02a4d9",
+      "sha256": "c201eb4b431e12bd892bcfeac43b59e21c35ad300961affec34c02400df7e2f5",
       "mode": "0755"
     },
     {
@@ -265,7 +265,7 @@
     },
     {
       "path": "scripts/lib/teamqa-review-proof.mjs",
-      "sha256": "42b3609089ba67bd47dcd8e495d78a1ab5b0cb298ce76388e82209e0c581aba5",
+      "sha256": "c7a7a8846732f242175958fb6cb7ea83277fced573720ad9ba6aae8060dc183c",
       "mode": "0644"
     },
     {
@@ -325,7 +325,7 @@
     },
     {
       "path": "scripts/verify-install.sh",
-      "sha256": "35e4b3d7380396dda39f2580450578dc167620a2985f32f2a7f09ccf59592b80",
+      "sha256": "9e0b0eaf8bad8705f4cab74643075f8520dbf79e4df5d4be0d7896eeb21cb05b",
       "mode": "0755"
     },
     {
@@ -355,7 +355,7 @@
     },
     {
       "path": "test/publisher-signature.test.mjs",
-      "sha256": "490a2fe855fd8e043fd6326fa01167bb8545770648929c287be662d02c2c6a1a",
+      "sha256": "6542965c3b7633cdaebe9cd4348d7480cb7560b6f1d81f579f7274a8631f3404",
       "mode": "0644"
     },
     {

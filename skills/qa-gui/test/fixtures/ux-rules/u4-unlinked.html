@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U4 defect: error text not tied to its field</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  label { display: block; margin: 12px 0 4px; }
+  input { font: inherit; padding: 6px; width: 260px; border: 1px solid #888; }
+  input[aria-invalid="true"] { border-color: #b00020; }
+  .field-error { color: #b00020; margin: 4px 0 0; font-size: 14px; }
+  button { font: inherit; padding: 8px 16px; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <h1>Sign up</h1>
+  <form id="f" novalidate>
+    <label for="email">Email</label>
+    <input id="email" name="email" value="not-an-email" aria-invalid="true">
+    <!-- Defect: the message sits right under the field but nothing references it. -->
+    <p class="field-error" id="email-error">Enter a valid email address</p>
+    <label for="name">Name</label>
+    <input id="name" name="name" value="Lan">
+    <button type="submit">Create account</button>
+  </form>
+</body>
+</html>

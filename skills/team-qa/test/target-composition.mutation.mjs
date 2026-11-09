@@ -14,7 +14,7 @@ const variants=[
  {id:'missing-dependency-proof',path:'scripts/lib/target-composition.mjs',from:"if(!child?.run_dir||candidates.length!==1)return {status:'ungraded',reason:'COMPOSITION_DEPENDENCY_MISSING'};",to:"if(!child?.run_dir||candidates.length!==1)return {status:'verified'};",test:'test/target-composition.test.mjs'},
  {id:'wrong-dependency-build',path:'scripts/lib/target-composition.mjs',from:"need(same(proof.targets,targets),'COMPOSITION_DEPENDENCY_TARGETS');",to:'/* planted stale dependency acceptance */',test:'test/target-composition.test.mjs'},
  {id:'overwrite-output',path:'scripts/lib/target-composition.mjs',from:' assertNewCompositionOutput(out);',to:' /* planted output preflight bypass */',test:'test/target-composition.test.mjs'},
- {id:'racing-output-overwrite',path:'scripts/lib/core.mjs',from:"flag: exclusive ? 'wx' : 'w'",to:"flag: 'w'",test:'test/target-composition.test.mjs'},
+ {id:'racing-output-overwrite',path:'scripts/lib/core.mjs',from:"writeAtomic(path, content, { exclusive });",to:"writeAtomic(path, content, { exclusive: false });",test:'test/target-composition.test.mjs'},
  {id:'extra-mcp-server',path:'scripts/lib/catalog.mjs',from:'    mcpRoute(config);',to:'    /* planted bypass of strict Dragon route */',test:'test/catalog-status/catalog.test.mjs'},
 ];
 const results=[];

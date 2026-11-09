@@ -1,5 +1,5 @@
-// Run cost (public v1, S2): an estimate before the roster is approved, an optional cap that stops the run at a case
-// boundary, and the actual tokens and cost per role at the end. Costs are API list prices as Claude Code reports them
+// Run cost (public v1, S2): an estimate before the roster is approved, an optional cap that stops the run before its
+// next worker, and the actual tokens and cost per role at the end. Costs are API list prices as Claude Code reports them
 // (total_cost_usd); a Claude or ChatGPT plan pays for the same work in usage, not dollars. Codex reports tokens only.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -56,20 +56,37 @@ function lines(path) {
   try { return readFileSync(path, 'utf8').split('\n'); } catch { return []; }
 }
 
-// The actual spend of a run: every worker attempt under dispatch/<role>/<attempt>/stdout.jsonl.
+// What the cap counts for an attempt that reports no price: a timed-out or killed worker (no result event), one still
+// running, a Codex CLI worker (tokens only) or a native Codex attempt. It counts at the measured maximum of its role,
+// or at the largest measured maximum for a role that was not measured.
+const LARGEST_MEASURED_USD = Math.max(...Object.values(COST_BASELINE.roles).map((b) => b.usd_max));
+export const unpricedAttemptUsd = (role) => COST_BASELINE.roles[role]?.usd_max ?? LARGEST_MEASURED_USD;
+
+function attemptStatus(dir) {
+  try { return JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8')).status ?? null; } catch { return existsSync(join(dir, 'state.json')) ? 'unreadable' : null; }
+}
+
+// The spend of a run: every worker attempt under dispatch/<role>/<attempt>/ (its stdout.jsonl, or the progress.jsonl
+// of a detached worker still running) and every native attempt under native-dispatch/. `usd` is what workers reported;
+// `usd_cap`, which the cap compares, adds each attempt without a price at its measured maximum.
 export function runSpend(runDir) {
   const roles = {};
+  const rowOf = (role) => roles[role] ??= { attempts: 0, usd: 0, usd_known: 0, unpriced_usd: 0, minutes: 0, input_tokens: 0, output_tokens: 0, cached_tokens: 0 };
   const dir = join(runDir, 'dispatch');
   if (existsSync(dir)) for (const role of readdirSync(dir).sort()) {
     const roleDir = join(dir, role);
     if (!statSync(roleDir).isDirectory()) continue;
     for (const attempt of readdirSync(roleDir).sort()) {
-      const file = join(roleDir, attempt, 'stdout.jsonl');
-      if (!existsSync(file)) continue;
-      const row = roles[role] ??= { attempts: 0, usd: 0, usd_known: 0, minutes: 0, input_tokens: 0, output_tokens: 0, cached_tokens: 0 };
+      const attemptDir = join(roleDir, attempt);
+      if (!statSync(attemptDir).isDirectory()) continue;
+      const file = [join(attemptDir, 'stdout.jsonl'), join(attemptDir, 'progress.jsonl')].find((path) => existsSync(path)) ?? null;
+      // No worker output yet: a dispatch that is starting or running counts (one without --detach has no state file);
+      // a detached dispatch that ended before its worker started spent nothing.
+      if (!file && !['starting', 'running', 'unreadable', null].includes(attemptStatus(attemptDir))) continue;
+      const row = rowOf(role);
       row.attempts += 1;
       let usd = null;
-      for (const line of lines(file)) {
+      for (const line of file ? lines(file) : []) {
         if (!line.includes('"usage"') && !line.includes('total_cost_usd')) continue;
         let event; try { event = JSON.parse(line); } catch { continue; }
         if (event.type === 'result') {
@@ -85,11 +102,26 @@ export function runSpend(runDir) {
           row.output_tokens += event.usage.output_tokens ?? 0;
         }
       }
-      if (usd !== null) { row.usd += usd; row.usd_known += 1; }
+      if (usd !== null) { row.usd += usd; row.usd_known += 1; } else row.unpriced_usd += unpricedAttemptUsd(role);
     }
   }
+  // Native attempts: native-dispatch/<role>.json is the first, native-dispatch/<role>/attempt-<n>/intent.json the later ones.
+  const native = join(runDir, 'native-dispatch');
+  if (existsSync(native)) for (const name of readdirSync(native).sort()) {
+    const path = join(native, name);
+    const intents = name.endsWith('.json') && statSync(path).isFile() ? [[name.slice(0, -5), path]]
+      : statSync(path).isDirectory() ? readdirSync(path).filter((entry) => /^attempt-\d+$/.test(entry)).map((entry) => [name, join(path, entry, 'intent.json')]).filter(([, intent]) => existsSync(intent)) : [];
+    for (const [role] of intents) { const row = rowOf(role); row.attempts += 1; row.unpriced_usd += unpricedAttemptUsd(role); }
+  }
   const total = Object.values(roles).reduce((sum, row) => sum + row.usd, 0);
-  return { roles, usd: total, unpriced: Object.values(roles).reduce((n, row) => n + row.attempts - row.usd_known, 0) };
+  const unpricedUsd = Object.values(roles).reduce((sum, row) => sum + row.unpriced_usd, 0);
+  return { roles, usd: total, unpriced: Object.values(roles).reduce((n, row) => n + row.attempts - row.usd_known, 0), usd_cap: Math.round((total + unpricedUsd) * 1e6) / 1e6 };
+}
+
+// The seats whose workers report no price (every harness but Claude Code): the cap can only count their attempts at
+// the measured maximum.
+export function unpricedSeats(roster) {
+  return (roster?.roles ?? []).filter((seat) => seat.role !== 'coverage_gate' && seat.harness !== 'claude').map((seat) => seat.role);
 }
 
 export const capPath = (runDir) => join(runDir, 'cost-cap.json');
@@ -100,13 +132,15 @@ export function readCostCap(runDir) {
   return cap;
 }
 
-// Checked before a case starts (run-contract.mjs startCaseDispatch): once the run has spent its cap, no new case runs.
-// The evidence of finished cases stays; the run reports NOT COMPLETE with the cases left.
+// Checked before every dispatch (roster.mjs dispatchRole, native-dispatch.mjs prepareNativeRole, the QA Code child
+// proof) and before a case starts (run-contract.mjs startCaseDispatch): once the run has spent its cap, no new worker
+// runs. Attempts without a price count at their measured maximum. The evidence of finished cases stays; the run
+// reports NOT COMPLETE with the cases left.
 export function assertUnderCap(runDir) {
   const cap = readCostCap(runDir);
   if (!cap) return null;
-  const spent = runSpend(runDir).usd;
-  if (spent >= cap.usd) fail(3, 'RUN_COST_CAP_REACHED', `spent ${money(spent)} of the ${money(cap.usd)} cap; report NOT COMPLETE with the cases left`, 'ungraded');
+  const spend = runSpend(runDir), spent = spend.usd_cap;
+  if (spent >= cap.usd) fail(3, 'RUN_COST_CAP_REACHED', `spent ${money(spent)} of the ${money(cap.usd)} cap${spend.unpriced ? ` (${money(spend.usd)} reported; ${spend.unpriced} attempts without a price counted at their measured maximum)` : ''}; report NOT COMPLETE with the cases left`, 'ungraded');
   return { cap: cap.usd, spent };
 }
 
@@ -118,7 +152,7 @@ export function costMarkdown(runDir) {
     return `| ${role} | ${r.attempts} | ${round1(r.minutes)} | ${r.input_tokens} | ${r.cached_tokens} | ${r.output_tokens} | ${r.usd_known ? money(r.usd) : 'n/a'} |`; });
   return ['', '## Cost', '', 'Worker attempts of this run at API list prices, as each worker reported them; the orchestrating session is not included.', '',
     '| Role | Attempts | Minutes | Input tokens | Cached tokens | Output tokens | Cost |', '|---|---|---|---|---|---|---|', ...rows,
-    `| Total | ${names.reduce((n, role) => n + spend.roles[role].attempts, 0)} |  |  |  |  | ${money(spend.usd)}${spend.unpriced ? ` (+${spend.unpriced} attempts without a price)` : ''} |`,
+    `| Total | ${names.reduce((n, role) => n + spend.roles[role].attempts, 0)} |  |  |  |  | ${money(spend.usd)}${spend.unpriced ? ` (+${spend.unpriced} attempts without a price), ${money(spend.usd_cap)} toward the cap` : ''} |`,
     ...(cap ? ['', `Cap: ${money(cap.usd)}.`] : []), ''].join('\n');
 }
 
@@ -140,7 +174,11 @@ export async function costCommand(action, args, { parseFlags, safeRunId, emit })
     const usd = Number(options.usd);
     if (!(usd > 0)) fail(2, 'COST_CAP_INVALID', String(options.usd));
     await writeConfirmed(capPath(runDir), JSON.stringify({ schema: 'team-qa/cost-cap/v1', usd, set_at: new Date().toISOString() }, null, 2) + '\n', 'teamqa.cost.cap');
-    emit('pass', 'COST_CAP_SET', `usd=${usd}`, `spent=${money(runSpend(runDir).usd)}`, 'effect=confirmed');
+    let roster = null;
+    try { roster = readJson(join(runDir, 'roster.json'), { label: 'roster.json' }); } catch { roster = null; }
+    const unpriced = unpricedSeats(roster), spend = runSpend(runDir);
+    emit('pass', 'COST_CAP_SET', `usd=${usd}`, `spent=${money(spend.usd)}`, `counted=${money(spend.usd_cap)}`, 'effect=confirmed', ...(unpriced.length ? [`unpriced_seats=${unpriced.join(',')}`] : []));
+    if (unpriced.length) console.log(`Warning: the ${unpriced.join(', ')} seats report no price (Codex reports tokens only), so the cap cannot use their actual cost: each of their attempts counts at the measured maximum for its role (${unpriced.map((role) => `${role} ${money(unpricedAttemptUsd(role))}`).join(', ')}).`);
   } else if (action === 'report') {
     const spend = runSpend(runDir), md = costMarkdown(runDir);
     if (md) console.log(md.trim());

@@ -26,13 +26,15 @@ function openPoints(receipt) {
 }
 
 // The reviews as the record holds them, each authenticated against the canonical revision it reviewed.
+// Every review but the last is of a revision the repair rounds replaced: it is authenticated against the board bytes
+// kept with it (historical); the last must be of the locked canonical board as it is now (checked by the caller).
 function reviewsOf(runDir, paths, verifyReview) {
-  return paths.map((p) => {
+  return paths.map((p, index) => {
     const path = realpathSync(resolve(runDir, p));
     const receipt = readJson(path);
     const canonical = receipt?.canonical?.path;
     requireValue(typeof canonical === 'string' && existsSync(canonical), 'BOARD_DELIVERY_REVIEW_CANONICAL', p);
-    const r = verifyReview({ file: canonical, receiptPath: path });
+    const r = verifyReview({ file: canonical, receiptPath: path, historical: index < paths.length - 1 });
     return { path: relative(resolve(runDir), path), sha256: sha256File(path), verdict: r.verdict, canonical_sha256: r.canonical.sha256, receipt: r };
   });
 }

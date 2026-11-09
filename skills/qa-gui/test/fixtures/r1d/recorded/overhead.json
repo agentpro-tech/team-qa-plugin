@@ -1,0 +1,191 @@
+{
+ "schema": "qa-gui/r1d-overhead/v1",
+ "recordedWith": {
+  "chromium": "153.0.8010.12",
+  "dragonController": "apps/dragon-browser/extension/env-controller.js (Dragon 1.6.9, R1a)",
+  "transport": "Playwright CDP session",
+  "privacy": "stub mask provider (the canary page has no secret or PII field)",
+  "recordedAt": "2026-11-04"
+ },
+ "page": "canary.html?s=none",
+ "baselineMs": [
+  161,
+  149,
+  144,
+  146,
+  144
+ ],
+ "schedules": {
+  "fixed7": [
+   {
+    "wallMs": 1293,
+    "sensorsStartMs": 0,
+    "framesStartMs": 25,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 63,
+    "decisionsMs": 103,
+    "windowMs": 1124,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1283,
+    "sensorsStartMs": 0,
+    "framesStartMs": 17,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 62,
+    "decisionsMs": 102,
+    "windowMs": 1124,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1274,
+    "sensorsStartMs": 0,
+    "framesStartMs": 12,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 58,
+    "decisionsMs": 102,
+    "windowMs": 1121,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1276,
+    "sensorsStartMs": 0,
+    "framesStartMs": 11,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 61,
+    "decisionsMs": 102,
+    "windowMs": 1121,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1274,
+    "sensorsStartMs": 0,
+    "framesStartMs": 11,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 59,
+    "decisionsMs": 102,
+    "windowMs": 1120,
+    "keptFrames": 2
+   }
+  ],
+  "events": [
+   {
+    "wallMs": 1277,
+    "sensorsStartMs": 13,
+    "framesStartMs": 10,
+    "framesStopMs": 1,
+    "sensorsReadMs": 0,
+    "samplesMs": 63,
+    "decisionsMs": 102,
+    "windowMs": 1124,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1289,
+    "sensorsStartMs": 0,
+    "framesStartMs": 11,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 75,
+    "decisionsMs": 101,
+    "windowMs": 1127,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1297,
+    "sensorsStartMs": 0,
+    "framesStartMs": 24,
+    "framesStopMs": 3,
+    "sensorsReadMs": 0,
+    "samplesMs": 67,
+    "decisionsMs": 103,
+    "windowMs": 1127,
+    "keptFrames": 3
+   },
+   {
+    "wallMs": 1297,
+    "sensorsStartMs": 0,
+    "framesStartMs": 28,
+    "framesStopMs": 3,
+    "sensorsReadMs": 0,
+    "samplesMs": 63,
+    "decisionsMs": 103,
+    "windowMs": 1122,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1281,
+    "sensorsStartMs": 0,
+    "framesStartMs": 13,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 65,
+    "decisionsMs": 101,
+    "windowMs": 1122,
+    "keptFrames": 3
+   }
+  ],
+  "all": [
+   {
+    "wallMs": 1286,
+    "sensorsStartMs": 13,
+    "framesStartMs": 12,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 69,
+    "decisionsMs": 103,
+    "windowMs": 1121,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1277,
+    "sensorsStartMs": 0,
+    "framesStartMs": 10,
+    "framesStopMs": 2,
+    "sensorsReadMs": 1,
+    "samplesMs": 62,
+    "decisionsMs": 102,
+    "windowMs": 1123,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1285,
+    "sensorsStartMs": 0,
+    "framesStartMs": 11,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 69,
+    "decisionsMs": 103,
+    "windowMs": 1122,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1291,
+    "sensorsStartMs": 0,
+    "framesStartMs": 14,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 72,
+    "decisionsMs": 103,
+    "windowMs": 1126,
+    "keptFrames": 2
+   },
+   {
+    "wallMs": 1285,
+    "sensorsStartMs": 0,
+    "framesStartMs": 11,
+    "framesStopMs": 2,
+    "sensorsReadMs": 0,
+    "samplesMs": 71,
+    "decisionsMs": 101,
+    "windowMs": 1124,
+    "keptFrames": 2
+   }
+  ]
+ }
+}

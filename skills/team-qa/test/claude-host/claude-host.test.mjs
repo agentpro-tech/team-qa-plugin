@@ -14,6 +14,8 @@ import { hookDefinition } from '../../scripts/continuation.mjs';
 // fixtures for the adapter, never evidence of a live QA run.
 const HOME = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-claude-home-')));
 process.env.HOME = HOME;
+// Transcripts are written under HOME/.claude; a CLAUDE_CONFIG_DIR of the machine running the tests would point elsewhere.
+delete process.env.CLAUDE_CONFIG_DIR;
 const SID = '320de890-ddd4-5759-ac80-46d91944fd3d';
 const OTHER = '11111111-2222-4333-8444-555555555555';
 const hash = s => createHash('sha256').update(s).digest('hex');

@@ -1,0 +1,210 @@
+{
+  "schema": "qa-gui/app-map/v2",
+  "nodes": [
+    {
+      "id": "screen:orders-list",
+      "type": "screen",
+      "label": "Orders",
+      "route": "/orders"
+    },
+    {
+      "id": "screen:order-new",
+      "type": "screen",
+      "label": "New Order",
+      "route": "/orders/new"
+    },
+    {
+      "id": "dialog:delete-order",
+      "type": "dialog",
+      "label": "Delete Order",
+      "route": "dialog:delete-order"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e:orders-list->order-new",
+      "from": "screen:orders-list",
+      "to": "screen:order-new",
+      "trigger": "click:New Order"
+    },
+    {
+      "id": "e:order-new->orders-list",
+      "from": "screen:order-new",
+      "to": "screen:orders-list",
+      "trigger": "click:Cancel"
+    },
+    {
+      "id": "e:orders-list->dialog-delete-order",
+      "from": "screen:orders-list",
+      "to": "dialog:delete-order",
+      "trigger": "click:Delete"
+    },
+    {
+      "id": "e:dialog-delete-order->orders-list",
+      "from": "dialog:delete-order",
+      "to": "screen:orders-list",
+      "trigger": "click:Cancel"
+    }
+  ],
+  "visited": 3,
+  "total": null,
+  "denominatorReason": "stop BUDGET_EXHAUSTED: 5 candidate(s) left in the frontier",
+  "states": [
+    {
+      "step": 1,
+      "node": null,
+      "route": "/orders",
+      "state": "loading",
+      "strict": "0000000000000000000000000000000000000000000000000000000000000000",
+      "viewport": "desktop-1280",
+      "condition": "default"
+    },
+    {
+      "step": 2,
+      "node": "screen:orders-list",
+      "route": "/orders",
+      "state": "many-rows",
+      "strict": "1111111111111111111111111111111111111111111111111111111111111111",
+      "viewport": "desktop-1280",
+      "condition": "default"
+    },
+    {
+      "step": 3,
+      "node": "screen:order-new",
+      "route": "/orders/new",
+      "state": "ideal",
+      "strict": "2222222222222222222222222222222222222222222222222222222222222222",
+      "viewport": "desktop-1280",
+      "condition": "default"
+    },
+    {
+      "step": 4,
+      "node": "screen:orders-list",
+      "route": "/orders",
+      "state": "many-rows",
+      "strict": "1111111111111111111111111111111111111111111111111111111111111111",
+      "viewport": "desktop-1280",
+      "condition": "default"
+    },
+    {
+      "step": 5,
+      "node": "dialog:delete-order",
+      "route": "dialog:delete-order",
+      "state": "ideal",
+      "strict": "3333333333333333333333333333333333333333333333333333333333333333",
+      "viewport": "desktop-1280",
+      "condition": "default"
+    },
+    {
+      "step": 7,
+      "node": "screen:orders-list",
+      "route": "/orders",
+      "state": "many-rows",
+      "strict": "1111111111111111111111111111111111111111111111111111111111111111",
+      "viewport": "desktop-1280",
+      "condition": "default"
+    },
+    {
+      "step": 8,
+      "node": "screen:orders-list",
+      "route": "/orders",
+      "state": "many-rows",
+      "strict": "4444444444444444444444444444444444444444444444444444444444444444",
+      "viewport": "desktop-1280",
+      "condition": "default"
+    }
+  ],
+  "frontier": [
+    {
+      "id": "f:screen:orders-list>menu:Export",
+      "kind": "action",
+      "from": "screen:orders-list",
+      "route": "/orders",
+      "state": "many-rows",
+      "strict": "1111111111111111111111111111111111111111111111111111111111111111",
+      "action": "click:Export",
+      "target": "menu:Export",
+      "viewport": "desktop-1280",
+      "condition": "default",
+      "reason": "HOVER_ONLY",
+      "detail": "the export menu opens on hover only"
+    },
+    {
+      "id": "f:screen:orders-list>link:Admin",
+      "kind": "action",
+      "from": "screen:orders-list",
+      "route": "/orders",
+      "state": "many-rows",
+      "strict": "1111111111111111111111111111111111111111111111111111111111111111",
+      "action": "click:Admin",
+      "target": "link:Admin",
+      "viewport": "desktop-1280",
+      "condition": "default",
+      "reason": "AUTH",
+      "leadsTo": "/admin",
+      "detail": "the test account has no admin role"
+    },
+    {
+      "id": "f:screen:order-new>button:Save",
+      "kind": "action",
+      "from": "screen:order-new",
+      "route": "/orders/new",
+      "state": "ideal",
+      "strict": "2222222222222222222222222222222222222222222222222222222222222222",
+      "action": "click:Save",
+      "target": "button:Save",
+      "viewport": "desktop-1280",
+      "condition": "default",
+      "reason": "BUDGET"
+    },
+    {
+      "id": "f:dialog:delete-order>button:Confirm",
+      "kind": "action",
+      "from": "dialog:delete-order",
+      "route": "dialog:delete-order",
+      "state": "ideal",
+      "strict": "3333333333333333333333333333333333333333333333333333333333333333",
+      "action": "click:Confirm",
+      "target": "button:Confirm",
+      "viewport": "desktop-1280",
+      "condition": "default",
+      "reason": "NEEDS_APPROVAL",
+      "detail": "deleting an order is destructive and the plan does not approve it"
+    },
+    {
+      "id": "f:/orders>state=empty",
+      "kind": "state",
+      "from": null,
+      "route": "/orders",
+      "state": "empty",
+      "strict": null,
+      "action": "view",
+      "target": null,
+      "viewport": "*",
+      "condition": "*",
+      "reason": "NO_DATA",
+      "detail": "the test tenant always has orders; an empty list cannot be forced at the environment layer"
+    }
+  ],
+  "stop": {
+    "reason": "BUDGET_EXHAUSTED",
+    "code": null,
+    "detail": "the step budget of 8 actions is used",
+    "step": 10
+  },
+  "saturation": {
+    "strict": {
+      "n": 7,
+      "f1": 4,
+      "distinct": 5,
+      "u": 0.5714285714285714
+    },
+    "coarse": {
+      "n": 7,
+      "f1": 3,
+      "distinct": 4,
+      "u": 0.42857142857142855
+    }
+  },
+  "issues": []
+}

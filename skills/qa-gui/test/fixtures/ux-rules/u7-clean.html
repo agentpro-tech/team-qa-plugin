@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U7 clean twin: an empty list that explains itself and offers an action</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  table { border-collapse: collapse; width: 560px; }
+  th { text-align: left; border-bottom: 2px solid #ccc; padding: 8px; }
+  .empty { width: 560px; text-align: center; padding: 32px 0; color: #444; }
+  .empty button { font: inherit; padding: 8px 16px; margin-top: 12px; }
+</style>
+</head>
+<body>
+  <h1>Orders</h1>
+  <table id="orders">
+    <thead><tr><th>Order</th><th>Customer</th><th>Total</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="empty">
+    <p>No orders yet. Orders you create will appear here.</p>
+    <button type="button">Create order</button>
+  </div>
+</body>
+</html>

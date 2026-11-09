@@ -17,40 +17,60 @@ function mutant(name, file, transform) {
   for (const file of ['qa-gate.mjs', 'receipt-verify.mjs', 'visual-diff.mjs', 'qa-board.schema.json']) {
     cpSync(join(ROOT, 'scripts', file), join(root, 'scripts', file));
   }
-  for (const file of ['release-truth-v2.mjs', 'release-receipt-v2.mjs', 'qa-gui-v2.mjs']) {
-    cpSync(join(ROOT, 'scripts', 'lib', file), join(root, 'scripts', 'lib', file));
+  // The gate's whole import graph (scripts/lib and the responsive matrix it reads), so the copy loads and a mutant dies
+  // on an assertion. A list of chosen files fell behind each new import and every mutant then died on a missing module.
+  cpSync(join(ROOT, 'scripts', 'lib'), join(root, 'scripts', 'lib'), { recursive: true });
+  cpSync(join(ROOT, 'scripts', 'loop7'), join(root, 'scripts', 'loop7'), { recursive: true });
+  if (transform) {
+    const target = join(root, 'scripts', 'lib', file);
+    const source = readFileSync(target, 'utf8');
+    const changed = transform(source);
+    assert.notEqual(changed, source, `${name}: mutation marker was not found`);
+    writeFileSync(target, changed);
   }
-  const target = join(root, 'scripts', 'lib', file);
-  const source = readFileSync(target, 'utf8');
-  const changed = transform(source);
-  assert.notEqual(changed, source, `${name}: mutation marker was not found`);
-  writeFileSync(target, changed);
   return { root, gate: join(root, 'scripts', 'qa-gate.mjs'), verify: join(root, 'scripts', 'receipt-verify.mjs') };
+}
+
+function runSession(fixture, pattern) {
+  const env = {
+    ...process.env,
+    QA_GATE_UNDER_TEST: fixture.gate,
+    QA_RECEIPT_VERIFY_UNDER_TEST: fixture.verify,
+  };
+  delete env.NODE_TEST_CONTEXT;
+  return spawnSync(process.execPath, [
+    '--test', '--test-concurrency=1', '--test-name-pattern', pattern, SESSION_TEST,
+  ], {
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+    env,
+    timeout: 120_000,
+  });
 }
 
 function killed(name, pattern, transform, file = 'qa-gui-v2.mjs') {
   const fixture = mutant(name, file, transform);
   try {
-    const env = {
-      ...process.env,
-      QA_GATE_UNDER_TEST: fixture.gate,
-      QA_RECEIPT_VERIFY_UNDER_TEST: fixture.verify,
-    };
-    delete env.NODE_TEST_CONTEXT;
-    const result = spawnSync(process.execPath, [
-      '--test', '--test-concurrency=1', '--test-name-pattern', pattern, SESSION_TEST,
-    ], {
-      encoding: 'utf8',
-      maxBuffer: 32 * 1024 * 1024,
-      env,
-      timeout: 120_000,
-    });
+    const result = runSession(fixture, pattern);
     assert.equal(result.error, undefined, `${name}: ${result.error?.message}`);
     assert.notEqual(result.status, 0, `${name} survived:\n${result.stdout}\n${result.stderr}`);
+    // A mutant must die on an assertion, never on a module its copy cannot load.
+    assert.doesNotMatch(`${result.stdout}\n${result.stderr}`, /ERR_MODULE_NOT_FOUND|Cannot find module/, `${name} died on a missing module, not on an assertion`);
   } finally {
     rmSync(fixture.root, { recursive: true, force: true });
   }
 }
+
+test('Session 3 mutant copy runs the session tests green before any mutation', () => {
+  const fixture = mutant('control', null, null);
+  try {
+    const result = runSession(fixture, 'I3/QGe|I5/QGa|I19/QGa-QGb|I6/QGb|I13/QGc|I20/QGd|Release A A2');
+    assert.equal(result.error, undefined, `control: ${result.error?.message}`);
+    assert.equal(result.status, 0, `the unmutated copy fails, so a mutant would die for the wrong reason:\n${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`);
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true });
+  }
+});
 
 test('Session 3 mutation gate kills denominator, evidence, type, vision and dwell bypasses', () => {
   killed('denominator', 'I3/QGe', (source) => source.replace(

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U8 defect: delete removes the row at once, with no confirmation or undo</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  ul { list-style: none; padding: 0; width: 480px; }
+  li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ddd; }
+  button { font: inherit; padding: 6px 12px; }
+</style>
+</head>
+<body>
+  <h1>Invoices</h1>
+  <ul id="list">
+    <li data-id="12"><span>Invoice 12</span><button type="button" class="delete">Delete</button></li>
+    <li data-id="13"><span>Invoice 13</span><button type="button" class="delete">Delete</button></li>
+  </ul>
+  <script>
+    document.getElementById('list').addEventListener('click', function (e) {
+      var b = e.target.closest('button.delete');
+      if (!b) return;
+      // Defect: the item is gone immediately; there is no confirmation and no undo.
+      b.closest('li').remove();
+    });
+  </script>
+</body>
+</html>

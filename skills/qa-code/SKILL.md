@@ -394,7 +394,9 @@ Missing Node or a required binary (`QA_CODE_NODE` points to a file that is not e
 
 ---
 
-*v1.11.1 — 2026-10-30 · Every PASS (tools or static) needs a green Gate 0; a gitleaks or CVE scanner failure is
+*v1.11.2 — 2026-11-10 · The Team QA runtime check stops at a bound and says it timed out; the compat-link check
+works without a realpath command.
+v1.11.1 — 2026-10-30 · Every PASS (tools or static) needs a green Gate 0; a gitleaks or CVE scanner failure is
 UNGRADED, and gitleaks runs with a QA-owned config the reviewed repo cannot change.
 v1.11.0 — 2026-10-30 · The Team QA a review proof is checked against defaults to the one installed next to this QA Code
 (the suite install or the Claude Code plugin `team-qa@agentpro`); a source checkout keeps `~/.agents/skills/team-qa`.

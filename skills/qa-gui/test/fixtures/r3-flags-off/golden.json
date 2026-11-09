@@ -1,0 +1,252 @@
+{
+  "clean": {
+    "canonical": [],
+    "v2": {
+      "issues": [],
+      "notes": [
+        "Requirements: 1/1"
+      ],
+      "atomicCoverage": [
+        {
+          "requirement_id": "REQ-1",
+          "assertion_id": "TC-01-A1",
+          "case_id": "TC-01",
+          "evidence_ref": "evidence/TC-01/tc-01-list.png",
+          "evidence_sha256": "950474f6e6b718662f1d1bf6f99c4d61375b9f08ec337f16ae5df03f03c395f2",
+          "evidence_type": "gui-screenshot",
+          "result": "PASS"
+        },
+        {
+          "requirement_id": "REQ-1",
+          "assertion_id": "TC-02-A1",
+          "case_id": "TC-02",
+          "evidence_ref": "evidence/TC-02/tc-02-list.png",
+          "evidence_sha256": "4de96a1a19eedfe36b877067463eb708c06befdfdfd27f7ece4296cc4f0c60a1",
+          "evidence_type": "gui-screenshot",
+          "result": "PASS"
+        }
+      ],
+      "receiptEligible": true,
+      "computed": {
+        "functionVerdict": "PASS",
+        "uiVerdict": "PASS",
+        "cases": [
+          {
+            "id": "TC-01",
+            "requirements": [
+              "REQ-1"
+            ],
+            "assertions": [
+              {
+                "requirement_id": "REQ-1",
+                "assertion_id": "TC-01-A1",
+                "case_id": "TC-01",
+                "evidence_ref": "evidence/TC-01/tc-01-list.png",
+                "evidence_sha256": "950474f6e6b718662f1d1bf6f99c4d61375b9f08ec337f16ae5df03f03c395f2",
+                "evidence_type": "gui-screenshot",
+                "result": "PASS"
+              }
+            ],
+            "kind": "static"
+          },
+          {
+            "id": "TC-02",
+            "requirements": [
+              "REQ-1"
+            ],
+            "assertions": [
+              {
+                "requirement_id": "REQ-1",
+                "assertion_id": "TC-02-A1",
+                "case_id": "TC-02",
+                "evidence_ref": "evidence/TC-02/tc-02-list.png",
+                "evidence_sha256": "4de96a1a19eedfe36b877067463eb708c06befdfdfd27f7ece4296cc4f0c60a1",
+                "evidence_type": "gui-screenshot",
+                "result": "PASS"
+              }
+            ],
+            "kind": "static"
+          }
+        ]
+      }
+    },
+    "gate": {
+      "status": 20,
+      "stdout": [
+        "QA gate: UNGRADED",
+        "Pass rate: 2/2 (100.0%)",
+        "Defects: 0 · Canonical: qa-board-teamwork/v2",
+        "Source traceability: 1 source · 2 case links",
+        "Coverage: 10/10 · Release: GO",
+        "Requirement coverage: 2/2",
+        "Vision: Requirements: 2/2",
+        ""
+      ],
+      "stderr": [
+        "UNGRADED L22 case TC-01 state \"tc-01-list\" receipt: unknown field network_summary",
+        "UNGRADED L22 case TC-01 state \"tc-01-list\" receipt.function.assertions[0]: unknown field assertion_id",
+        "UNGRADED L22 case TC-01 state \"tc-01-list\" receipt.function.assertions[0]: unknown field evidence_type",
+        "UNGRADED L22 case TC-02 state \"tc-02-list\" receipt: unknown field network_summary",
+        "UNGRADED L22 case TC-02 state \"tc-02-list\" receipt.function.assertions[0]: unknown field assertion_id",
+        "UNGRADED L22 case TC-02 state \"tc-02-list\" receipt.function.assertions[0]: unknown field evidence_type",
+        ""
+      ]
+    }
+  },
+  "findings": {
+    "canonical": [
+      {
+        "path": "defects[0].createdBy",
+        "message": "missing required field createdBy"
+      },
+      {
+        "path": "defects[0].repro",
+        "message": "missing required field repro"
+      },
+      {
+        "path": "defects[0].fixEvidence",
+        "message": "missing required field fixEvidence"
+      },
+      {
+        "path": "defects[0].lastRetestFixEvidenceCount",
+        "message": "missing required field lastRetestFixEvidenceCount"
+      },
+      {
+        "path": "defects[0].rejectionReason",
+        "message": "missing required field rejectionReason"
+      },
+      {
+        "path": "defects[0].evidence[0]",
+        "message": "expected object, got string"
+      },
+      {
+        "path": "defects[0].rule",
+        "message": "L22 unknown field rule; additional properties are not allowed",
+        "ungraded": true
+      },
+      {
+        "path": "defects[0].sev",
+        "message": "L22 unknown field sev; additional properties are not allowed",
+        "ungraded": true
+      },
+      {
+        "path": "defects[0].steps",
+        "message": "L22 unknown field steps; additional properties are not allowed",
+        "ungraded": true
+      },
+      {
+        "path": "defects[0].repro",
+        "message": "D-1 does not write how to reproduce it; schema-v5 requires a non-blank repro"
+      },
+      {
+        "path": "defects[0].evidence[0].findingId",
+        "message": "D-1 evidence #0 points at unknown finding <missing>"
+      },
+      {
+        "path": "defects[0].evidence[0].path",
+        "message": "D-1 evidence #0 must use a round-relative file or an http(s) URL"
+      }
+    ],
+    "v2": {
+      "issues": [
+        {
+          "message": "VISION_ASSERTION_FAIL:vision:TC-02:tc-02-list:C12:0",
+          "ungraded": false
+        }
+      ],
+      "notes": [
+        "Requirements: 1/1"
+      ],
+      "atomicCoverage": [
+        {
+          "requirement_id": "REQ-1",
+          "assertion_id": "TC-01-A1",
+          "case_id": "TC-01",
+          "evidence_ref": "evidence/TC-01/tc-01-list.png",
+          "evidence_sha256": "950474f6e6b718662f1d1bf6f99c4d61375b9f08ec337f16ae5df03f03c395f2",
+          "evidence_type": "gui-screenshot",
+          "result": "PASS"
+        },
+        {
+          "requirement_id": "REQ-1",
+          "assertion_id": "TC-02-A1",
+          "case_id": "TC-02",
+          "evidence_ref": "evidence/TC-02/tc-02-list.png",
+          "evidence_sha256": "4de96a1a19eedfe36b877067463eb708c06befdfdfd27f7ece4296cc4f0c60a1",
+          "evidence_type": "gui-screenshot",
+          "result": "PASS"
+        }
+      ],
+      "receiptEligible": true,
+      "computed": {
+        "functionVerdict": "PASS",
+        "uiVerdict": "PASS",
+        "cases": [
+          {
+            "id": "TC-01",
+            "requirements": [
+              "REQ-1"
+            ],
+            "assertions": [
+              {
+                "requirement_id": "REQ-1",
+                "assertion_id": "TC-01-A1",
+                "case_id": "TC-01",
+                "evidence_ref": "evidence/TC-01/tc-01-list.png",
+                "evidence_sha256": "950474f6e6b718662f1d1bf6f99c4d61375b9f08ec337f16ae5df03f03c395f2",
+                "evidence_type": "gui-screenshot",
+                "result": "PASS"
+              }
+            ],
+            "kind": "static"
+          },
+          {
+            "id": "TC-02",
+            "requirements": [
+              "REQ-1"
+            ],
+            "assertions": [
+              {
+                "requirement_id": "REQ-1",
+                "assertion_id": "TC-02-A1",
+                "case_id": "TC-02",
+                "evidence_ref": "evidence/TC-02/tc-02-list.png",
+                "evidence_sha256": "4de96a1a19eedfe36b877067463eb708c06befdfdfd27f7ece4296cc4f0c60a1",
+                "evidence_type": "gui-screenshot",
+                "result": "PASS"
+              }
+            ],
+            "kind": "static"
+          }
+        ]
+      }
+    },
+    "gate": {
+      "status": 20,
+      "stdout": [
+        "QA gate: UNGRADED",
+        "Pass rate: 2/2 (100.0%)",
+        "Defects: 1 · Canonical: qa-board-teamwork/v2",
+        "Source traceability: 1 source · 2 case links",
+        "Coverage: 10/10 · Release: NO-GO",
+        "Requirement coverage: 0/0",
+        ""
+      ],
+      "stderr": [
+        "UNGRADED defects[0].createdBy: missing required field createdBy",
+        "UNGRADED defects[0].repro: missing required field repro",
+        "UNGRADED defects[0].fixEvidence: missing required field fixEvidence",
+        "UNGRADED defects[0].lastRetestFixEvidenceCount: missing required field lastRetestFixEvidenceCount",
+        "UNGRADED defects[0].rejectionReason: missing required field rejectionReason",
+        "UNGRADED defects[0].evidence[0]: expected object, got string",
+        "UNGRADED defects[0].rule: L22 unknown field rule; additional properties are not allowed",
+        "UNGRADED defects[0].sev: L22 unknown field sev; additional properties are not allowed",
+        "UNGRADED defects[0].steps: L22 unknown field steps; additional properties are not allowed",
+        "UNGRADED defects[0].repro: D-1 does not write how to reproduce it; schema-v5 requires a non-blank repro",
+        "UNGRADED defects[0].evidence[0].findingId: D-1 evidence #0 points at unknown finding <missing>",
+        "UNGRADED defects[0].evidence[0].path: D-1 evidence #0 must use a round-relative file or an http(s) URL",
+        ""
+      ]
+    }
+  }
+}

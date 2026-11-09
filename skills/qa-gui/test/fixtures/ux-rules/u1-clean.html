@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U1 clean twin: progress while saving, then a confirmation</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  label { display: block; margin: 12px 0 4px; }
+  input { font: inherit; padding: 6px; width: 260px; }
+  button { font: inherit; padding: 8px 16px; margin-top: 16px; }
+  #msg { min-height: 1.4em; color: #065f46; }
+</style>
+</head>
+<body>
+  <h1>Profile</h1>
+  <form id="f">
+    <label for="name">Display name</label>
+    <input id="name" name="name">
+    <button id="save" type="submit">Save</button>
+  </form>
+  <p id="msg" role="status"></p>
+  <script>
+    var form = document.getElementById('f'), save = document.getElementById('save');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      form.setAttribute('aria-busy', 'true');
+      save.disabled = true;
+      save.textContent = 'Saving…';
+      var body = JSON.stringify({ name: document.getElementById('name').value });
+      window.fetch('/api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+        .then(function (r) {
+          form.removeAttribute('aria-busy');
+          save.disabled = false;
+          save.textContent = 'Save';
+          document.getElementById('msg').textContent = r.ok ? 'Saved' : 'Could not save';
+        });
+    });
+  </script>
+</body>
+</html>

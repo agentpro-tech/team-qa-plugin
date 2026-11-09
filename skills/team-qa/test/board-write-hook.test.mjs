@@ -94,7 +94,8 @@ test('registered direct writes with changed content or unsupported connector pro
   for (const [index, name] of unsupportedNames.entries()) {
     const denied = await handleQaHook(f.event(name, { title: 'unreviewed' }, `unsupported${index}`), f.deps);
     assert.equal(denied.hookSpecificOutput.permissionDecision, 'deny', name);
-    assert.equal(denied.hookSpecificOutput.permissionDecisionReason, 'BOARD_CONNECTOR_UNSUPPORTED_PROJECTION', name);
+    // B0: a Notion write outside `teamqa board publish` is an unplanned board write; other Space writes stay unsupported.
+    assert.equal(denied.hookSpecificOutput.permissionDecisionReason, /notion/i.test(name) ? 'BOARD_WRITE_NOT_PLANNED' : 'BOARD_CONNECTOR_UNSUPPORTED_PROJECTION', name);
   }
 });
 

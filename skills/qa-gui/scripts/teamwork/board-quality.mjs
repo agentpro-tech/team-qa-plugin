@@ -5,6 +5,7 @@ import { validateFindingCaption } from '../loop8/caption.mjs';
 import { validateCanonical } from './canonical.mjs';
 import { exportPage, comparePage } from './page-exporter.mjs';
 import { mapCanonicalRows, compareNotionRows } from './notion-sync.mjs';
+import { notionMcpProjection } from './notion-mcp.mjs';
 import { renderNativeBoard } from './native-renderer.mjs';
 import { verifyDocColabBoard } from './doc-colab-renderer.mjs';
 
@@ -261,8 +262,9 @@ export function verifyBoardProjection({ file, artifactPath, renderer, projection
   const fail = (code, message) => errors.push({ code, path: '', message });
   const allowedOptions = renderer === 'page' ? ['evidenceMap']
     : renderer === 'notion' ? ['notionSourceMap']
-      : renderer === 'doc-colab' ? ['docColabRoot'] : [];
-  if (!['page', 'notion', 'native', 'doc-colab'].includes(renderer)) fail('UNKNOWN_RENDERER', `unsupported renderer ${String(renderer)}`);
+      : renderer === 'notion-mcp' ? ['version', 'runId']
+        : renderer === 'doc-colab' ? ['docColabRoot'] : [];
+  if (!['page', 'notion', 'notion-mcp', 'native', 'doc-colab'].includes(renderer)) fail('UNKNOWN_RENDERER', `unsupported renderer ${String(renderer)}`);
   if (!projectionOptions || typeof projectionOptions !== 'object' || Array.isArray(projectionOptions)) {
     fail('INVALID_OPTIONS', 'projectionOptions must be an object');
   } else {
@@ -304,6 +306,10 @@ export function verifyBoardProjection({ file, artifactPath, renderer, projection
         const expected = mapCanonicalRows(data, options);
         const comparison = compareNotionRows(data, rows, options);
         if (comparison.matchPercent !== 100 || !isDeepStrictEqual(rows, expected)) fail('PROJECTION_MISMATCH', `Notion projection differs from canonical data: ${comparison.mismatches.map(item => `${item.externalId}.${item.field}`).join(', ') || 'extra or reordered rows/fields'}`);
+      } else if (renderer === 'notion-mcp') {
+        // The exact projection Team QA turns into Notion MCP calls; the board sha is the canonical file's own.
+        const expected = notionMcpProjection(data, { version: projectionOptions.version, runId: projectionOptions.runId, boardSha256: canonicalSha256 });
+        if (!isDeepStrictEqual(JSON.parse(artifactText), expected)) fail('PROJECTION_MISMATCH', 'Notion MCP projection differs from canonical data');
       } else if (renderer === 'native') {
         if (artifactText !== renderNativeBoard(data)) fail('PROJECTION_MISMATCH', 'native HTML differs from canonical renderer output');
       } else if (renderer === 'doc-colab') {

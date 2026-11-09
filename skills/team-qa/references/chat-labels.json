@@ -11,5 +11,8 @@
     "executor_code": ["Code Executor", "Code QA independent of the coder"],
     "coverage_gate": ["Coverage Gate", "Aggregates coverage; no LLM call"]
   },
+  "adjudicator": ["Adjudicator", "Independent check of each case from raw evidence; never sees the executor's verdict"],
+  "adjudicator_modes": {"shadow": "recorded only; verdicts unchanged", "enforce": "a CONTEST turns a PASS into UNGRADED"},
+  "adjudicator_scopes": {"pass_only": "PASS cases only", "all": "every executed case"},
   "routes": {"codex-native": "Native Codex", "codex": "Codex CLI", "claude": "Claude CLI", "node": "Node deterministic"}
 }

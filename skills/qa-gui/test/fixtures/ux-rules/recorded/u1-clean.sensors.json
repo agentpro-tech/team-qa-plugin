@@ -1,0 +1,465 @@
+{
+  "recordedWith": "Dragon env-controller (extension/env-controller.js) at lane build 1.6.9-qa.f108af9 over a Playwright CDP session, Chromium headless, viewport 800x600",
+  "fixture": "u1-clean.html",
+  "sensorsStart": {
+    "ok": true,
+    "kinds": [
+      "mutation",
+      "resize",
+      "visibility",
+      "loaf",
+      "event",
+      "input",
+      "focus",
+      "scroll",
+      "layout-shift",
+      "animation"
+    ],
+    "streams": {
+      "layout-shift": "cdp",
+      "animation": "cdp"
+    },
+    "watch": "#save,#msg,form,[role=status],[aria-busy]"
+  },
+  "held": [
+    {
+      "requestId": "interception-job-2.0",
+      "ruleId": "save",
+      "action": "hold",
+      "url": "http://127.0.0.1:8080/api/save",
+      "method": "POST",
+      "resourceType": "XHR",
+      "t": 1793795143331,
+      "until": 1793795173331
+    }
+  ],
+  "envAfterRelease": {
+    "held": [],
+    "requests": [
+      {
+        "t": 1793795143331,
+        "ruleId": "save",
+        "action": "hold",
+        "url": "http://127.0.0.1:8080/api/save",
+        "method": "POST",
+        "outcome": "held"
+      },
+      {
+        "t": 1793795144838,
+        "ruleId": "save",
+        "action": "hold",
+        "url": "http://127.0.0.1:8080/api/save",
+        "method": "POST",
+        "outcome": "released:release"
+      }
+    ],
+    "ruleStats": {
+      "save": {
+        "matched": 1,
+        "lastAt": 1793795143331
+      }
+    }
+  },
+  "read": {
+    "ok": true,
+    "running": true,
+    "events": [
+      {
+        "k": "event",
+        "t": 1793795143276.0999,
+        "name": "beforeinput",
+        "duration": 32,
+        "processingStart": 1793795143276.0999,
+        "processingEnd": 1793795143276.0999,
+        "interactionId": 0,
+        "target": "input#name",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 18
+      },
+      {
+        "k": "event",
+        "t": 1793795143277.2,
+        "name": "input",
+        "duration": 32,
+        "processingStart": 1793795143277.7,
+        "processingEnd": 1793795143277.7,
+        "interactionId": 0,
+        "target": "input#name",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 19
+      },
+      {
+        "k": "input",
+        "t": 1793795143327,
+        "type": "pointerdown",
+        "trusted": true,
+        "target": "button#save",
+        "x": 341,
+        "y": 139,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 20
+      },
+      {
+        "k": "focus",
+        "t": 1793795143328.2,
+        "type": "out",
+        "target": "input#name",
+        "active": "html>body",
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 21
+      },
+      {
+        "k": "focus",
+        "t": 1793795143328.2998,
+        "type": "in",
+        "target": "button#save",
+        "active": "button#save",
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 22
+      },
+      {
+        "k": "input",
+        "t": 1793795143327,
+        "type": "pointerup",
+        "trusted": true,
+        "target": "button#save",
+        "x": 341,
+        "y": 139,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 23
+      },
+      {
+        "k": "input",
+        "t": 1793795143327,
+        "type": "click",
+        "trusted": true,
+        "target": "button#save",
+        "x": 340,
+        "y": 139,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 24
+      },
+      {
+        "k": "mutation",
+        "t": 1793795143330.4,
+        "added": 0,
+        "removed": 0,
+        "attrs": 2,
+        "text": 2,
+        "attrNames": [
+          "aria-busy",
+          "disabled"
+        ],
+        "targets": [
+          "form#f",
+          "button#save"
+        ],
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 25
+      },
+      {
+        "k": "resize",
+        "t": 1793795143338.7998,
+        "target": "button#save",
+        "w": 100.921875,
+        "h": 38,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 26
+      },
+      {
+        "k": "focus",
+        "t": 1793795143339.7,
+        "type": "out",
+        "target": "button#save",
+        "active": "html>body",
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 27
+      },
+      {
+        "k": "event",
+        "t": 1793795143326.7998,
+        "name": "pointerout",
+        "duration": 16,
+        "processingStart": 1793795143327.2,
+        "processingEnd": 1793795143327.2,
+        "interactionId": 0,
+        "target": "html",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 28
+      },
+      {
+        "k": "event",
+        "t": 1793795143326.7998,
+        "name": "pointerover",
+        "duration": 16,
+        "processingStart": 1793795143327.2,
+        "processingEnd": 1793795143327.2,
+        "interactionId": 0,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 29
+      },
+      {
+        "k": "event",
+        "t": 1793795143326.7998,
+        "name": "pointerenter",
+        "duration": 16,
+        "processingStart": 1793795143327.2,
+        "processingEnd": 1793795143327.2,
+        "interactionId": 0,
+        "target": null,
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 30
+      },
+      {
+        "k": "event",
+        "t": 1793795143326.7998,
+        "name": "pointerenter",
+        "duration": 16,
+        "processingStart": 1793795143327.2,
+        "processingEnd": 1793795143327.2,
+        "interactionId": 0,
+        "target": null,
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 31
+      },
+      {
+        "k": "event",
+        "t": 1793795143326.7998,
+        "name": "pointerenter",
+        "duration": 16,
+        "processingStart": 1793795143327.2,
+        "processingEnd": 1793795143327.2,
+        "interactionId": 0,
+        "target": null,
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 32
+      },
+      {
+        "k": "event",
+        "t": 1793795143326.7998,
+        "name": "mouseout",
+        "duration": 16,
+        "processingStart": 1793795143327.2,
+        "processingEnd": 1793795143327.2,
+        "interactionId": 0,
+        "target": "html",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 33
+      },
+      {
+        "k": "event",
+        "t": 1793795143326.7998,
+        "name": "mouseover",
+        "duration": 16,
+        "processingStart": 1793795143327.2,
+        "processingEnd": 1793795143327.2,
+        "interactionId": 0,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 34
+      },
+      {
+        "k": "event",
+        "t": 1793795143327,
+        "name": "pointerdown",
+        "duration": 16,
+        "processingStart": 1793795143327.5999,
+        "processingEnd": 1793795143328.0999,
+        "interactionId": 3988,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 35
+      },
+      {
+        "k": "event",
+        "t": 1793795143327,
+        "name": "mousedown",
+        "duration": 16,
+        "processingStart": 1793795143328.0999,
+        "processingEnd": 1793795143328.0999,
+        "interactionId": 0,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 36
+      },
+      {
+        "k": "event",
+        "t": 1793795143327,
+        "name": "pointerup",
+        "duration": 16,
+        "processingStart": 1793795143328.7998,
+        "processingEnd": 1793795143329,
+        "interactionId": 3988,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 37
+      },
+      {
+        "k": "event",
+        "t": 1793795143327,
+        "name": "mouseup",
+        "duration": 16,
+        "processingStart": 1793795143329,
+        "processingEnd": 1793795143329,
+        "interactionId": 0,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 38
+      },
+      {
+        "k": "event",
+        "t": 1793795143327,
+        "name": "click",
+        "duration": 16,
+        "processingStart": 1793795143329,
+        "processingEnd": 1793795143330.5,
+        "interactionId": 3988,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 39
+      },
+      {
+        "k": "event",
+        "t": 1793795143327,
+        "name": "pointerover",
+        "duration": 16,
+        "processingStart": 1793795143330.5,
+        "processingEnd": 1793795143330.5,
+        "interactionId": 0,
+        "target": "button#save",
+        "first": false,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 40
+      },
+      {
+        "k": "event",
+        "t": 1793795143327,
+        "name": "pointerdown",
+        "duration": 16,
+        "processingStart": 1793795143327.5999,
+        "processingEnd": 1793795143328.0999,
+        "interactionId": 3988,
+        "target": "button#save",
+        "first": true,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 41
+      },
+      {
+        "k": "mutation",
+        "t": 1793795144847.5999,
+        "added": 0,
+        "removed": 0,
+        "attrs": 2,
+        "text": 3,
+        "attrNames": [
+          "aria-busy",
+          "disabled"
+        ],
+        "targets": [
+          "form#f",
+          "button#save",
+          "p#msg[role=status]"
+        ],
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 42
+      },
+      {
+        "k": "resize",
+        "t": 1793795144850.4,
+        "target": "button#save",
+        "w": 72.46875,
+        "h": 38,
+        "src": "page",
+        "doc": "28vx0ayn",
+        "seq": 43
+      }
+    ],
+    "cursor": 43,
+    "latest": 43,
+    "more": false,
+    "gap": false,
+    "overflow": 0,
+    "pageDropped": 0,
+    "total": 43,
+    "clock": {
+      "unit": "ms",
+      "base": "unix-epoch",
+      "pageSkewMs": 1.8,
+      "measuredWithinMs": 5
+    },
+    "docs": 2,
+    "contexts": 1,
+    "conditions": {
+      "v": 1,
+      "caseId": "u1-clean",
+      "role": "test",
+      "network": null,
+      "cpu": null,
+      "timezone": null,
+      "locale": null,
+      "media": null,
+      "animation": null,
+      "requests": [
+        {
+          "id": "save",
+          "urlPattern": "*/api/save*",
+          "action": "hold",
+          "status": null,
+          "errorReason": null,
+          "matched": 1
+        }
+      ],
+      "probes": {
+        "sensors": true,
+        "frames": false
+      },
+      "verified": true,
+      "setAt": 1793795143306,
+      "expiresAt": 1793796043306
+    }
+  },
+  "reset": {
+    "ok": true,
+    "atDefault": true
+  }
+}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U2 defect: the submit button stays clickable while the request is pending</title>
+<style>
+  body { font: 16px sans-serif; margin: 0; color: #222; }
+  #topbar { height: 4px; background: transparent; }
+  #topbar.loading { background: #2563eb; }
+  #topbar.loading::after { content: "Saving"; position: absolute; left: 8px; top: 6px; font-size: 12px; color: #2563eb; }
+  main { padding: 24px; }
+  label { display: block; margin: 12px 0 4px; }
+  input { font: inherit; padding: 6px; width: 260px; }
+  button { font: inherit; padding: 8px 16px; margin-top: 16px; }
+  #msg { min-height: 1.4em; color: #065f46; }
+</style>
+</head>
+<body>
+  <div id="topbar"></div>
+  <main>
+    <h1>New order</h1>
+    <form id="f">
+      <label for="item">Item</label>
+      <input id="item" name="item">
+      <button id="submit" type="submit">Place order</button>
+    </form>
+    <p id="msg" role="status"></p>
+  </main>
+  <script>
+    var sent = 0;
+    document.getElementById('f').addEventListener('submit', function (e) {
+      e.preventDefault();
+      sent += 1;
+      // A page-level bar shows activity, but the button itself stays enabled and unchanged: a second
+      // click sends a second order.
+      document.getElementById('topbar').className = 'loading';
+      var body = JSON.stringify({ item: document.getElementById('item').value, n: sent });
+      window.fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+        .then(function (r) {
+          document.getElementById('topbar').className = '';
+          document.getElementById('msg').textContent = r.ok ? 'Order placed' : 'Could not place the order';
+        });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 2,
+  "coverage": {
+    "version": "team-qa/coverage-cells/v1",
+    "rows": [
+      {
+        "id": "desktop-1280",
+        "size": "1280x800",
+        "classes": [
+          "desktop"
+        ]
+      }
+    ],
+    "staticRoutes": [
+      "/orders",
+      "/orders/new",
+      "/admin"
+    ],
+    "dataScreens": [
+      "/orders"
+    ]
+  },
+  "sourceItems": [
+    {
+      "id": "SRC-ORDERS-LIST",
+      "kind": "spec",
+      "sourceSystem": "fixture",
+      "externalKey": "ORDERS-LIST",
+      "title": "The order list shows every order",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-ORDERS-EMPTY",
+      "kind": "spec",
+      "sourceSystem": "fixture",
+      "externalKey": "ORDERS-EMPTY",
+      "title": "An empty order list offers a way forward",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-ORDERS-FORM",
+      "kind": "spec",
+      "sourceSystem": "fixture",
+      "externalKey": "ORDERS-FORM",
+      "title": "A new order can be entered",
+      "origin": "upstream"
+    },
+    {
+      "id": "SRC-ORDERS-DELETE",
+      "kind": "spec",
+      "sourceSystem": "fixture",
+      "externalKey": "ORDERS-DELETE",
+      "title": "Deleting an order asks first",
+      "origin": "upstream"
+    }
+  ],
+  "cases": [
+    {
+      "id": "TC-01",
+      "title": "The list shows many orders",
+      "req_id": "REQ-LIST",
+      "sourceRefs": [
+        "SRC-ORDERS-LIST"
+      ],
+      "lane": "lane-gui",
+      "steps": [
+        "Open /orders"
+      ],
+      "expected": "The list shows many orders.",
+      "data": {},
+      "priority": "P1",
+      "kind": "static",
+      "taxonomy": [
+        "functional",
+        "state"
+      ],
+      "states": [
+        "many-rows"
+      ],
+      "viewports": [
+        "desktop"
+      ],
+      "route": "/orders"
+    },
+    {
+      "id": "TC-02",
+      "title": "The empty list offers a way forward",
+      "req_id": "REQ-EMPTY",
+      "sourceRefs": [
+        "SRC-ORDERS-EMPTY"
+      ],
+      "lane": "lane-gui",
+      "steps": [
+        "Open /orders"
+      ],
+      "expected": "The empty list offers a way forward.",
+      "data": {},
+      "priority": "P1",
+      "kind": "static",
+      "taxonomy": [
+        "functional",
+        "state"
+      ],
+      "states": [
+        "empty"
+      ],
+      "viewports": [
+        "desktop"
+      ],
+      "route": "/orders"
+    },
+    {
+      "id": "TC-03",
+      "title": "The new order form opens",
+      "req_id": "REQ-FORM",
+      "sourceRefs": [
+        "SRC-ORDERS-FORM"
+      ],
+      "lane": "lane-gui",
+      "steps": [
+        "Open /orders/new"
+      ],
+      "expected": "The new order form opens.",
+      "data": {},
+      "priority": "P1",
+      "kind": "static",
+      "taxonomy": [
+        "functional",
+        "state"
+      ],
+      "states": [
+        "ideal"
+      ],
+      "viewports": [
+        "desktop"
+      ],
+      "route": "/orders/new"
+    },
+    {
+      "id": "TC-04",
+      "title": "Cancel closes the delete dialog",
+      "req_id": "REQ-DELETE",
+      "sourceRefs": [
+        "SRC-ORDERS-DELETE"
+      ],
+      "lane": "lane-gui",
+      "steps": [
+        "Open dialog:delete-order"
+      ],
+      "expected": "Cancel closes the delete dialog.",
+      "data": {},
+      "priority": "P2",
+      "kind": "static",
+      "taxonomy": [
+        "functional",
+        "state"
+      ],
+      "states": [
+        "ideal"
+      ],
+      "viewports": [
+        "desktop"
+      ],
+      "route": "dialog:delete-order",
+      "actions": [
+        "click:Cancel"
+      ]
+    }
+  ]
+}

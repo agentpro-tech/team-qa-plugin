@@ -163,6 +163,7 @@ export async function prepareNativeRole({runDir,role,prompt,out,factsPath,taskNa
   runDir=resolve(runDir);role=String(role).replaceAll('-','_');
   const r=assertApprovedRoster({runDir,role}),seat=r.roles.find(s=>s.role===role);
   requireValue(seat.harness==='codex-native','NATIVE_HARNESS_REQUIRED');requireValue(role!=='executor_code','NATIVE_CODE_USE_QA_CODE');requireValue(r.run_id===basename(runDir),'RUN_ID_MISMATCH');requireValue(seat.caps.max_turns===1,'NATIVE_SINGLE_TURN_REQUIRED');await phaseGate(runDir,role);
+  (await import('./cost.mjs')).assertUnderCap(runDir); // N7: a native Codex attempt reports no price; it counts at its role's measured maximum
   const caseDecision=role==='executor_gui'?await continuationForCase(runDir,caseId):null;
   const primary=intentFile(runDir,role);let seq=1,id=null,previous=null;
   let previousIntent=null;

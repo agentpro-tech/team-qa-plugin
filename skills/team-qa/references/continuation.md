@@ -9,10 +9,13 @@ From the workspace containing `runs/<id>`, use the verified candidate CLI:
 ```sh
 node <team-qa>/scripts/teamqa.mjs continuation register --run <id> --session <root-session-id> --registry <absolute-registry-directory>
 node <team-qa>/scripts/teamqa.mjs continuation inspect --run <id>
+node <team-qa>/scripts/teamqa.mjs continuation unregister --session <root-session-id> --registry <absolute-registry-directory>
 node <team-qa>/scripts/teamqa.mjs continuation stage-hooks --registry <absolute-registry-directory> --out <candidate-hooks.json>
 ```
 
-Registration verifies the original Codex host metadata, roster and target. It grants no execution permission. One root session owns one run/round; a new roster or runtime requires a fresh reviewed binding. Unregistered threads pass through without changes. Archive a registration to disable it; never repoint an active registration to another run.
+Registration verifies the original Codex host metadata, roster and target. It grants no execution permission. One root session owns one run/round; a new roster or runtime requires a fresh reviewed binding. Unregistered threads pass through without changes. `unregister` disables a registration by moving its binding file to `<registry>/archive/` (it is never deleted); never repoint an active registration to another run.
+
+A binding drifts when its run changes under it: a new round or roster, the run directory deleted, or another Team QA runtime (`CONTINUATION_SCOPE_DRIFT`, `CONTINUATION_RUN_MISSING`, `CONTINUATION_RUNTIME_DRIFT`). The hooks then refuse only Dragon calls and board writes for that session; every other call goes ahead with a warning, and Stop is not continued. `register` again binds the run's current round after verifying the registration again, archiving the drifted binding; a binding that still matches its run is not replaced (`CONTINUATION_ALREADY_REGISTERED`).
 
 A direct native child may inherit that binding only through its original Codex transcript under the trusted sessions directory. Both native parent fields, child identity, direct-child agent path and the registered parent host must agree. It shares the same browser owner and input lock. Child Stop records completion only; it never continues the worker. Unrelated child sessions cannot acquire authority from message text.
 
@@ -30,7 +33,7 @@ The registered browser session ID is printed by `register`. Create only that new
 
 Put the QA GUI policy in `runs/<id>/native-gui-policy.json`. It names the exact target, supported Dragon version, session, tab, permitted reads and capabilities. The child request inspector owns admissibility; Team QA does not copy its JavaScript parser. Passive preparation is separate from trusted input, which also requires the existing signed execution contract. A local Storage read must be declared and use a standalone literal-key `getItem`; synthetic mutation is forbidden.
 
-PostToolUse records the original response hash and checks nested success. It does not certify product acceptance. Recording, trusted input receipts and postconditions still pass through QA GUI's trajectory and result gates. Missing recording may leave the result UNGRADED while independent checks remain executable. Unknown outcomes keep their evidence and require reconciliation; an input pending marker is not cleared merely because time passed.
+PostToolUse records the original response hash and checks nested success. It does not certify product acceptance. Recording, trusted input receipts and postconditions still pass through QA GUI's trajectory and result gates. Missing recording may leave the result UNGRADED while independent checks remain executable. Unknown outcomes keep their evidence and require reconciliation. An input whose PostToolUse never comes (the call was refused or interrupted) stops blocking later inputs once a Stop or Interrupt of the same caller and turn follows it, or once it is older than the longest role timeout of the roster (at least five minutes); the next input records it as abandoned, and with no confirmed result it never counts as verified.
 
 Before live operations the hook rechecks the owned session, effective policy, expiry, browser and bridge/extension version. Dragon does not expose its nonce through `session.list` or `session.getPolicy`; requests therefore remain pinned to the confirmed creation nonce, with server rejection and result readback providing the final check after a nonce change.
 

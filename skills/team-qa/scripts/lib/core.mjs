@@ -1,12 +1,19 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import {
   accessSync,
   appendFileSync,
+  closeSync,
   constants,
   existsSync,
+  linkSync,
   mkdirSync,
+  openSync,
   readFileSync,
+  renameSync,
+  statSync,
+  unlinkSync,
   writeFileSync,
+  writeSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
@@ -161,9 +168,66 @@ async function loadScrollModule(name) {
   }
 }
 
-export async function writeConfirmed(path, content, tool = 'fs.write', { exclusive = false } = {}) {
+// A file another process may read at any moment (state.json under `roster.mjs wait`, hook events read by parallel hooks)
+// is never seen half written: the content goes to a temporary file in the same folder, which then replaces the target in
+// one step (rename). An exclusive write links the temporary file to the target instead, which fails when the target
+// exists, as the old 'wx' write did; on a file system without hard links it falls back to that 'wx' write.
+const NO_HARD_LINKS = ['EPERM', 'ENOTSUP', 'EOPNOTSUPP', 'ENOSYS', 'EXDEV', 'EMLINK'];
+export function writeAtomic(path, content, { exclusive = false } = {}) {
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, content, { encoding: 'utf8', flag: exclusive ? 'wx' : 'w' });
+  const temp = join(dirname(path), `.${basename(path)}.${process.pid}-${randomBytes(6).toString('hex')}.tmp`);
+  writeFileSync(temp, content, { encoding: 'utf8', flag: 'wx' });
+  try {
+    if (!exclusive) { renameSync(temp, path); return; }
+    try { linkSync(temp, path); }
+    catch (error) {
+      if (!NO_HARD_LINKS.includes(error?.code)) throw error;
+      writeFileSync(path, content, { encoding: 'utf8', flag: 'wx' });
+    }
+  } finally {
+    try { unlinkSync(temp); } catch { /* renamed into place */ }
+  }
+}
+
+// A file that parallel processes read and then rewrite (the case ledger of parallel dispatches) is changed under an
+// exclusive lock file next to it (<file>.lock, created with O_EXCL and holding the owner's pid). A waiter retries until
+// timeoutMs and then fails FILE_LOCK_TIMEOUT. A lock older than staleMs whose owner process is gone is moved aside and
+// taken. The lock is released when fn settles.
+const pidAlive = (pid) => { try { process.kill(pid, 0); return true; } catch (error) { return error?.code === 'EPERM'; } };
+function breakStaleLock(lock, staleMs) {
+  let text, stat;
+  try { stat = statSync(lock); text = readFileSync(lock, 'utf8'); } catch { return; }
+  const owner = Number.parseInt(text, 10);
+  if (Date.now() - stat.mtimeMs < staleMs || (Number.isInteger(owner) && owner > 0 && pidAlive(owner))) return;
+  const aside = `${lock}.stale-${process.pid}-${randomBytes(4).toString('hex')}`;
+  try { renameSync(lock, aside); } catch { return; }
+  // Another waiter may have taken the lock between the read and the rename: give it back.
+  let moved = '';
+  try { moved = readFileSync(aside, 'utf8'); } catch { /* gone */ }
+  if (moved !== text) { try { linkSync(aside, lock); } catch { /* a newer lock exists */ } }
+  try { unlinkSync(aside); } catch { /* already gone */ }
+}
+export async function withFileLock(target, fn, { timeoutMs = 60_000, staleMs = 120_000, pollMs = 10 } = {}) {
+  const lock = `${target}.lock`;
+  mkdirSync(dirname(lock), { recursive: true });
+  const deadline = Date.now() + timeoutMs;
+  let fd;
+  for (;;) {
+    try { fd = openSync(lock, 'wx'); break; }
+    catch (error) {
+      if (error?.code !== 'EEXIST') throw error;
+      breakStaleLock(lock, staleMs);
+      if (Date.now() >= deadline) fail(3, 'FILE_LOCK_TIMEOUT', `${lock}: another process holds it; remove it only when no dispatch of the run is running`, 'ungraded');
+      await new Promise((done) => setTimeout(done, pollMs + Math.floor(Math.random() * pollMs)));
+    }
+  }
+  try { writeSync(fd, `${process.pid}\n`); } finally { closeSync(fd); }
+  try { return await fn(); }
+  finally { try { unlinkSync(lock); } catch { /* released */ } }
+}
+
+export async function writeConfirmed(path, content, tool = 'fs.write', { exclusive = false } = {}) {
+  writeAtomic(path, content, { exclusive });
   const expected = sha256(content);
   const { confirmEffect } = await loadScrollModule('effects.js');
   const confirmed = await confirmEffect({
@@ -177,8 +241,10 @@ export async function writeConfirmed(path, content, tool = 'fs.write', { exclusi
 }
 
 export async function appendConfirmed(path, line, tool = 'fs.append') {
-  const previous = existsSync(path) ? readText(path) : '';
-  return writeConfirmed(path, `${previous}${line}`, tool);
+  return withFileLock(path, () => {
+    const previous = existsSync(path) ? readText(path) : '';
+    return writeConfirmed(path, `${previous}${line}`, tool);
+  });
 }
 
 export async function appendScrollLedger({ cwd, runId, caseId, status, evidence, digest, tries = 1 }) {

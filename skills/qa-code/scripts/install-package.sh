@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# The real path of a folder, a link to one followed, without the realpath command (macOS 12 and older have none);
+# empty when it cannot be resolved, and an empty result never matches.
+real_dir() { (CDPATH= cd -P -- "$1" 2>/dev/null && pwd -P) || true; }
 ENVELOPE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 DEST_ROOT="$HOME/.agents/skills"
 COMPAT_ROOT="$HOME"
@@ -57,7 +60,7 @@ rollback() {
 }
 for scope in "$COMPAT_ROOT/.claude/skills" "$COMPAT_ROOT/.codex/skills"; do
   link="$scope/$SKILL"
-  if [ -L "$link" ] && [ "$(realpath "$link" 2>/dev/null || true)" = "$(realpath "$DEST")" ]; then
+  if [ -L "$link" ] && [ -n "$(real_dir "$DEST")" ] && [ "$(real_dir "$link")" = "$(real_dir "$DEST")" ]; then
     continue
   fi
   label="$(basename "$(dirname "$scope")")"

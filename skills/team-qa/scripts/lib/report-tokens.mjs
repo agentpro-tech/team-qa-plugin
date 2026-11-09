@@ -21,7 +21,10 @@ export const isRtmRequirementHeaderLine = (line) => RTM_REQUIREMENT_HEADERS.some
 // The first words of a WAIT report: the run is not complete and says what is blocked.
 export const WAIT_MARKER = 'NOT COMPLETE';
 export const LEGACY_WAIT_MARKER = 'CH\u01afA HO\u00c0N TH\u00c0NH';
+// Markdown around the marker does not change it: emphasis (**, __, *, _, ~~, `) is removed and a heading or quote
+// mark in front of it is skipped, so `**NOT COMPLETE**` and `## NOT COMPLETE` start a WAIT report too.
+export const stripLeadingMarkdown = (text) => String(text || '').replace(/[*_~`]/g, '').replace(/^[\s>#-]+/, '').trim();
 export const startsWithWaitMarker = (text) => {
-  const value = String(text || '').trim();
+  const value = stripLeadingMarkdown(text);
   return value.startsWith(WAIT_MARKER) || value.startsWith(LEGACY_WAIT_MARKER);
 };

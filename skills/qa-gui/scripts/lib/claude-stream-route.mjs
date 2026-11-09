@@ -14,6 +14,8 @@ import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 
+import { DRAGON_R1A_TOOLS } from './dragon-env.mjs';
+
 export const CLAUDE_STREAM_ROUTE_RULE = 'qa-gui/claude-stream-dragon-route/v1';
 // Server names Team QA's roster accepts for the executor_gui mcp_config (roster.mjs mcpRoute).
 export const DRAGON_ROUTE_SERVERS = Object.freeze(['dragon', 'Dragon_Browser']);
@@ -179,6 +181,10 @@ export function inspectClaudeStreamDragonRoute({ stream, sessionId, server } = {
         const use = uses.get(block.tool_use_id);
         if (!use || answered.has(block.tool_use_id)) { add(INVALID, `line=${line}:tool_result`); continue; }
         answered.add(block.tool_use_id);
+        // Upgrade R1d: an R1a MCP tool (envSet ... paintSnapshot) proxies one Dragon RPC with flat params; a successful
+        // one names the Dragon session it used, like dragon_rpc. Rule 6 still counts dragon_rpc calls only.
+        const r1a = use.name.startsWith(prefix) && Object.hasOwn(DRAGON_R1A_TOOLS, use.name.slice(prefix.length));
+        if (r1a && isObject(use.input) && typeof use.input.sessionId === 'string' && use.input.sessionId && dragonRpcSucceeded(decodeToolResult(block))) sessions.add(use.input.sessionId);
         const envelope = use.name === dragonRpc ? decodeToolResult(block) : null;
         if (use.name === dragonRpc && isObject(use.input) && typeof use.input.method === 'string' && use.input.method
           && dragonRpcSucceeded(envelope)) {

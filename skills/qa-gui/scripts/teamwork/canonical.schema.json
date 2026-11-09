@@ -48,6 +48,7 @@
       "items": { "$ref": "#/$defs/evidenceManifestEntry" }
     },
     "vision": { "$ref": "#/$defs/vision" },
+    "evidencePolicy": { "$ref": "#/$defs/evidencePolicy" },
     "currentRound": { "type": "integer", "minimum": 1 },
     "sourceItems": {
       "type": "array",
@@ -125,8 +126,15 @@
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
+    "evidencePolicy": {
+      "$comment": "Evidence policy v1 (R1f): the gate checks every screenshot (not blank, bound to its state receipt, viewport shape, target inside, at most 1280 px wide) and every behavioral recording segment's manifest (action coverage, change, not stale, frames saved = sent). See references/state-receipt-v1.md.",
+      "type": "object",
+      "required": ["version"],
+      "properties": { "version": { "type": "integer", "enum": [1] } },
+      "additionalProperties": false
+    },
     "recordingSegments": {
-      "$comment": "Deployed-build (web-v1) behavioral case: which part of which recording shows the run (SKILL.md behavioral evidence). canonical.mjs allows it on the cases of a board that declares targetBindingSha256.",
+      "$comment": "Behavioral case: which part of which recording shows the run (SKILL.md behavioral evidence). canonical.mjs allows it on the cases of a board that declares targetBindingSha256 or evidencePolicy. `manifest` names the qa-gui/recording-manifest/v1 of that recording (required by evidence policy v1).",
       "type": "array",
       "items": {
         "type": "object",
@@ -134,7 +142,8 @@
         "properties": {
           "file": { "type": "string", "minLength": 1 },
           "startMs": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "number", "minimum": 0 }] },
-          "endMs": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "number", "minimum": 0 }] }
+          "endMs": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "number", "minimum": 0 }] },
+          "manifest": { "type": "string", "minLength": 1 }
         },
         "additionalProperties": false
       }
@@ -149,6 +158,77 @@
         "case_id": { "type": "string", "minLength": 1 },
         "state": { "type": "string", "minLength": 1 },
         "captured_at": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "speedPolicy": {
+      "$comment": "Speed policy (upgrade R3, references/speed-flags.md): which speed flags are off, shadow or on, the minimum tier per check and the pinned approved-baseline store, written from the signed plan or by the project owner, never by the executor. canonical.mjs adds it to the root of a board that declares it, and lets that board's vision assertions carry `inherited`.",
+      "type": "object",
+      "required": ["version", "source"],
+      "properties": {
+        "version": { "type": "integer", "enum": [1] },
+        "source": {
+          "type": "object",
+          "required": ["kind", "sha256"],
+          "properties": {
+            "kind": { "type": "string", "enum": ["team-qa/signed-plan", "qa-gui/owner-policy"] },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          },
+          "additionalProperties": false
+        },
+        "flags": {
+          "type": "object",
+          "properties": {
+            "vision_by_diff": { "type": "string", "enum": ["off", "shadow", "on"] },
+            "cost_ladder": { "type": "string", "enum": ["off", "shadow", "on"] },
+            "parallel_gui_lanes": { "type": "string", "enum": ["off", "shadow", "on"] },
+            "fast_click": { "type": "string", "enum": ["off", "shadow", "on"] },
+            "action_cache": { "type": "string", "enum": ["off", "shadow", "on"] }
+          },
+          "additionalProperties": false
+        },
+        "min_tier": {
+          "type": "object",
+          "properties": {
+            "gate0": { "type": "integer", "enum": [0, 1, 2, 3] },
+            "vision": { "type": "integer", "enum": [0, 1, 2, 3] },
+            "function": { "type": "integer", "enum": [0, 1, 2, 3] },
+            "verdict": { "type": "integer", "enum": [0, 1, 2, 3] }
+          },
+          "additionalProperties": false
+        },
+        "baseline_store": {
+          "type": "object",
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "visionInherited": {
+      "$comment": "Vision by diff (upgrade R3): the approved baseline a vision assertion inherits its verdict from. The gate recomputes the decision (lib/vision-by-diff.mjs); a record it cannot recompute is UNGRADED.",
+      "type": "object",
+      "required": ["schema", "baseline_sha256", "baseline_key", "diff_percent", "max_tile_percent"],
+      "properties": {
+        "schema": { "type": "string", "enum": ["qa-gui/vision-inherit/v1"] },
+        "baseline_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "baseline_key": {
+          "type": "object",
+          "required": ["route", "state", "viewport", "build"],
+          "properties": {
+            "route": { "type": "string", "minLength": 1 },
+            "state": { "type": "string", "minLength": 1 },
+            "viewport": { "type": "string", "minLength": 1 },
+            "build": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "diff_percent": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "number", "minimum": 0 }] },
+        "max_tile_percent": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "number", "minimum": 0 }] }
       },
       "additionalProperties": false
     },

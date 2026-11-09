@@ -26,6 +26,8 @@ const CONTRACT_OK = (() => { try { readContract(); return true; } catch { return
 const NEEDS_GIT_CONTRACT = NEEDS_PREFLIGHT || (!CONTRACT_OK && 'contracts/release-truth-contract/v2 is unreadable in this checkout');
 const HOME = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-deployed-home-')));
 process.env.HOME = HOME;
+// Transcripts are written under HOME/.claude; a CLAUDE_CONFIG_DIR of the machine running the tests would point elsewhere.
+delete process.env.CLAUDE_CONFIG_DIR;
 for (const key of Object.keys(process.env)) if (key.startsWith('TEAMQA_TARGET_') || key === 'CLAUDE_CODE_SESSION_ID') delete process.env[key];
 
 const PREVIEW = 'http://127.0.0.1:5401/intro', BACKEND = 'http://127.0.0.1:5411', BUILD = 'index-CJjkO35e';

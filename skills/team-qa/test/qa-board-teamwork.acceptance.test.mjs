@@ -60,6 +60,17 @@ test("Team QA board init delegates canonical creation to qa-gui", () => {
   assert.equal(calls(p)[0].operation, "init");
 });
 
+test("Team QA board init passes QA GUI evidence policy v1 through, and refuses another value", () => {
+  const p = setup();
+  const result = run(p, ["board", "init", "--run", "tq-test", "--title", "Sample Shop QA", "--out", p.board, "--evidence-policy", "1"]);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const init = calls(p).find((item) => item.operation === "init");
+  assert.deepEqual(init.args.slice(init.args.indexOf("--evidence-policy"), init.args.indexOf("--evidence-policy") + 2), ["--evidence-policy", "1"]);
+  const refused = run(setup(), ["board", "init", "--run", "tq-test", "--title", "Sample Shop QA", "--out", p.board + ".2", "--evidence-policy", "2"]);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stdout + refused.stderr, /BOARD_EVIDENCE_POLICY_INVALID/);
+});
+
 test("native render is default, gates before render and never calls Notion", () => {
   const p = setup();
   const result = run(p, ["board", "render", "--file", p.board, "--out", p.html, ...quality(p)]);

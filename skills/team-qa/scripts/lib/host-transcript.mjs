@@ -1,9 +1,10 @@
 // Host transcript adapters for the root orchestrator session.
 // Codex rollouts keep their existing verifiers; Claude Code transcripts are read only from
-// ~/.claude/projects/<project>/<session-id>.jsonl and only from the original file.
+// <Claude config>/projects/<project>/<session-id>.jsonl and only from the original file. The Claude config folder is
+// CLAUDE_CONFIG_DIR when it is set, else ~/.claude, compared by its real path (a symlinked ~/.claude works).
 import { closeSync, existsSync, fstatSync, openSync, readSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { basename, dirname, join, sep } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fail, readJson, sha256, visibleCodexAssistantText } from './core.mjs';
 
 export const CLAUDE_HOST_KIND = 'claude-code';
@@ -12,12 +13,13 @@ const MAX_HEADER_LINES = 64;
 const MAX_HEADER_BYTES = 4 * 1024 * 1024;
 const SYSTEM_REMINDER = /<system-reminder>[\s\S]*?<\/system-reminder>/g;
 
-function rootOf(...parts) {
-  try { return realpathSync(join(homedir(), ...parts)); }
-  catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+function realOrNull(path) {
+  try { return realpathSync(path); }
+  catch (error) { if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null; throw error; }
 }
-export function claudeProjectsRoot() { return rootOf('.claude', 'projects'); }
-export function codexSessionsRoot() { return rootOf('.codex', 'sessions'); }
+export function claudeConfigDir(env = process.env) { return env.CLAUDE_CONFIG_DIR ? resolve(env.CLAUDE_CONFIG_DIR) : join(homedir(), '.claude'); }
+export function claudeProjectsRoot(env = process.env) { return realOrNull(join(claudeConfigDir(env), 'projects')); }
+export function codexSessionsRoot() { return realOrNull(join(homedir(), '.codex', 'sessions')); }
 
 function inside(path, root) { return Boolean(root) && path.startsWith(root + sep); }
 

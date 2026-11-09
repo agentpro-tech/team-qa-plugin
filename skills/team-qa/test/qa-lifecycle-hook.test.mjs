@@ -341,3 +341,105 @@ test('pending worker waits use elapsed roster budget rather than three Stop even
   const legacy = await handleQaHook({ ...f.input, turn_id: 't6', hook_event_name: 'Stop', last_assistant_message: 'CH\u01afA HO\u00c0N TH\u00c0NH' }, deps);
   assert.equal(legacy.decision, undefined); assert.match(legacy.systemMessage, /ALL_REMAINING_WORK_BLOCKED/);
 });
+// M3: hooks of parallel tool calls read the run's hook events while another hook writes one. A torn event file was
+// JSON_INVALID, which refused a valid call.
+test('a parallel hook never reads a half-written event file', async () => {
+  const { splitWrites } = await import('./support/split-writes.mjs');
+  const f = fixture(), dir = join(f.runDir, 'hook-events');
+  mkdirSync(dir, { recursive: true });
+  const parallel = [];
+  const read = { method: 'session.list', params: { sessionId: 'qa-own' } };
+  const deps = { ...f.deps, inspect: () => ({ allowed: true, requiresLive: false, mutating: false }) };
+  let started = 0;
+  const restore = splitWrites(dir, () => { if (started < 3) { const id = `parallel-${started++}`; parallel.push(handleQaHook(pre(f, id, read), deps).catch(error => ({ error: error.code || error.message }))); } });
+  let first;
+  try { first = await handleQaHook(pre(f, 'first', read), deps); }
+  finally { restore(); }
+  assert.deepEqual(first, {});
+  const results = await Promise.all(parallel);
+  assert.ok(results.length > 0, 'a parallel hook ran during the write');
+  for (const result of results) assert.deepEqual(result, {}, JSON.stringify(result));
+});
+// N9: Claude Code sends last_assistant_message on every Stop, so the one-correction guard has to hold for it too, and a
+// WAIT report that starts with the marker in markdown emphasis is a WAIT report.
+test('a WAIT report in markdown emphasis passes, and a report that misses the marker is blocked at most once per code', async () => {
+  const f = fixture();
+  const deps = { ...f.deps, decide: () => ({ disposition: 'WAIT', code: 'GUI_BLOCKED', runId: 'demo', next: null }) };
+  const stop = (turn, message, active = false) => handleQaHook({ ...f.input, turn_id: turn, hook_event_name: 'Stop', last_assistant_message: message, stop_hook_active: active }, deps);
+  for (const [turn, message] of [['b1', '**NOT COMPLETE**: the GUI lane is blocked'], ['b2', '## NOT COMPLETE\nblocked'], ['b3', '_NOT COMPLETE_ - blocked'], ['b4', '> **NOT COMPLETE:** blocked']]) {
+    const output = await stop(turn, message);
+    assert.equal(output.decision, undefined, message);
+    assert.match(output.systemMessage, /QA NOT COMPLETE: GUI_BLOCKED/);
+  }
+  const lead = 'Here is where the run stands.\n\nNOT COMPLETE: the GUI lane is blocked';
+  assert.equal((await stop('l1', lead)).decision, 'block');
+  const repeat = await stop('l1', lead, true);
+  assert.equal(repeat.decision, undefined);
+  assert.match(repeat.systemMessage, /GUI_BLOCKED/);
+  assert.equal((await stop('l1', 'Still blocked, as reported above.', true)).decision, undefined);
+  // Another blocked code gets its own single correction.
+  const other = { ...deps, decide: () => ({ disposition: 'WAIT', code: 'BOARD_BLOCKED', runId: 'demo', next: null }) };
+  assert.equal((await handleQaHook({ ...f.input, turn_id: 'l2', hook_event_name: 'Stop', last_assistant_message: 'Done.', stop_hook_active: true }, other)).decision, 'block');
+  assert.equal((await handleQaHook({ ...f.input, turn_id: 'l2', hook_event_name: 'Stop', last_assistant_message: 'Done!', stop_hook_active: true }, other)).decision, undefined);
+});
+// M7: a Dragon input that never got its PostToolUse (the user pressed No, or the turn was interrupted) used to block every
+// later Dragon input of the run with DRAGON_INPUT_IN_FLIGHT.
+test('an input left in flight stops blocking after a Stop or Interrupt of its turn, or after the bounded time', async () => {
+  const f = fixture(); let clock = Date.parse('2026-11-04T08:00:00Z');
+  const deps = { ...f.deps, now: () => clock, inspect: () => ({ allowed: true, requiresLive: false, mutating: true }),
+    decide: () => ({ disposition: 'COMPLETE', code: 'RUN_COMPLETE_VERIFIED', runId: 'demo', next: null, progress: 'p' }) };
+  const click = { method: 'trustedClick', params: { selector: '#save' } };
+  const reason = output => output.hookSpecificOutput?.permissionDecisionReason;
+  const dir = join(f.runDir, 'hook-events');
+  const abandoned = () => readdirSync(dir).filter(n => n.endsWith('.input-abandoned.json')).map(n => JSON.parse(readFileSync(join(dir, n))));
+  assert.deepEqual(await handleQaHook(pre(f, 'c1', click), deps), {});
+  clock += 1000;
+  assert.equal(reason(await handleQaHook(pre(f, 'c2', click), deps)), 'DRAGON_INPUT_IN_FLIGHT', 'a real in-flight input still blocks');
+  // c1 never gets a PostToolUse; its turn ends.
+  clock += 1000;
+  await handleQaHook({ ...f.input, hook_event_name: 'Stop', last_assistant_message: 'Paused for the user.' }, deps);
+  clock += 1000;
+  assert.deepEqual(await handleQaHook(pre(f, 'c3', click), deps), {});
+  assert.deepEqual(abandoned().map(row => row.toolUseId), ['c1']);
+  const admission = readdirSync(dir).filter(n => n.endsWith('.event.json')).map(n => JSON.parse(readFileSync(join(dir, n)))).find(e => e.type === 'dragon-admission' && e.toolUseId === 'c3');
+  assert.equal(admission.supersedes.toolUseId, 'c1');
+  assert.equal(admission.supersedes.reason, 'STOP_AFTER_INPUT');
+  // c3 is in flight; a Stop of another turn does not release it, the bounded time does.
+  clock += 1000;
+  await handleQaHook({ ...f.input, turn_id: 'other-turn', hook_event_name: 'Stop', last_assistant_message: 'x' }, deps);
+  assert.equal(reason(await handleQaHook(pre(f, 'c4', click), deps)), 'DRAGON_INPUT_IN_FLIGHT');
+  clock += 10 * 60 * 1000;
+  assert.deepEqual(await handleQaHook(pre(f, 'c5', click), deps), {});
+  assert.deepEqual(abandoned().map(row => row.toolUseId).sort(), ['c1', 'c3']);
+  // An Interrupt of the turn releases c5.
+  clock += 1000;
+  await handleQaHook({ ...f.input, hook_event_name: 'Interrupt' }, deps);
+  clock += 1000;
+  assert.deepEqual(await handleQaHook(pre(f, 'c6', click), deps), {});
+  // A completed input is not abandoned.
+  await handleQaHook(post(f, 'c6', click, { ok: true }), deps);
+  assert.deepEqual(await handleQaHook(pre(f, 'c7', click), deps), {});
+  assert.deepEqual(abandoned().map(row => row.toolUseId).sort(), ['c1', 'c3', 'c5']);
+});
+// M10: a hook staged with Node's Homebrew Cellar path stopped silently after `brew upgrade` removed that version.
+test('a staged hook names Node by the Homebrew path that survives an upgrade', async () => {
+  const { chmodSync, realpathSync, symlinkSync } = await import('node:fs');
+  const { dirname } = await import('node:path');
+  const brew = realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-brew-')));
+  const node = (formula, version) => { const path = join(brew, 'Cellar', formula, version, 'bin', 'node'); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, ''); chmodSync(path, 0o755); return path; };
+  const command = nodePath => hookDefinition({ registryDir: '/tmp/qa-registry', nodePath, qaGuiRoot: undefined, allowLocalCandidate: false }).hooks.Stop[0].hooks[0].command;
+  mkdirSync(join(brew, 'opt'), { recursive: true });
+  const current = node('node', '22.11.0');
+  symlinkSync(join('..', 'Cellar', 'node', '22.11.0'), join(brew, 'opt', 'node'));
+  assert.ok(command(current).startsWith(`'${join(brew, 'opt', 'node', 'bin', 'node')}' `), command(current));
+  const pinned = node('node@20', '20.18.1');
+  symlinkSync(join('..', 'Cellar', 'node@20', '20.18.1'), join(brew, 'opt', 'node@20'));
+  assert.ok(command(pinned).startsWith(`'${join(brew, 'opt', 'node@20', 'bin', 'node')}' `), command(pinned));
+  // No opt link: the prefix's bin link; neither: the path stays as given.
+  const orphan = node('node@18', '18.20.4');
+  assert.ok(command(orphan).startsWith(`'${orphan}' `));
+  mkdirSync(join(brew, 'bin'), { recursive: true }); symlinkSync(orphan, join(brew, 'bin', 'node'));
+  assert.ok(command(orphan).startsWith(`'${join(brew, 'bin', 'node')}' `));
+  assert.ok(command('/usr/bin/node').startsWith("'/usr/bin/node' "));
+  assert.throws(() => command('node'), /HOOK_ABSOLUTE_PATH_REQUIRED/);
+});

@@ -96,3 +96,41 @@ test('executor inputs: regular files under --inputs, listed before anything runs
   for (let n = 0; n < 201; n++) writeFileSync(join(base, 'many', `f${String(n).padStart(3, '0')}.txt`), 'x');
   assert.equal(code(() => listDispatchInputs(join(base, 'many'))), 'DISPATCH_INPUTS_TOO_LARGE');
 });
+
+// M2: parallel dispatches (separate processes) appended to the case ledger without a lock: lines were lost (33 of 200
+// kept) and the per-case limit was under-counted.
+function runWithCases(count) {
+  const runDir = join(realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-case-ledger-'))), 'runs', 'r1');
+  mkdirSync(join(runDir, 'role-bindings'), { recursive: true });
+  const cases = Array.from({ length: count }, (_, n) => ({ ...CASES[0], id: `TC-${String(n + 1).padStart(3, '0')}`, title: `case ${n + 1}` }));
+  writeFileSync(join(runDir, 'tracked-plan.json'), text({ schemaVersion: 2, sourceItems: [{ id: 'SRC-1', kind: 'brief', sourceSystem: 'brief', externalKey: 'K-1', title: 'One', origin: 'upstream' }], cases }));
+  writeFileSync(join(runDir, 'docs-lock.json'), text({ schema: 'team-qa/docs-lock/v1', run_id: 'r1', round: 1, roster_hash: 'a'.repeat(64),
+    artifacts: { tracked: { path: 'tracked-plan.json', sha256: hash(readFileSync(join(runDir, 'tracked-plan.json'))) } } }));
+  return { runDir, cases };
+}
+async function parallelStarts(runDir, starts) {
+  const { spawn } = await import('node:child_process');
+  const module = new URL('../../scripts/lib/run-contract.mjs', import.meta.url).href;
+  const script = `const { startCaseDispatch } = await import(${JSON.stringify(module)});
+try { await startCaseDispatch({ runDir: process.argv[1], role: 'executor_gui', caseId: process.argv[2], attempt: process.argv[3] }); console.log('STARTED'); }
+catch (error) { console.log('REFUSED ' + (error.code || error.message)); }`;
+  return Promise.all(starts.map(([caseId, attempt]) => new Promise((done) => {
+    const child = spawn(process.execPath, ['--input-type=module', '-e', script, runDir, caseId, attempt], { stdio: ['ignore', 'pipe', 'pipe'] });
+    let out = ''; child.stdout.on('data', (d) => { out += d; }); child.stderr.on('data', (d) => { out += d; });
+    child.on('close', () => done(out.trim()));
+  })));
+}
+test('200 parallel case dispatches keep 200 ledger lines, and parallel starts of one case stop at three', { timeout: 240000 }, async () => {
+  const { runDir, cases } = runWithCases(100);
+  const starts = Array.from({ length: 200 }, (_, n) => [cases[n % 100].id, `attempt-parallel-${String(n).padStart(3, '0')}`]);
+  const outcomes = await parallelStarts(runDir, starts);
+  assert.equal(outcomes.filter((o) => o === 'STARTED').length, 200, outcomes.filter((o) => o !== 'STARTED').slice(0, 3).join('\n'));
+  const ledger = readFileSync(join(runDir, 'dispatch/executor_gui/case-dispatches.jsonl'), 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+  assert.equal(ledger.length, 200);
+  assert.equal(new Set(ledger.map((row) => row.attempt)).size, 200);
+  const same = runWithCases(2);
+  const raced = await parallelStarts(same.runDir, Array.from({ length: 8 }, (_, n) => ['TC-001', `attempt-same-case-${n}`]));
+  assert.equal(raced.filter((o) => o === 'STARTED').length, 3, raced.join('\n'));
+  assert.ok(raced.filter((o) => o !== 'STARTED').every((o) => o === 'REFUSED DISPATCH_CASE_ATTEMPTS_EXHAUSTED'), raced.join('\n'));
+  assert.equal(caseDispatchBudget({ runDir: same.runDir, role: 'executor_gui', caseId: 'TC-001' }).used, 3);
+});

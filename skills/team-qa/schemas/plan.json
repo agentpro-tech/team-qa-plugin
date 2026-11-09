@@ -6,10 +6,43 @@
   "additionalProperties": false,
   "required": ["run_id", "app", "plan_version", "lanes", "tiers", "exit_criteria"],
   "properties": {
+    "coverage": {
+      "$comment": "R1b: the N/A coverage cells the owner signs with the plan (references/coverage-cells.md).",
+      "type": "object", "additionalProperties": false,
+      "required": ["version"],
+      "properties": {
+        "version": {"const": "team-qa/coverage-cells/v1"},
+        "destructive": {"$comment": "R1e: destructive actions the explorer may press.", "type": "array", "items": {
+          "type": "object", "additionalProperties": false, "required": ["route", "action", "reason"],
+          "properties": {"route":{"type":"string","minLength":1},"action":{"type":"string","minLength":1},"reason":{"type":"string","minLength":1}}
+        }},
+        "na": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false, "required": ["route", "reason"],
+          "properties": {"route":{"type":"string","minLength":1},"state":{"type":"string"},"action":{"type":"string"},"viewport":{"type":"string"},"condition":{"type":"string"},"reason":{"type":"string","minLength":1}}
+        }}
+      }
+    },
     "preflight": {
       "type": "object", "additionalProperties": false,
       "required": ["code", "gui", "recording"],
       "properties": {"code":{"type":"boolean"},"gui":{"type":"boolean"},"recording":{"type":"boolean"}}
+    },
+    "speed": {
+      "$comment": "Upgrade R3 speed flags (references/speed-flags.md). Optional; every flag is off unless set here, in the signed plan.",
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "vision_by_diff": {"enum": ["off", "shadow", "on"]},
+        "cost_ladder": {"enum": ["off", "shadow", "on"]},
+        "parallel_gui_lanes": {"enum": ["off", "shadow", "on"]},
+        "fast_click": {"enum": ["off", "shadow", "on"]},
+        "action_cache": {"enum": ["off", "shadow", "on"]},
+        "min_tier": {"type": "object", "additionalProperties": false,
+          "properties": {"gate0": {"enum": [0, 1, 2, 3]}, "vision": {"enum": [0, 1, 2, 3]}, "function": {"enum": [0, 1, 2, 3]}, "verdict": {"enum": [0, 1, 2, 3]}}},
+        "baseline_store": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"],
+          "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
+        "action_cache_store": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"],
+          "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}
+      }
     },
     "run_id": {"type": "string", "minLength": 1},
     "app": {"type": "string", "minLength": 1},
@@ -24,7 +57,10 @@
           "id": {"type": "string", "minLength": 1},
           "scope": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
           "parallel_ok": {"type": "boolean"},
-          "vi_sao": {"type": "string"}
+          "vi_sao": {"type": "string"},
+          "account": {"type": "string", "minLength": 1, "$comment": "R3: the lane's own test account or tenant (an id, never a password)"},
+          "data_namespace": {"type": "string", "minLength": 1, "$comment": "R3: the data namespace only this lane writes"},
+          "dragon_session": {"type": "string", "minLength": 1, "$comment": "R3: the prefix of the Dragon sessionId this lane's executor creates"}
         }
       }
     },

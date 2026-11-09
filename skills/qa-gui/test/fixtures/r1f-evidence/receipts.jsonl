@@ -1,0 +1,4 @@
+{"v": 1, "actionId": "act-mvrbi4za-0610f75bad3d", "ts": 1793143771318, "durMs": 33, "action": {"method": "openTab", "step": null}, "input": {"kind": "nav", "trusted": true}}
+{"v": 1, "actionId": "act-mvrbi61a-3aee6ca13c58", "ts": 1793143772686, "durMs": 5, "action": {"method": "reloadTab", "step": null}, "input": {"kind": "nav", "trusted": true}}
+{"v": 1, "actionId": "act-mvrbi6ua-3814549ad984", "ts": 1793143773730, "durMs": 16, "action": {"method": "navigate", "step": null}, "input": {"kind": "nav", "trusted": true}}
+{"v": 1, "actionId": "act-mvrbi7nv-3fc279415b61", "ts": 1793143774795, "durMs": 22, "action": {"method": "navigate", "step": null}, "input": {"kind": "nav", "trusted": true}}

@@ -57,7 +57,10 @@ if [ -n "$(find "$OUT" -type l -print -quit)" ]; then echo "PLUGIN_SYMLINK $(fin
 if [ -n "$(find "$OUT" \( -name .DS_Store -o -name Thumbs.db -o -name desktop.ini -o -name __MACOSX \) -print -quit)" ]; then echo "PLUGIN_SYSTEM_FILE" >&2; exit 4; fi
 IDS="${TEAMQA_HYGIENE_IDS:-$HOME/.agentpro/hygiene-ids.txt}"
 if [ -f "$IDS" ]; then
-  if grep -R -i -n -F -f "$IDS" "$OUT/.claude-plugin" "$OUT/README.md" "$OUT/bin" "$OUT/hooks" > "$WORK/ids.txt" 2>/dev/null; then cut -c1-160 "$WORK/ids.txt" >&2; echo "PLUGIN_PERSONAL_ID" >&2; exit 4; fi
+  # The list as package-tool.mjs reads it: # starts a comment, blank lines and names under four characters are skipped
+  # (an empty pattern would match every line).
+  sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$IDS" | awk 'length($0) >= 4' > "$WORK/hygiene-ids.txt"
+  if [ -s "$WORK/hygiene-ids.txt" ] && grep -R -i -n -F -f "$WORK/hygiene-ids.txt" "$OUT/.claude-plugin" "$OUT/README.md" "$OUT/bin" "$OUT/hooks" > "$WORK/ids.txt" 2>/dev/null; then cut -c1-160 "$WORK/ids.txt" >&2; echo "PLUGIN_PERSONAL_ID" >&2; exit 4; fi
 fi
 if command -v claude > /dev/null 2>&1; then
   claude plugin validate "$OUT" > "$WORK/validate.log" 2>&1 || { cat "$WORK/validate.log" >&2; echo "PLUGIN_VALIDATE_FAILED" >&2; exit 4; }

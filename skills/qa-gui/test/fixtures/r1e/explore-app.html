@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Orders (R1e exploration fixture)</title>
+<!-- Synthetic fixture for the R1e frontier explorer: a list, a form and a delete dialog behind hash routes.
+     The `.orders.is-empty` rule never matches: the list always has rows. Not a product page. -->
+<style>
+  body { margin: 0; font: 14px/1.4 sans-serif; }
+  .orders.is-empty .empty-note { display: block; color: #555; }
+  .empty-note { display: none; }
+  [role=dialog] { position: fixed; inset: 0; background: rgba(0,0,0,.4); }
+  [role=dialog] > div { background: #fff; width: 300px; margin: 80px auto; padding: 16px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+  const orders = ['A-1', 'A-2', 'A-3'];
+  let sorted = false;
+  let dialog = false;
+  function render() {
+    const route = location.hash || '#/orders';
+    const app = document.getElementById('app');
+    if (route === '#/orders/new') {
+      app.innerHTML = '<main><h1>New order</h1><form><label>Item <input name="item"></label><button type="button" id="save">Save</button><button type="button" id="cancel">Cancel</button></form></main>';
+      document.getElementById('save').onclick = () => { location.hash = '#/orders'; };
+      document.getElementById('cancel').onclick = () => { location.hash = '#/orders'; };
+      return;
+    }
+    const rows = (sorted ? [...orders].reverse() : orders).map((id) => '<li>' + id + '</li>').join('');
+    app.innerHTML = '<main><h1>Orders</h1><button id="new">New order</button><button id="sort">Sort</button><button id="delete">Delete</button>'
+      + '<ul class="orders">' + rows + '</ul><p class="empty-note">No orders yet</p></main>'
+      + (dialog ? '<div role="dialog" id="delete-order" aria-modal="true"><div><p>Delete order A-1?</p><button id="confirm">Delete order</button><button id="keep">Cancel</button></div></div>' : '');
+    document.getElementById('new').onclick = () => { location.hash = '#/orders/new'; };
+    document.getElementById('sort').onclick = () => { sorted = !sorted; render(); };
+    document.getElementById('delete').onclick = () => { dialog = true; render(); };
+    if (dialog) {
+      document.getElementById('confirm').onclick = () => { orders.shift(); dialog = false; render(); };
+      document.getElementById('keep').onclick = () => { dialog = false; render(); };
+    }
+  }
+  window.addEventListener('hashchange', render);
+  render();
+</script>
+</body>
+</html>

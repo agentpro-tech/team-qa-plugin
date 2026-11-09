@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-files/v1",
   "skill": "team-qa",
-  "version": "1.15.1",
+  "version": "1.16.0",
   "include": [
     ".github/workflows/ci.yml",
     ".gitignore",

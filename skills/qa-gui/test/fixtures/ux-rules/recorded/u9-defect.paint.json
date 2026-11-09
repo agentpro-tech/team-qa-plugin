@@ -1,0 +1,112 @@
+{
+  "recordedWith": "Dragon env-controller (extension/env-controller.js) at lane build 1.6.9-qa.f108af9 over a Playwright CDP session, Chromium headless, viewport 800x600",
+  "fixture": "u9-defect.html",
+  "call": {
+    "method": "paintSnapshot",
+    "params": {
+      "selector": "button",
+      "all": true
+    }
+  },
+  "result": {
+    "ok": true,
+    "t": 1793794607540,
+    "selector": "button",
+    "count": 1,
+    "scroll": {
+      "x": 0,
+      "y": 0
+    },
+    "viewport": {
+      "w": 800,
+      "h": 600
+    },
+    "elements": [
+      {
+        "selector": "button",
+        "index": 0,
+        "found": true,
+        "node": "button#checkout",
+        "paintOrder": 3,
+        "style": {
+          "display": "block",
+          "visibility": "visible",
+          "opacity": "1",
+          "contentVisibility": "visible"
+        },
+        "opacity": 1,
+        "rect": {
+          "x": 24,
+          "y": 90,
+          "w": 240,
+          "h": 48
+        },
+        "visibleFraction": 1,
+        "points": [
+          {
+            "x": 144,
+            "y": 114,
+            "covered": false,
+            "by": null
+          },
+          {
+            "x": 72,
+            "y": 100,
+            "covered": false,
+            "by": null
+          },
+          {
+            "x": 216,
+            "y": 100,
+            "covered": true,
+            "by": {
+              "node": "div.promo",
+              "backendNodeId": 12,
+              "paints": "background",
+              "paintOrder": 4
+            }
+          },
+          {
+            "x": 72,
+            "y": 129,
+            "covered": false,
+            "by": null
+          },
+          {
+            "x": 216,
+            "y": 129,
+            "covered": true,
+            "by": {
+              "node": "div.promo",
+              "backendNodeId": 12,
+              "paints": "background",
+              "paintOrder": 4
+            }
+          }
+        ],
+        "coveredPoints": 2,
+        "reasons": [],
+        "shown": true
+      }
+    ],
+    "conditions": {
+      "v": 1,
+      "caseId": null,
+      "role": "test",
+      "network": null,
+      "cpu": null,
+      "timezone": null,
+      "locale": null,
+      "media": null,
+      "animation": null,
+      "requests": [],
+      "probes": {
+        "sensors": false,
+        "frames": false
+      },
+      "verified": null,
+      "setAt": null,
+      "expiresAt": null
+    }
+  }
+}

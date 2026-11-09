@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>U5 defect: a toast that is never announced</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  button { font: inherit; padding: 8px 16px; }
+  .toast { position: fixed; right: 24px; bottom: 24px; background: #1f2937; color: #fff; padding: 12px 16px; border-radius: 6px; }
+</style>
+</head>
+<body>
+  <h1>Settings</h1>
+  <button id="save" type="button">Save settings</button>
+  <script>
+    document.getElementById('save').addEventListener('click', function () {
+      // Defect: the message is inserted with no role=status/alert and no aria-live region around it.
+      var t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = 'Settings saved';
+      document.body.appendChild(t);
+      setTimeout(function () { t.remove(); }, 4000);
+    });
+  </script>
+</body>
+</html>

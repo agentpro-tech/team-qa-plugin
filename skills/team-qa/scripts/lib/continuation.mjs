@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, statSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fail, readJson, rejectUnknownFields, sha256, sha256File, stableJson, writeConfirmed, runAdapter } from './core.mjs';
 import { assertApprovedRoster, verifyProviderInterface } from './roster.mjs';
@@ -155,6 +156,30 @@ function readContinuationSource({ runDir, exhausted }) {
     progress: sha256(stableJson({ phase: state.phase, results: verified.map(row => [row.case_id, row.attempt, row.verdict, row.child_verdict?.sha256]) })), progressByCase, planHash: lock.artifacts.plan?.sha256 };
 }
 
+// A binding that no longer matches its run: another Team QA runtime, the run directory gone, or its roster, round or
+// target changed (a new round). The hook then refuses only Dragon and board writes for the session and lets other calls
+// through with a warning; `register` again binds the new round, `unregister` ends the binding.
+export const BINDING_DRIFT_CODES = ['CONTINUATION_RUNTIME_DRIFT', 'CONTINUATION_RUN_MISSING', 'CONTINUATION_SCOPE_DRIFT'];
+const bindingPath = (registryDir, sessionId) => { need(safeId(sessionId), 'CONTINUATION_SESSION_INVALID'); return join(resolve(registryDir), `${sessionId}.json`); };
+function bindingDrift(binding) {
+  if (binding.runtime_sha256 !== runtimeHash()) return 'CONTINUATION_RUNTIME_DRIFT';
+  const rosterPath = join(binding.run_dir, 'roster.json');
+  if (!existsSync(rosterPath)) return 'CONTINUATION_RUN_MISSING';
+  let roster;
+  try { roster = JSON.parse(readFileSync(rosterPath, 'utf8')); } catch { return 'CONTINUATION_SCOPE_DRIFT'; }
+  if (binding.roster_sha256 !== sha256File(rosterPath) || binding.round !== roster?.round || binding.target_sha256 !== sha256(stableJson(roster?.target))) return 'CONTINUATION_SCOPE_DRIFT';
+  return null;
+}
+// The archive folder next to the registry keeps every binding taken out of use; a binding is never deleted.
+function archiveBinding(path) {
+  const dir = join(dirname(path), 'archive');
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  const archived = join(dir, `${basename(path, '.json')}.${new Date().toISOString().replace(/[:.]/g, '-')}-${randomBytes(3).toString('hex')}.json`);
+  const sha256 = sha256File(path);
+  renameSync(path, archived);
+  return { archived, sha256 };
+}
+
 export async function registerContinuation({ runDir, sessionId, registryDir }) {
   runDir = realpathSync(runDir); registryDir = resolve(registryDir);
   need(safeId(sessionId) && basename(dirname(runDir)) === 'runs', 'CONTINUATION_REGISTRATION_SCOPE');
@@ -177,23 +202,43 @@ export async function registerContinuation({ runDir, sessionId, registryDir }) {
     browser_session_id: `teamqa-${roster.run_id}-${sessionId.slice(0, 8)}`,
     runtime_sha256: runtimeHash(), created_at: new Date().toISOString() };
   const path = join(registryDir, `${sessionId}.json`);
-  need(!existsSync(path), 'CONTINUATION_ALREADY_REGISTERED');
+  // A binding that still matches its run is kept; one that drifted (a new round, another runtime, the run gone) is
+  // archived and replaced, after the checks above verified this registration again.
+  let replaced = null;
+  if (existsSync(path)) {
+    let drift = null;
+    try { drift = inspectContinuationBinding({ registryDir, sessionId }).drift; } catch { drift = null; }
+    need(drift, 'CONTINUATION_ALREADY_REGISTERED');
+    replaced = { ...archiveBinding(path), drift };
+  }
   await writeConfirmed(path, stableJson(record), 'teamqa.continuation.register', { exclusive: true });
-  return { path, sha256: sha256File(path), record };
+  return { path, sha256: sha256File(path), record, ...(replaced ? { replaced } : {}) };
 }
 
-export function readContinuationBinding({ registryDir, sessionId }) {
-  need(safeId(sessionId), 'CONTINUATION_SESSION_INVALID');
-  const path = join(resolve(registryDir), `${sessionId}.json`);
+// Ends a session's binding: the binding file moves to the archive folder next to it. The session's hooks then treat it as
+// unregistered ({}); its run's evidence stays where it is.
+export function unregisterContinuation({ registryDir, sessionId }) {
+  const path = bindingPath(registryDir, sessionId);
+  need(existsSync(path) && statSync(path).isFile(), 'CONTINUATION_NOT_REGISTERED');
+  return { session_id: sessionId, ...archiveBinding(path) };
+}
+
+// The binding of a session and whether it drifted from its run. A malformed binding file still throws.
+export function inspectContinuationBinding({ registryDir, sessionId }) {
+  const path = bindingPath(registryDir, sessionId);
   if (!existsSync(path)) return null;
   const binding = readJson(path);
   rejectUnknownFields(binding, ['schema','session_id','run_dir','run_id','round','roster_sha256','target_sha256','browser_session_id','runtime_sha256','created_at'], 'CONTINUATION_BINDING_FIELDS');
-  need(binding.schema === 'team-qa/continuation-binding/v1' && binding.session_id === sessionId && binding.run_id === basename(binding.run_dir), 'CONTINUATION_BINDING_INVALID');
+  need(binding.schema === 'team-qa/continuation-binding/v1' && binding.session_id === sessionId && typeof binding.run_dir === 'string' && binding.run_id === basename(binding.run_dir), 'CONTINUATION_BINDING_INVALID');
   need(binding.browser_session_id === `teamqa-${binding.run_id}-${sessionId.slice(0, 8)}`, 'CONTINUATION_BROWSER_OWNER');
-  need(binding.runtime_sha256 === runtimeHash(), 'CONTINUATION_RUNTIME_DRIFT');
-  const rosterPath = join(binding.run_dir, 'roster.json'), roster = readJson(rosterPath);
-  need(binding.roster_sha256 === sha256File(rosterPath) && binding.round === roster.round && binding.target_sha256 === sha256(stableJson(roster.target)), 'CONTINUATION_SCOPE_DRIFT');
-  return binding;
+  return { binding, path, drift: bindingDrift(binding) };
+}
+
+export function readContinuationBinding({ registryDir, sessionId }) {
+  const found = inspectContinuationBinding({ registryDir, sessionId });
+  if (!found) return null;
+  if (found.drift) fail(3, found.drift, '', 'ungraded');
+  return found.binding;
 }
 
 export function automaticContinuationReason(decision) {

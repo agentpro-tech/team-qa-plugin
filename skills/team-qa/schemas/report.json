@@ -276,6 +276,16 @@
         }
       }
     },
+    "coverage_cells": {
+      "description": "R1b: present only when the tracked plan has the coverage block. Cells with a state receipt by two state groupings (strict by DOM hash, coarse by rule), NOT_EXPLORED counts by code, saturation U = f1/n per grouping, the frontier and the stop reason, never merged into one percentage. The full cell list is coverage-map.json beside the report, bound by map_sha256. See references/coverage-cells.md.",
+      "type": "object",
+      "required": ["version", "map", "map_sha256", "app_map", "coarse", "strict", "not_explored", "saturation", "frontier", "stop", "case_cells"],
+      "properties": {
+        "version": {"const": "team-qa/coverage-cells/v1"},
+        "map": {"const": "coverage-map.json"},
+        "map_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
     "child_gates": {
       "description": "The child gates that contributed conclusions to the run, including a gate that ran no rows, so that a run with real child gates can be told apart from a run where only a script graded itself.",
       "type": "array",

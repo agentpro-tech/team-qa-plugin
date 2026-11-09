@@ -7,6 +7,9 @@ const TAXONOMY = [
   'functional', 'boundary', 'negative', 'state', 'regression', 'visual', 'accessibility', 'performance', 'security',
 ];
 const STATES = ['empty', 'loading', 'partial', 'ideal', 'error'];
+// Under the coverage cells block of tracked plan v2 (R1b, lib/coverage-cells.mjs) the states axis also takes the
+// row-family states a screen with data must be seen in. A plan without the block keeps the five states above.
+export const CELL_STATES = Object.freeze([...STATES, 'one-row', 'many-rows']);
 const VIEWPORTS = ['mobile', 'tablet', 'desktop'];
 
 const AXES = [
@@ -38,11 +41,12 @@ export function declaredCoverageAxes(item) {
 
 // Returns a list of errors of the form `${prefix} <field>`; empty means the case is valid against
 // the current coverage matrix contract.
-export function coverageShapeErrors(item, prefix) {
+export function coverageShapeErrors(item, prefix, options = {}) {
   const errors = [];
   for (const [field, allowed] of AXES) {
     if (!Object.hasOwn(item ?? {}, field)) continue;
-    if (!axisIsValid(item[field], allowed)) errors.push(`${prefix} ${field}`);
+    const vocabulary = field === 'states' && options.cells === true ? CELL_STATES : allowed;
+    if (!axisIsValid(item[field], vocabulary)) errors.push(`${prefix} ${field}`);
   }
   return errors;
 }

@@ -105,3 +105,75 @@ test('the attestation output may not be the binding path: refused before the bac
     (e) => e.code === 'DISPATCH_OUTPUT_IS_BINDING');
   assert.equal(existsSync(join(dir, 'dispatch')), false, 'no state was written');
 });
+
+// Upgrade M3: `wait` reads state.json while the background dispatch rewrites it. A torn read was JSON_INVALID, and the
+// root could dispatch the case again while the worker still ran.
+test('wait never reads a half-written state file while the dispatch records its outcome', { skip: NEEDS_SCROLL }, async () => {
+  const { splitWrites } = await import('../support/split-writes.mjs');
+  const dir = runDir(), out = join(dir, 'attestation.json'), attempt = '2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a';
+  const attemptDir = join(dir, 'dispatch', 'executor_gui', attempt), state = join(attemptDir, 'state.json');
+  mkdirSync(attemptDir, { recursive: true });
+  writeFileSync(state, JSON.stringify({ schema: STATE_SCHEMA, attempt, role: 'executor_gui', case_id: 'TC-01', out, status: 'starting', created_at: new Date().toISOString() }));
+  const reads = [];
+  const restore = splitWrites(attemptDir, (path) => { if (path.endsWith('state.json') || path.includes('.state.json.')) reads.push(waitDispatch({ runDir: dir, attempt, maxSeconds: 0 }).then((r) => r.status, (e) => e.code)); });
+  try { await runDetached({ runDir: dir, role: 'executor_gui', out, caseId: 'TC-01', attempt, run: async () => ({ graded: true }) }); }
+  finally { restore(); }
+  const statuses = await Promise.all(reads);
+  assert.ok(statuses.length >= 2, 'wait read during both state writes');
+  assert.ok(statuses.every((s) => ['starting', 'running', 'done'].includes(s)), `wait saw: ${statuses.join(', ')}`);
+});
+
+// M1: the attempt was recorded before the prompt file was read, so a mistyped --prompt used up a case's tries.
+test('a dispatch reads its prompt before it records an attempt; a detached one refuses a missing prompt at once', { skip: NEEDS_SCROLL }, async () => {
+  const { approveRoster, dispatchRole, selectRoster } = await import('../../scripts/lib/roster.mjs');
+  const { sha256File } = await import('../../scripts/lib/core.mjs');
+  const dir = runDir(), request = JSON.parse(readFileSync(join(REPO, 'test/roster-dynamic/request-default.json'), 'utf8'));
+  const catalogPath = join(REPO, 'test/roster-dynamic/catalog-openai-v1.json'), rosterPath = join(dir, 'roster.json');
+  writeFileSync(rosterPath, JSON.stringify(selectRoster({ catalog: JSON.parse(readFileSync(catalogPath, 'utf8')), request, catalogPath }), null, 2) + '\n');
+  await approveRoster({ runDir: dir, file: rosterPath, userEvent: { schema: 'team-qa/roster-user-event/v1', id: 'fixture-approval', actor: 'user', text: 'Approve',
+    run_id: request.run_id, round: request.round, roster_hash: sha256File(rosterPath) } });
+  for (const prompt of [join(dir, 'promt.md'), dir]) {
+    await assert.rejects(dispatchRole({ runDir: dir, role: 'test_manager', prompt, out: join(dir, 'receipt.json') }), (e) => e.code === 'DISPATCH_PROMPT_MISSING', prompt);
+  }
+  assert.equal(existsSync(join(dir, 'dispatch')), false, 'nothing was recorded for the mistyped prompt');
+  await assert.rejects(detachDispatch({ argv: [], runDir: dir, role: 'executor_gui', caseId: 'TC-01', prompt: join(dir, 'promt.md'), out: join(dir, 'attestation.json'), env: {} }),
+    (e) => e.code === 'DISPATCH_PROMPT_MISSING');
+  assert.equal(existsSync(join(dir, 'dispatch')), false, 'no detached attempt was started');
+});
+
+// M4: liveness was kill(pid, 0) only, so a pid reused after a reboot kept a dead dispatch "running"; a timeout sent
+// SIGTERM once, and a worker that ignored it kept running and spending.
+test('wait compares the recorded process start time, so a reused pid is not the dispatch', { skip: NEEDS_SCROLL }, async () => {
+  const dir = runDir(), out = join(dir, 'attestation.json');
+  const reused = '3e4f5a6b-7c8d-4e9f-8a0b-1c2d3e4f5a6b', rdir = join(dir, 'dispatch', 'executor_gui', reused);
+  mkdirSync(rdir, { recursive: true });
+  // This test's own process is alive, but it is not the process that started the dispatch.
+  writeFileSync(join(rdir, 'state.json'), JSON.stringify({ schema: STATE_SCHEMA, attempt: reused, role: 'executor_gui', case_id: null, out, status: 'running',
+    pid: process.pid, pid_started: 'Thu Jan  1 00:00:00 1970', created_at: new Date().toISOString(), started_at: new Date().toISOString() }));
+  const died = await waitDispatch({ runDir: dir, attempt: reused, maxSeconds: 2, pollMs: 50 });
+  assert.equal(died.status, 'failed');
+  assert.equal(died.code, 'DISPATCH_DIED');
+  // A running record from this process, with its true start time, is alive; runDetached records that start time.
+  const live = '4f5a6b7c-8d9e-4f0a-9b1c-2d3e4f5a6b7c', ldir = join(dir, 'dispatch', 'executor_gui', live);
+  mkdirSync(ldir, { recursive: true });
+  writeFileSync(join(ldir, 'state.json'), JSON.stringify({ schema: STATE_SCHEMA, attempt: live, role: 'executor_gui', case_id: null, out, status: 'starting', created_at: new Date().toISOString() }));
+  let release; const gate = new Promise((r) => { release = r; });
+  const running = runDetached({ runDir: dir, role: 'executor_gui', out, caseId: null, attempt: live, run: async () => { await gate; return { graded: false }; } });
+  await new Promise((r) => setTimeout(r, 100));
+  const recorded = JSON.parse(readFileSync(join(ldir, 'state.json'), 'utf8'));
+  assert.ok(typeof recorded.pid_started === 'string' && recorded.pid_started.length > 0, 'the start time is recorded');
+  assert.equal((await waitDispatch({ runDir: dir, attempt: live, maxSeconds: 0.3, pollMs: 50 })).status, 'running');
+  release(); await running;
+});
+
+test('a timed-out worker that ignores SIGTERM is killed after the grace period', async () => {
+  const dir = runDir(), started = Date.now();
+  const stubborn = 'process.on("SIGTERM",()=>{});setInterval(()=>{},1000);setTimeout(()=>process.exit(0),8000);';
+  const result = await runStreaming(process.execPath, ['-e', stubborn], { cwd: dir, input: '', timeout: 300, killGraceMs: 500, maxBuffer: 1024, env: process.env, progress: join(dir, 'stubborn.jsonl') });
+  assert.ok(Date.now() - started < 5000, `the worker ran ${Date.now() - started} ms`);
+  assert.equal(result.error.code, 'ETIMEDOUT');
+  assert.equal(result.signal, 'SIGKILL');
+  // Without a progress file (a dispatch without --detach) it behaves the same.
+  const plain = await runStreaming(process.execPath, ['-e', 'process.stdout.write("ok")'], { cwd: dir, input: '', timeout: 5000, maxBuffer: 1024, env: process.env, progress: null });
+  assert.equal(plain.status, 0); assert.equal(plain.stdout, 'ok');
+});

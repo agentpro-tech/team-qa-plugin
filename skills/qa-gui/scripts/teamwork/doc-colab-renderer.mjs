@@ -1,13 +1,22 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { isDirectExecution } from '../lib/is-direct-execution.mjs';
 
 import { validateCanonical } from './canonical.mjs';
 
-function defaultDocColabRoot() {
-  return process.env.DOC_COLAB_SKILL_ROOT || path.join(homedir(), '.agents', 'skills', 'doc-colab');
+// Doc-Colab: DOC_COLAB_SKILL_ROOT, else the Doc-Colab installed next to this QA GUI (a suite install into another root
+// and the Team QA plugin keep skills side by side), else ~/.agents/skills/doc-colab (L1).
+const QA_GUI_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+export function defaultDocColabRoot(env = process.env) {
+  if (env.DOC_COLAB_SKILL_ROOT) return env.DOC_COLAB_SKILL_ROOT;
+  let own = path.resolve(QA_GUI_ROOT);
+  try { own = realpathSync(own); } catch { /* keep the path as it is */ }
+  const sibling = path.join(path.dirname(own), 'doc-colab');
+  if (existsSync(path.join(sibling, 'scripts', 'make_doc.py'))) return sibling;
+  return path.join(homedir(), '.agents', 'skills', 'doc-colab');
 }
 
 function loadCanonical(source) {

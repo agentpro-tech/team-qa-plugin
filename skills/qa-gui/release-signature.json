@@ -3,12 +3,12 @@
   "key_id": "0cf79a5cf736467e17536e403e95fa66d9b901f29457b98d3111452329b3caa8",
   "signed": {
     "skill": "qa-gui",
-    "version": "2.17.1",
-    "commit": "0213c535f7b236335f7191da08e5ccc7b5c9b842",
-    "tree": "73cb00172b3ce257a2544e9c1a112ac662e1bfa6",
+    "version": "2.18.0",
+    "commit": "f11ac550c893daf3f8dd2dc2a5d7bd65e9c0cb89",
+    "tree": "4b28d1449e314f335d0df568195ffd324445b128",
     "repo": "https://github.com/agentpro-tech/qa-gui.git",
-    "manifest_sha256": "8a2c702838dab4aad8657d691528d475a9aaf4118f3fff676c14c3ab72706492",
-    "package_sha256": "cf42cb2028405d21f636f9f2b8d5533ff77085f13caecb67e8f3d8393b566e5b"
+    "manifest_sha256": "349b5f5a2577d6caa42770e0af7249a0f93440fec5a57f535257dee9fa81ff7b",
+    "package_sha256": "83b16a382ddcc1238c9ede46fda1c7c57a057fc927b18a174fcd90fa71e78eaf"
   },
-  "signature": "bNGbuCM/41XraH0kdDvOISmS7qZNdm6WzxfZY1lBswZ877vSzNoZab8ThdWa/jxWI9POmTX2pjN27fJdvueZCQ=="
+  "signature": "DA+jDURU3qm1EoYqAgeOxdJYhPGJdeOIdTp35Xp6tby0B5q0VY/NWriWPADo2u+BExAp+nohgRbZ8/G8wI3KAw=="
 }

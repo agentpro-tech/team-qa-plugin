@@ -508,5 +508,22 @@ export async function webCommand(action, args, helpers) {
     refuseTargetEnv();
     return result({ command: 'web collect', ...(await webCollect(args, { parseFlags, readJson, writeConfirmed, stableJson, fail, assertRoleAttestation, lockRunDocuments, runDirectory, safeRunId })) });
   }
+  if (action === 'collect-screen') {
+    // Fix round 1 (D1): one screen check dispatch's stream to runs/<id>/screens/<screenId>/ (QA GUI grades it).
+    const { webCollectScreen } = await import('./screen-checks.mjs');
+    const { assertRoleAttestation } = await import('./run-contract.mjs');
+    refuseTargetEnv();
+    return result({ command: 'web collect-screen', ...(await webCollectScreen(args, { parseFlags, fail, assertRoleAttestation, runDirectory, safeRunId, writeConfirmed })) });
+  }
+  if (action === 'screens') {
+    // Fix round 1 (D1): the screens of the locked plan, the screen check each needs, and which are collected.
+    const { lockedScreens } = await import('./run-contract.mjs');
+    const { SCREENS_DIR } = await import('./screen-checks.mjs');
+    const o = parseFlags(args, { '--run': { key: 'run', required: true } });
+    const runDir = runDirectory(safeRunId(o.run));
+    const screens = lockedScreens(runDir).map((s) => ({ id: s.id, route: s.route, role: s.role, cases: s.cases,
+      collected: existsSync(join(runDir, SCREENS_DIR, s.id, 'result.json')) }));
+    return result({ command: 'web screens', run_id: o.run, screens });
+  }
   fail(2, 'COMMAND_UNKNOWN', `web ${action}`);
 }

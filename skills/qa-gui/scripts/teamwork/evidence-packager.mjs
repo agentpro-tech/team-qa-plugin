@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from 'node:fs';
-import { extname } from 'node:path';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { renderNativeBoard } from './native-renderer.mjs';
 import { validateCanonical } from './canonical.mjs';
 import { isDirectExecution } from '../lib/is-direct-execution.mjs';
@@ -17,14 +17,29 @@ function bytes(asset) {
   throw new Error(`asset ${asset.path || '<missing>'}: bytes must be Uint8Array`);
 }
 
+// What the board shows and links for an asset is a path inside the package (relative to the board's folder), never
+// an absolute machine path such as /Users/<name>/... (M12): an absolute path inside baseDir becomes relative to it,
+// any other absolute path its file name.
+export function packagePath(path, baseDir = null) {
+  const text = String(path ?? '');
+  if (!isAbsolute(text)) return text.split(sep).join('/');
+  if (baseDir) {
+    const inside = relative(resolve(baseDir), text);
+    if (inside && !inside.startsWith('..') && !isAbsolute(inside)) return inside.split(sep).join('/');
+  }
+  return basename(text);
+}
+
 function dataUrl(asset) {
   return `data:${asset.mime};base64,${bytes(asset).toString('base64')}`;
 }
 
+// An asset's caption is its label (the path when it has none); a link goes to its path.
+const label = (asset) => asset.label ?? asset.path;
 function galleryHtml(images, videos, inlineVideos, maxBytes, language) {
-  const imageHtml = images.map((asset) => `<figure><img src="${dataUrl(asset)}" alt="${escapeHtml(asset.path)}"><figcaption>${escapeHtml(asset.path)}</figcaption></figure>`).join('');
+  const imageHtml = images.map((asset) => `<figure><img src="${dataUrl(asset)}" alt="${escapeHtml(label(asset))}"><figcaption>${escapeHtml(label(asset))}</figcaption></figure>`).join('');
   const videoHtml = videos.map((asset) => inlineVideos
-    ? `<figure><video controls preload="metadata" src="${dataUrl(asset)}"></video><figcaption>${escapeHtml(asset.path)}</figcaption></figure>`
+    ? `<figure><video controls preload="metadata" src="${dataUrl(asset)}"></video><figcaption>${escapeHtml(label(asset))}</figcaption></figure>`
     : `<a class="linked-video" href="${escapeHtml(asset.path)}">${escapeHtml(asset.path)}</a>`).join('');
   const note = inlineVideos || videos.length === 0 ? '' : language === 'vi'
     ? `<p class="package-note">File vượt 25MB nên video được giữ bằng đường dẫn; ảnh vẫn nhúng trong board.</p>`
@@ -38,6 +53,8 @@ export function packageSelfContained(data, assets = [], options = {}) {
   if (!Array.isArray(assets)) return { ok: false, errors: ['assets: expected array'] };
   const maxBytes = options.maxBytes || DEFAULT_MAX_BYTES;
   try {
+    assets = assets.map((asset) => asset && typeof asset === 'object'
+      ? { ...asset, path: packagePath(asset.path, options.baseDir), ...(asset.label === undefined ? {} : { label: packagePath(asset.label, options.baseDir) }) } : asset);
     const base = renderNativeBoard(data);
     const images = assets.filter((asset) => typeof asset?.mime === 'string' && asset.mime.startsWith('image/'));
     const videos = assets.filter((asset) => typeof asset?.mime === 'string' && asset.mime.startsWith('video/'));
@@ -54,6 +71,7 @@ export function packageSelfContained(data, assets = [], options = {}) {
       html,
       inlineVideos: inlineVideos ? videos.map((asset) => asset.path) : [],
       linkedVideos: inlineVideos ? [] : videos.map((asset) => asset.path),
+      linkedFiles: [...(inlineVideos ? [] : videos), ...others].map((asset) => asset.path),
       sizeBytes: Buffer.byteLength(html),
       maxBytes,
     };
@@ -85,11 +103,24 @@ function cli() {
     process.exit(2);
   }
   const data = JSON.parse(readFileSync(input, 'utf8'));
-  const assets = assetPaths.map((path) => ({ path, mime: mimeFor(path), bytes: readFileSync(path) }));
-  const result = packageSelfContained(data, assets);
+  // Paths in the board are relative to its folder. A file outside that folder is shown by its name; when it ends up
+  // linked (a video over the size limit, another file) it is copied into <board>-evidence/ next to the board.
+  const outDir = dirname(resolve(output)), evidenceDir = `${basename(output, extname(output))}-evidence`;
+  const assets = assetPaths.map((given, index) => {
+    const source = resolve(given), inside = relative(outDir, source);
+    const within = inside && !inside.startsWith('..') && !isAbsolute(inside);
+    return { path: within ? inside.split(sep).join('/') : `${evidenceDir}/${index + 1}-${basename(source)}`, label: within ? inside.split(sep).join('/') : basename(source),
+      source, within, mime: mimeFor(given), bytes: readFileSync(given) };
+  });
+  const result = packageSelfContained(data, assets, { baseDir: outDir });
   if (!result.ok) {
     process.stderr.write(`${result.errors.join('\n')}\n`);
     process.exit(1);
+  }
+  for (const asset of assets) {
+    if (asset.within || !result.linkedFiles.includes(asset.path)) continue;
+    mkdirSync(dirname(join(outDir, asset.path)), { recursive: true });
+    copyFileSync(asset.source, join(outDir, asset.path));
   }
   writeFileSync(output, result.html);
   process.stdout.write(`Self-contained QA board: ${output} (${result.sizeBytes} bytes)\n`);

@@ -67,3 +67,20 @@ test('probe and readback retain their existing no-quality adapter contract', () 
   assert.equal(readback.status, 0, readback.stderr || readback.stdout);
   assert.deepEqual(JSON.parse(readFileSync(out, 'utf8')), value);
 });
+
+// L5: the env Notion adapter was found through URL.pathname, which keeps %20 for a space: under a folder such as
+// "Application Support" the adapter "did not exist" and the push failed.
+test('the Notion env adapter is found under a folder whose name has a space', async () => {
+  const { cpSync, realpathSync } = await import('node:fs');
+  const { pathToFileURL } = await import('node:url');
+  const base = join(realpathSync(mkdtempSync(join(tmpdir(), 'teamqa-space-'))), 'Application Support', 'team-qa');
+  for (const name of ['scripts', 'schemas', 'references', 'contracts', 'VERSION']) cpSync(join(root, name), join(base, name), { recursive: true });
+  const saved = process.env.TEAMQA_NOTION_BOARD_ADAPTER;
+  delete process.env.TEAMQA_NOTION_BOARD_ADAPTER;
+  try {
+    const module = await import(pathToFileURL(join(base, 'scripts', 'board-teamwork.mjs')).href);
+    const adapter = module.notionBoardAdapter?.();
+    assert.equal(adapter, join(base, 'scripts', 'adapters', 'notion-board-env.mjs'));
+    assert.ok(existsSync(adapter));
+  } finally { if (saved !== undefined) process.env.TEAMQA_NOTION_BOARD_ADAPTER = saved; }
+});

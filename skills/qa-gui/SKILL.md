@@ -49,7 +49,9 @@ adapter; Doc-Colab owns the shared native surface.
   overwrite canonical input. `init --source-seed` is the sole seed boundary for an upstream
   tracked plan; the seed must state case id, title, requirement, and source refs explicitly.
   `init --target-binding-sha256 <sha>` starts a deployed-build (web-v1) board without `commit`;
-  see `references/release-receipt-web-v1.md`.
+  see `references/release-receipt-web-v1.md`. `init --evidence-policy 1` writes
+  `evidencePolicy:{version:1}`, which turns on the gate's screenshot and recording checks
+  (`references/state-receipt-v1.md`, "Evidence policy v1"); boards without it grade as before.
 - Surface order: Space (native Codex Pages) → Notion → Doc-Colab. Use Pages `export-page`
   and independent actual `read_page` comparison with `compare-page`; see the exact payload and
   evidence-map contract in `references/qa-board-teamwork.md`. Fallback only on provider absence
@@ -309,19 +311,35 @@ verifiable behavior/screen):
   - **Behavioral case** (any case where you ACT: click/fill/submit/drag/flow → state changes)
     ⇒ **screen RECORDING of the run is MANDATORY** — a still image cannot prove before→action→after.
     Flow (Dragon, zero focus-steal, records a background tab):
-    1. `startRecording {tabId, fps:15, quality:80}` → `{id, dir}` — start BEFORE the first act step.
+    1. `startRecording {tabId, quality:50, maxWidth:960, maxHeight:960}` → `{id, dir}` — start
+       BEFORE the first act step (small frames: a full-size retina recording once left ~94 GB).
     2. Run the case's `do` chain as usual (acts + reads + sweeps).
     3. `stopRecording {id}` → `assembleRecording {id, fps:15}` → `<dir>/capture.mp4`.
     4. Copy to `<project>/qa-evidence/YYYY-MM-DD-<app>/<case>-run.mp4` and add to that case's
        `evidence[]`. Default **one case = one clip**; a group of tiny cases (<10s each) may share
        one clip only when every case declares a non-overlapping
        `recordingSegments:[{file,startMs,endMs}]` mapping. A prose note alone is not accepted.
+    5. Build its manifest from the recording dir: `node scripts/qa-gui.mjs recording-manifest --dir
+       <dir> --out <case>-run.recording.json --video <case>-run.mp4 [--receipts <the case's Dragon
+       action receipts>]`, list it in `evidence[]` and name it in the segment
+       (`recordingSegments:[{file,startMs,endMs,manifest}]`).
     **No recording = behavioral case not done.** The gate rejects a recording under **50 KB** —
     that floor means "a real run was captured", so satisfy it by recording real interaction, never
-    by lowering the bar.
+    by lowering the bar. Under **evidence policy v1** (board `evidencePolicy:{version:1}`) the gate
+    also reads the manifest: frames before, around and after every action time, a visible change
+    after the action, not one repeated image, frames saved = frames sent
+    (`EVIDENCE_VIDEO_*`, fix: re-record).
   - **Static-UI check** (render/layout/copy verification, no state change — e.g. Gate-0 sweep
     of one screen, a display check) ⇒ **screenshot is enough**:
     `captureTab {toFile:".../<case>-<state>.png"}` → `evidence[]`.
+  - **Every screenshot used as evidence** (evidence policy v1) is light and bound: fit it with
+    `node scripts/qa-gui.mjs evidence fit --in <capture.png> --out <state>.png --max-width 1280`
+    and store the printed `screenshot.fit`, plus `screenshot.capture` from the Dragon result (tab,
+    URL, build measured on that tab, `domHash`, `sha256`, `maskedRects`) and optionally the element
+    under test `target:{selector,rect}`. The gate refuses a blank frame, a capture of another tab/URL/
+    build/DOM, a shape that is not the receipt viewport's, a target outside the frame and a PNG over
+    1,280 px (`EVIDENCE_IMAGE_*`, fix: re-capture). Contract, codes and size numbers:
+    `references/state-receipt-v1.md` ("Evidence policy v1").
   - **Finding caption** (the text next to an annotated box, or a defect line on the board)
     ⇒ **1–3 sentences** carrying all four parts: ① **measurable evidence** taken from the finding
     itself — the exact selector, or a number that really appears in its `bbox`, `detail` or DPR;
@@ -424,7 +442,7 @@ case's `evidence[]`, and record these fixed verdicts in `cases[].visual`:
 | C11 | broken, stretched, or wrongly cropped imagery |
 | C12 | color / theme outliers |
 | C13 | typography and spacing consistency, including fallback artifacts |
-| C14 | interaction-state matrix — every declared settled state was visually inspected |
+| C14 | interaction-state matrix — every declared settled state was visually inspected: by the VLM on this round's PNG, or (vision by diff, flag `vision_by_diff` on) through an approved baseline whose SHA-256 the state's assertions carry, with a diff of at most 0.5% after the approved mask and a clean DOM sweep |
 | C15 | dark-mode consistency where supported; otherwise explicitly `WAIVE` with the reason in `untested[]` |
 | C16 | anything a normal user would call broken |
 
@@ -438,16 +456,27 @@ names the approving owner (a non-empty, trimmed string of at most 120 characters
 `QA_GUI_BASELINE_APPROVER` is set, `approvedBy` must equal its value exactly; otherwise any named
 approver is accepted.
 
-For later rounds, run `node scripts/visual-diff.mjs <baseline.png> <round.png> --state <state>
+Baselines are copied from the fitted round PNGs (`qa-gui.mjs evidence fit --max-width 1280`), so a
+baseline and a later round screenshot have the same size; a baseline made from a full-size capture
+is fitted the same way before it is approved. For later rounds, run `node scripts/visual-diff.mjs <baseline.png> <round.png> --state <state>
 --mask <baseline-mask.json> --diff <state.diff.png>`. Masks contain only explicitly dynamic
-rectangles for that state. Mask rectangles are in **device pixels**, not CSS
-pixels: a 1280x800 retina capture is a 2560x1600 PNG, so a mask authored in viewport
-coordinates covers only a quarter of what you meant. A mask covering more than 40% of the
+rectangles for that state. Mask rectangles are in **pixels of the compared PNG**, not CSS
+pixels: an unfitted 1280x800 retina capture is a 2560x1600 PNG, so a mask authored in viewport
+coordinates covers only a quarter of what you meant (after the fit to 1280 px that PNG is 1280x800 again). A mask covering more than 40% of the
 image makes `visual-diff.mjs` **throw (exit 2)** instead of quietly voiding the comparison and
 reporting PASS - shrink the mask, or waive the state explicitly in `untested`. More than 0.5% changed unmasked pixels is `C-REG FAIL`; `>5%` is
 major, otherwise minor. Add the matching diff and percent to `visualEvidence[]`, add a matching
 `C-REG` defect, and include the diff PNG in evidence. **Never overwrite or blind-update an
 approved baseline to make a failure pass.** The final gate recomputes every comparison.
+
+**Vision by diff (upgrade R3, off by default).** When a speed policy written from the signed plan (or by the project
+owner) sets `vision_by_diff:"on"`, a state may inherit C10–C16 from the approved-baseline store
+(`qa-gui/approved-baselines/v1`, keyed by route, state, viewport and build; `qa-gui.mjs baseline propose|approve`) instead
+of a VLM pass, only when an approved baseline exists, the diff after the approved mask is at most 0.5% with no
+concentrated change, and the DOM sweeps are clean (`qa-gui.mjs vision decide` prints the decision and its reasons).
+Each of the seven assertions then carries `inherited` with the baseline SHA-256, and the gate recomputes the whole
+decision; one it cannot recompute is UNGRADED. Otherwise the VLM runs exactly as above. Flags, defaults and what always
+still runs: `references/speed-flags.md`.
 
 This is not the forbidden screenshot-then-eyeball pattern: screenshots support visual verdicts;
 functional verdicts still require real human-like actions plus DOM/network observations.
@@ -466,6 +495,65 @@ results per state in the machine receipt; the gate enforces their structured ver
 evidence **unconditionally**. `sweeps[]` is display-only and cannot make a case pass.
 Reference test: `.teamcode/browser-harness/p2-acceptance.mjs` (real Chrome via Playwright)
 proves A7–A11 + D1/D3 on fixtures in `.teamcode/p2/fixtures/`.
+
+## Layer U — UX rules U1–U10 (R1c)
+
+UX defects a single DOM check cannot see: feedback, double submit, data kept after an error, errors tied to
+fields, announced status, hidden focus, empty states, guarded destruction, partial occlusion, clipped Vietnamese
+marks. **Findings belong to the UI verdict.** The in-page rules write into the state's sweep report; the others are
+graded in Node and folded into that report (`foldUx`), and the folded report is what the state receipt records as
+`ui.uiSanity` (U1, U2, U3, U7, U8, U9, U10) or `ui.a11y` (U4, U5, U6). Full detail, signals and blind spots:
+`references/ux-rules.md`.
+
+| Id | Rule | Judged by | Fails when | UNGRADED when | Default |
+|---|---|---|---|---|---|
+| U1 | `no-feedback-after-action` | machine: `__uxObserve` before / during / after, or `sensorsRead` → `gradeU1` | a write succeeded with no visible change, or stayed pending past `progressMs` (1000) with nothing visible by then | no write and no wait; no evidence for the window | warn |
+| U2 | `double-submit-open` | machine: `__uxObserve({trigger})` under a held write + `envGet` → `gradeU2` | a second request went out, or the trigger stays enabled with no busy state on it or its form | no held request confirmed | warn |
+| U3 | `error-lost-input` | machine: `__uxObserve` before the submit and after the error + `envGet` → `gradeU3` | a field filled before a forced error is gone or changed after it | no error; nothing typed | block |
+| U4 | `error-not-tied-to-field` | machine: `__a11yB` | a field error not referenced by `aria-describedby` / `aria-errormessage` / its label, or more than `maxGapPx` (120) away | no field error | warn |
+| U5 | `status-not-announced` | machine: `__a11yB` | a visible toast or status message outside every live region | no status message | warn |
+| U6 | `focus-obscured` | machine: `__a11yB`, or `paintSnapshot` → `gradeU6Paint` | all five points of the focused element covered (WCAG 2.4.11) | nothing focused, or not in view | block |
+| U7 | `empty-state-dead-end` | vision: `uxVisionRequest` → `gradeUxVision` | an empty state that neither explains itself nor offers an action | not an empty state; answer invalid or below `minConfidence` | warn |
+| U8 | `destructive-unguarded` | vision + `uxDestructiveContext` | a destructive action ran with no confirmation and no undo | not destructive; answer invalid | warn |
+| U9 | `occluded-control-partial` | machine: `__uiSanity`, or `paintSnapshot` → `gradeU9Paint` | at least `minCovered` (2) of a control's five points covered (A3 checks the centre only) | no control in view | warn |
+| U10 | `diacritics-clipped` | vision + the `__uxObserve().diacritics` ink pre-screen | a Vietnamese mark above or dot below is cut by its box | no such text on screen | warn |
+
+- **UNGRADED is not PASS.** A rule whose condition did not occur says `UNGRADED` with a reason. List the rules a case
+  forced a state for in `require`; a required rule that stays UNGRADED keeps the state from PASS.
+- **Level is a setting** fixed at pre-registration (EV2): `block` fails the state's UI, `warn` lists the finding only.
+  The defaults above are conservative (only U3 and U6 block). Resolve the run's block with `uxSettings()` from
+  `scripts/lib/ux-rules.mjs` (record its `sha256`), pass `ux:{levels, thresholds, require}` to the sweeps and
+  `--settings` to the CLI.
+- **Vision rules ride the Layer C pass:** same canonical PNG, same pass, one structured answer (JSON only, closed
+  schema). An incomplete, inconsistent, low-confidence or unpointed answer is UNGRADED; a machine fact that
+  contradicts a vision PASS makes it UNGRADED.
+
+**Run them (Dragon trusted input for every action; forced states only through `envSet`):**
+
+1. **Every settled state:** the sweeps already carry U4, U5, U6 and U9; call them with the run's settings,
+   `__uiSanity('<state>', {ux})` and `__a11yB({minTarget:24, ux})`. U6: tab through with the trusted `do` step `{key:"Tab"}` and
+   sweep at each stop. U5: sweep in the same `do` chain right after the `waitFor` of the message.
+2. **A write (U1, U2):** `envSet {tabId, caseId, requests:[{id:"write", urlPattern:"*/api/<endpoint>*", method:"POST",
+   action:"hold"}]}`; in one `do`: `read __uxObserve({trigger})` → trusted click → `wait 1200` → `read
+   __uxObserve({trigger})`; then `envGet {tabId}` (the held request must be listed); for U2 optionally one more trusted
+   click and `envGet` again; `envRelease {tabId, ruleId:"write"}`; then `waitFor` the result and read `__uxObserve` plus
+   the Gate-0 sweeps. The held state is still, so Gate 0 and the vision pass grade it like a settled state.
+3. **A save error (U3, U4):** `envSet {requests:[{id:"save-error", urlPattern, method:"POST", action:"respond",
+   status:500, body:{...}, times:1}]}`; fill with trusted input; `read __uxObserve` just before the submit; submit;
+   `waitFor` the error; read `__uxObserve` and the a11y sweep; `envGet`.
+4. **An empty list (U7):** `envSet {requests:[{id:"empty", urlPattern, method:"GET", action:"respond", status:200,
+   body:<the app's own empty shape>}]}`, a test account with no data, or a GUI search for a word that does not exist;
+   reach the screen through the GUI; vision request with `forcedEmpty`.
+5. **A destructive action (U8, test data and an approved plan only):** `read __uxObserve` → trusted click → `read
+   __uxObserve`; pass both and `do.dialogHandled` to `uxDestructiveContext`. Dragon answers a native confirm with
+   Cancel, which is the confirmation.
+6. **Vietnamese text (U10):** type probe text with stacked marks through the GUI (or use seeded test data);
+   optionally `envSet {locale:"vi-VN"}`; `__uxObserve().diacritics` gives the regions for the vision request.
+7. **Grade and fold:** `node scripts/ux-grade.mjs --rule U2 --input u2.json --settings prereg-ux.json --fold
+   <the state's ui-sanity report> --require U2` (vision: `--vision-request ctx.json`, then `--rule U7 --input
+   {request, outputs}`); record the printed report as that state's `ui.uiSanity` (U4–U6: `ui.a11y`).
+8. **Case end:** `envReset {tabId}`, also when the case ends early, and check `atDefault:true`;
+   `ENV_RESET_UNVERIFIED` means the case cannot PASS. Never inject state into the page or fake its clock.
 
 ## Viewport & responsive (applies to A, B and C)
 
@@ -510,6 +598,49 @@ family — never create a separate verdict channel.
   the field remains fully visible and the submit control remains scroll-reachable, then capture the
   after PNG and restore the canonical row. Grade with `evaluateKeyboardSimulation`. If the height
   cannot be proven to shrink, return `UNGRADED: keyboard-sim-unavailable`, never PASS.
+
+## Layer T — transient defects around risky actions (upgrade R1d, Dragon lane build with R1a)
+
+A settled screenshot misses what lives for a fraction of a second after an action. Around every **risky action**
+(`node scripts/qa-gui.mjs probe classify --in <action.json>`: submit, save, delete, toast, list add/remove/sort/filter,
+route change, modal/drawer/popover open or close, accordion, tab, theme or language switch, drag-and-drop,
+scroll-to-load) record a probe window and grade it with the T rules. Machine rules decide; the VLM only looks at 3–6
+keyframes plus the clean frame, for meaning (C10, C16). Findings belong to the **UI verdict**.
+
+| Id | Rule | FAIL when (defaults, calibrated by the eval) | Level |
+|---|---|---|---|
+| T1 | `layout-jump` | a control or content moves ≥ 3 px after the action (shifts right after the click count), outside what the user just expanded | block |
+| T2 | `transient-occlusion` | a toast, tooltip or overlay covers a control for ≥ 300 ms | block |
+| T3 | `wrong-state-flash` | an empty/error state, or a wrong theme, shows for < 300 ms and goes away | block |
+| T4 | `transition-overflow` | horizontal overflow or clipped text in ≥ 2 consecutive samples between two stable states | block |
+| T5 | `double-click-window` | the submit control is still clickable and nothing shows busy 100 ms after the click while its write is pending | block |
+| T6 | `lost-focus-scroll-size` | focus falls to the body after an overlay closes; the page jumps up after a list update; a size oscillates | block |
+| T7 | `jank` | a frame ≥ 100 ms while something animates or scrolls | warn, always |
+| T8 | `animation-lint` | long, layout-property, endless or reduced-motion-ignoring animation (warn); flashing more than 3 times a second (FAIL) | warn, flash blocks |
+
+- **The window.** `runTransientProbe` in `scripts/lib/transient-probe.mjs` drives it over Dragon: `sensors.start`
+  (before the action) → `frames.start` → one `do` with the geometry sample `sampleRead({targetSelector})`, the action
+  and samples at +16/+50/+100/+250/+500/+1000 ms → extended in 250 ms steps up to +3 s while the network is busy or an
+  anomaly is open → `sensors.read` → `frames.stop {keep: <anomaly ranges>, edges:true}` (only frames with an anomaly,
+  never duplicates) → `getNetwork` → `env.get`. Driving the RPCs by hand is the same sequence.
+- **Repeat 3 times at real speed** (restore the page between repeats; a write only on an approved plan). A finding
+  FAILs only when it comes back at the same mark (at least 2 of 3): `k/n` is reported. A repeatable action seen
+  once and not repeated is UNGRADED `REPEATS_REQUIRED`: repeat it. An action the plan does not approve repeating (a
+  write) runs once with `repeatable:false`; a sighting is then a WARN finding `UNCONFIRMED_SINGLE` (1/1) that does not
+  block a PASS. CPU throttling (`envSet {cpu:4}`) may show where to look but never confirms. A rule whose condition did
+  not happen is UNGRADED `CONDITION_ABSENT`, not PASS.
+- **Record.** `qa-gui.mjs probe build --in <trials.json> --out <probe.json>`; list the file in the evidence manifest;
+  in the state receipt add `probes: [{kind:"transient", path, sha256}]` and the `env` block (the action's
+  `receipt.env.conditions`, and on the case's last state the reference to the raw `env.reset` result). The gate re-runs
+  the rules from the recorded streams (`qa-gui.mjs probe grade --in <probe.json>` shows what it computes).
+- **End every case with `env.reset {tabId}`** (also when it ends early): a case whose reset is not verified
+  (`ENV_RESET_UNVERIFIED`, or none recorded) cannot PASS. Forced conditions are environment only (network, CPU, time
+  zone, locale, media), recorded in `env.conditions`; pass the board case id as `envSet {caseId}`. An animation playback
+  rate is for an evidence tab only and is `ENV_UNSUPPORTED` on Lane A: treat it as "not applied", never a failure.
+- Signals, thresholds, the receipt schema, the four observation schedules and the canaries:
+  [references/transient-rules.md](references/transient-rules.md). The Dragon surface the policy accepts:
+  [references/native-gui-adapter.md](references/native-gui-adapter.md); the `env` block:
+  [references/state-receipt-v1.md](references/state-receipt-v1.md).
 
 ---
 
@@ -627,7 +758,7 @@ Rule of thumb: **qa-gui = behavior verified + basic UI sane; ui-critic = quality
 ## Loop 6 — planning, memory and regression primitives (v2.2)
 
 The public entry point is `scripts/loop6/index.mjs`. It exports eight pure,
-deterministic helpers; they do not open a browser or perform I/O. Feed them
+deterministic helpers, plus the R1b app map v2; they do not open a browser or perform I/O. Feed them
 observations and evidence read back from Dragon, then keep their fail-closed
 verdicts in the QA plan/report. Do not import the `*-frozen.mjs` compatibility
 tables directly.
@@ -635,6 +766,8 @@ tables directly.
 | BA capability | Public function | Input |
 |---|---|---|
 | V6.1 app map and measurable coverage | `buildAppMap(observations)` | settled crawl observations |
+| R1e width sweep, overlay check, frontier exploration | `scripts/lib/width-sweep.mjs`, `overlay-check.mjs`, `frontier-explorer.mjs`; results reach the gate as `probes` on a state receipt | Dragon readers/drivers in the same files ([R1e](references/width-sweep-overlays.md)) |
+| R1b app map v2: frontier with NOT_EXPLORED codes, stop reason, saturation | `buildAppMapV2(observations)`, or `node scripts/qa-gui.mjs app-map --log <log> --out <app-map.json>` | the same log plus candidates, skips and the stop entry ([coverage cells](references/coverage-cells.md)) |
 | V6.4 diagnosis before retry | `diagnoseFailure(evidence)` | one failed-step evidence bundle |
 | V6.8 EP/BVA form probes | `planFormProbes(fields)` | readable field constraints |
 | V6.2 traceable P/I/Q properties | `generateProperties(appMap, baRequirements, envPin)` | app map, coded BA rows, optional live-target pin |
@@ -715,6 +848,8 @@ assert — in one round-trip. Common steps:
   `{fast:true}` on a click step, or `{fast:false}` to keep human motion (e.g. a public login
   wall). Together with packing steps into one `do`, this is the main QA speed lever.
   Call `dragon_rpc {method:"help"}` once to see the live fast-click + lane surface.
+  In a run with a speed policy (upgrade R3), the policy's `fast_click` flag decides instead, and a fast click is never
+  used in a case that checks hover or drag-and-drop (`references/speed-flags.md`).
 - **Watch it run (optional):** `setCursorOverlay {tabId,on:true}` draws a live cursor + click
   ripple on the page — pure evidence/observability, no effect on click speed or accuracy.
 - **Modals & text entry (avoid the common traps).** In a dialog, click by **text/selector**
@@ -736,6 +871,9 @@ assert — in one round-trip. Common steps:
   setup), `saveFlow {name, steps, defaults}` → later `runFlow {name, params}` replays it near-**0-LLM**
   with self-verify. A verified + repeated + secret-free `do` is also auto-saved (Experience Layer).
   Inspect/manage everything at `GET :9233/skills`. Use this instead of re-authoring the same chain.
+  The R3 action cache (`scripts/lib/action-cache.mjs`, flag `action_cache`, off by default) keeps only the action
+  steps of a passed run under a seven-signal fingerprint for 14 days; a replay still runs every sweep and assertion
+  for real, and no verdict is ever cached (`references/speed-flags.md`).
 - Sync: `waitFor {text|selector,timeoutMs}`, `wait {ms}`. **Wait on something the page actually
   contains** — an unsatisfiable `waitFor` that a lenient client swallows is how a run reaches a
   null read and still scores PASS.
@@ -768,6 +906,8 @@ i18n/currency, form validation): `references/recipes.md`. Full list of `do` step
 - At that same settled point, capture the canonical PNG **before the next action**, inspect
   C10–C16, and compare it with an approved baseline when one exists.
 - Read console/network for D1–D4 over the same window.
+- Run the Layer U rules the state calls for (U4/U5/U6/U9 ride the sweeps; U1/U2/U3/U7/U8/U10 follow the Layer U
+  steps) and fold their results into the state's sweep report before it goes into the receipt.
 - Collect: per-state `ui_sanity_*` / a11y reads, state PNGs, C10–C16 verdicts, and any C-REG diff
   → this produces the `UI:` and `Visual:` lines of the report.
 - Persist one `qa-gui/state-receipt/v1` JSON per state, bound to case, state, URL, exact build,
@@ -883,6 +1023,11 @@ taste = "not scored"**. On CSP-locked editors, run on the deployed/preview build
 - **Locked surface fails on Lane A:** `chrome://`, Web Store, dev consoles can't be scripted by
   the extension — let the router send them to **Lane B** (or pass `lane:"B"`). Don't fall back to
   pixel tools.
+- **The app rejects a planned test value by a rule it states** (a field message such as "Code must be uppercase
+  letters, numbers, and underscores", while the plan's value breaks that rule): the app is doing its job, so this is not
+  a defect of the app. Note the message and the plan's value in the state, then use the closest value that meets the
+  stated rule (`QA-R1-001` → `QA_R1_001`), name the substitution in the report, and finish the case with it. Report a
+  finding only when the stated rule itself contradicts the requirement, or when the message is wrong for the value.
 - **Verifying typed text in a contenteditable:** `perceive` names don't reflect contenteditable
   contents — take one screenshot to confirm before submitting.
 - Full list: `references/troubleshooting.md`.
@@ -918,3 +1063,41 @@ and standalone CLI interface remain unchanged. See `references/native-gui-adapte
 In a current Team QA run, the GUI agent uses the provider/model/effort of the roster the user has settled, its own session and the locked direct Dragon route. After the controlled runner verifies the real source, call the gate with `--teamqa-attestation <run-dir>/role-bindings/executor_gui.json`; add `--teamqa-runtime <verified-package>` when checking a candidate. All release-truth v2 arguments are required. The gate checks package, phase, role/session/config/context and target, then attaches provenance to the sealed receipt; the verifier re-reads the proof independently. Without a real attestation, a Team QA run is not certified. Standalone QA-GUI keeps its existing interface.
 
 A web-v1 receipt (deployed build) accepts two kinds of GUI executor. Root Codex: executor `codex-native` through native policy v2, bound to the target as above. Root Claude Code: the GUI Executor is a `claude -p` worker, and its attestation has `source.kind=claude-stream`. The gate accepts this attestation when Team QA has verified the role and the hashed stream passes rule `qa-gui/claude-stream-dragon-route/v1`: init has exactly the Dragon MCP server the roster locked (`connected`); at least one `mcp__<server>__dragon_rpc` succeeds; the stream ends with a successful `result` in the same session; no tool call takes a browser route outside Dragon (another MCP server, `WebFetch`/`WebSearch`/`Task`/`Agent`, a server tool, or a Bash command that calls Playwright/Puppeteer/Selenium/Chromium/CDP/`open`). Errors have stable codes `TEAMQA_WEB_CLAUDE_*`; the receipt records `teamqa_provenance.executor_route`. This rule proves the MCP route only; it does not replace native policy v2 (it does not pin the Dragon session/tab, capability, trusted receipt, privacy mask or recording). The default Team QA runtime is `~/.agents/skills/team-qa`; use `--teamqa-runtime <dir>` for a runtime installed elsewhere; the canonical anchor and `verify-runtime` still apply. See `references/release-receipt-web-v1.md`.
+
+### Team QA web lane — GUI executor steps for the detectors (upgrade integration)
+
+A `claude -p` GUI executor has Dragon and Read only, no shell: it cannot run `runTransientProbe` or the R1e Node
+drivers. It runs every detector as Dragon calls by recipe, and Team QA's `web collect` rebuilds the probe receipts from
+its attested stream with `scripts/lib/stream-detectors.mjs` (the detectors' own engines and graders). Page helpers are
+never re-typed: the executor sends QA GUI's helper bodies once per dispatch (Dragon R1a `helpersDefine`) and every
+detector read is a `{call}` step whose result names the body Dragon ran (sha-256); a read that does not prove QA GUI's
+body is not counted (`DETECTOR_HELPER_MISMATCH`, the detector UNGRADED). Every `do` of a recipe is `brief`.
+
+- **Screen checks, once per screen per run, in their own dispatch** (`screenCheckPromptSection`, a screen = a route the
+  plan gives): the width sweep (`w:` labels, a settle wait of 150 ms after every viewport, the viewport put back,
+  `w:restored`) and the overlay check (`o:` labels; dialog-type triggers only, at most 3 by priority: the plan's first,
+  then the page's order; the rest are NOT_CHECKED cells; Tab reach from a focus log). `screenCheckFromOps` grades it,
+  `foldScreenChecks` folds it into every case whose states visited that route: a FAIL is a finding of each such case,
+  a check that could not be graded is `SCREEN_CHECK_UNGRADED:<screen>`, a screen without a route is N/A
+  (`SCREEN_NO_ROUTE`), and on a Dragon without R1a it is reported only.
+- **In the case dispatch** (`detectorPromptSection`, Team QA's `TEAMQA_DETECTORS` section):
+  1. **A risky main action** (the Layer T list): the R1d probe AFTER `stopRecording` (the recording stays the evidence),
+     as one Dragon `framesTrial` call per trial (the window opens and closes inside the call: no latency of the caller
+     falls into it), 3 trials when the plan lets the action repeat (the later ones with `setup` steps that put the page
+     back), else 1 (a single sighting is WARN `UNCONFIRMED_SINGLE`); `sensorsRead` pages of 200 while `more`. Name it on
+     the state the action led to (`"transient": {action, repeatable}`).
+  2. **A forced UX state** (Layer U): `envSet` with the board case id (a `hold` rule for U1/U2, a `respond` 500 rule for
+     U3), the labelled `__uxObserve` reads (`u:hold:before|during|after`, `u:error:before|after`) and `envGet`; name the
+     rules on the state (`"ux": ["U2"]`). U4, U5, U6 and U9 ride every Gate-0 read: return the whole
+     `__uiSanity(state, {ux})` and `__a11yB({minTarget:24, ux})` reports.
+  3. **When the tracked plan has a coverage block**, after the last state (`"explore": true`): the frontier exploration
+     under Team QA's exploration policy (`x:` labels; never a destructive control the policy does not approve).
+  4. **End of case** after forced states: `envReset {tabId}` (also when the case ends early), verified `atDefault:true`.
+
+Clicks carry `fast:false` unless the R3 fast-click plan allows `fast:true`; key presses are the `do` step `{key}`.
+Dragon R1a is detected without calling an unknown tool: `help` once (Dragon 1.7.0 begins it with an `r1a` summary
+that the preview of the saved result shows; with no preview, the saved result Grep'd for `environmentContract`); without it the executor calls no R1a tool, skips only the probe and the forced U states and
+says so in the draft (`"detectors": {"unavailable": {"transient"|"ux": "DRAGON_R1A_UNAVAILABLE"}}`); the forced U rules
+then say UNGRADED with that reason (`uxUnavailableResults`, not required) and the case is graded as before. Team QA
+honours the claim only when the stream shows a Dragon without R1a. Labels, the receipt fields
+Team QA writes (`probes`, `env`, `cell.conditions`) and the limits: `references/team-qa-detectors.md`.

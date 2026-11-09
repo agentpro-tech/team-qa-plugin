@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, mkdirSync, realpathSync, readdirSync, lstatSync, copyFileSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, realpathSync, readdirSync, lstatSync, statSync, copyFileSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { isDeployedTarget, deployedTargetShapeErrors } from './deployed-target.mjs';
 import { verifyNativeRoleSource } from './native-dispatch.mjs';
 import { scanOriginalSource } from './original-source.mjs';
-import { claudeHumanText, isClaudeTranscriptPath, orchestratorSessionId } from './host-transcript.mjs';
+import { claudeHumanText, claudeProjectsRoot, codexSessionsRoot, isClaudeTranscriptPath, orchestratorSessionId } from './host-transcript.mjs';
 export { orchestratorSessionId };
 import { verifyNativeHost } from './native-host.mjs';
 import { sourceRepoUrl } from './source-repo.mjs';
@@ -56,8 +56,69 @@ function checkCatalog(catalog) {
 export const RUN_MODES=['interactive','unattended'];
 export function runModeOf(value){if(value===undefined||value===null||value==='')return 'interactive';requireValue(RUN_MODES.includes(value),'ROSTER_RUN_MODE',String(value));return value;}
 export function rosterRunMode(roster){return roster?.run_mode??'interactive';}
-export function selectRoster({catalog,request,catalogPath,runMode}) {
-  checkCatalog(catalog); exact(request,['schema','run_id','round','scope','target','provider','manager','overrides','allow_mixed_provider','caps'],'ROSTER_REQUEST_FIELDS');
+// Adjudicator seat (upgrade R2a). An optional `adjudicator` in the roster: one read-only model of a family other than
+// every executor seat's, chosen from the catalog (or a second catalog for that provider) by references/
+// adjudicator-policy.json. Its family is the provider's model line in that policy (anthropic → claude, openai → gpt, …),
+// not the catalog's per-model `family`, so two models of one lineage never count as independent. `mode` is shadow
+// (recorded, verdicts unchanged) unless the request says enforce; `scope` is pass_only (the only verdict it can
+// change) unless the request says all. The user approves both with the roster. A roster without the field keeps the
+// bytes it had before R2a.
+const ADJUDICATOR_POLICY_FILE=join(ROOT,'references/adjudicator-policy.json');
+const ADJUDICATOR_CONTEXT=['references/adjudicator-instructions.md','references/adjudicator-policy.json'];
+const ADJUDICATOR_SEAT_FIELDS=['role','mode','scope','provider','family','model','effort','harness','harness_version','harness_bin','harness_bin_sha256','tools','permission_profile','caps','context','reasoning_control','executor_families','catalog_sha256','catalog_source','model_status','policy_sha256'];
+export function adjudicatorPolicy(){return readJson(ADJUDICATOR_POLICY_FILE);}
+export function modelFamily(provider,policy=adjudicatorPolicy()){const family=policy.provider_families?.[provider];return typeof family==='string'&&family?family:null;}
+export function adjudicatorContext(){return ADJUDICATOR_CONTEXT.map(path=>({path,sha256:sha256File(join(ROOT,path))}));}
+function executorFamilies(roles,policy){return Object.fromEntries(roles.filter(seat=>policy.executor_roles.includes(seat.role)).map(seat=>[seat.role,modelFamily(seat.provider,policy)]));}
+function adjudicatorCaps(caps){requireValue(caps&&Number.isInteger(caps.timeout_ms)&&caps.timeout_ms>0&&caps.timeout_ms<=1800000&&Number.isInteger(caps.max_turns)&&caps.max_turns>0&&caps.max_turns<=100,'ADJUDICATOR_CAPS_INVALID');exact(caps,['timeout_ms','max_turns'],'ADJUDICATOR_CAPS_INVALID');return caps;}
+function familiesApart(family,executors){
+  requireValue(Object.keys(executors).length>0,'ADJUDICATOR_NO_EXECUTOR');
+  for(const [role,executor] of Object.entries(executors)){requireValue(executor,'ADJUDICATOR_FAMILY_UNKNOWN',role);requireValue(executor!==family,'ADJUDICATOR_SAME_FAMILY',`${role}=${executor}`);}
+}
+function selectAdjudicatorSeat({spec,catalog,catalogPath,roles,rosterSource}){
+  exact(spec,['provider','model','effort','harness','mode','scope','caps'],'ADJUDICATOR_REQUEST_FIELDS');
+  const policy=adjudicatorPolicy(),rosterPolicy=readJson(POLICY_FILE);
+  const mode=spec.mode??policy.default_mode;requireValue(policy.modes.includes(mode),'ADJUDICATOR_MODE',String(spec.mode));
+  const scope=spec.scope??policy.scope;requireValue(policy.scopes.includes(scope),'ADJUDICATOR_SCOPE',String(spec.scope));
+  requireValue(typeof spec.provider==='string'&&spec.provider,'ADJUDICATOR_PROVIDER_REQUIRED');
+  const family=modelFamily(spec.provider,policy);requireValue(family,'ADJUDICATOR_FAMILY_UNKNOWN',spec.provider);
+  const executors=executorFamilies(roles,policy);familiesApart(family,executors);
+  requireValue(catalog.source.kind===rosterSource.kind,'ADJUDICATOR_CATALOG_KIND',`${catalog.source.kind} != ${rosterSource.kind}`);
+  const effort=spec.effort??policy.default_effort,caps=adjudicatorCaps({...policy.caps,...spec.caps});
+  const fixture=catalog.source.kind==='fixture';
+  const candidates=catalog.models.filter(m=>m.provider===spec.provider&&(!spec.model||m.id===spec.model)&&(!spec.harness||m.harness===spec.harness)&&policy.harnesses.includes(m.harness)
+    &&(m.status==='available'||(fixture&&m.status==='unknown'))&&(fixture||String(m.quality_evidence?.fit_review||'').startsWith('source-reviewed'))&&(fixture||m.quality_evidence?.harness_compatibility!=='cache-client-version-mismatch-unverified')
+    &&m.efforts.includes(effort)&&policy.tools.every(t=>m.tools.includes(t))&&policy.tiers.includes(m.tier)&&m.roles.map(canonicalRole).some(r=>policy.fit_roles.includes(r))
+    &&(!rosterPolicy.excluded_default_families.some(f=>`${m.id} ${m.family||''}`.toLowerCase().includes(f))||spec.model===m.id))
+    .filter(m=>{const h=catalog.harnesses.find(h=>h.id===m.harness);return h&&h.bin&&(!m.min_harness_version||semverAtLeast(h.version,m.min_harness_version));})
+    .sort((a,b)=>policy.tiers.indexOf(a.tier)-policy.tiers.indexOf(b.tier)||(a.quality_evidence?.selection_priority??999)-(b.quality_evidence?.selection_priority??999)||a.id.localeCompare(b.id));
+  requireValue(candidates.length,'ADJUDICATOR_MODEL_UNAVAILABLE',`${spec.provider}${spec.model?`/${spec.model}`:''}`);
+  const selected=candidates[0],h=catalog.harnesses.find(h=>h.id===selected.harness),bin=resolve(dirname(catalogPath||join(ROOT,'catalog.json')),h.bin);
+  return {role:'adjudicator',mode,scope,provider:spec.provider,family,model:selected.id,effort,harness:h.id,harness_version:h.version,harness_bin:bin,harness_bin_sha256:existsSync(bin)?sha256File(bin):null,
+    tools:[...policy.tools],permission_profile:policy.permission_profile,caps,context:adjudicatorContext(),reasoning_control:reasoning(h.id,effort),executor_families:executors,
+    catalog_sha256:catalogPath?sha256File(catalogPath):sha256(stableJson(catalog)),catalog_source:catalog.source,model_status:selected.status,policy_sha256:sha256File(ADJUDICATOR_POLICY_FILE)};
+}
+// The roster validator's part for the seat: the family is recomputed from the policy and must differ from every
+// executor seat's family as the roster now holds them.
+export function checkAdjudicatorSeat(roster){
+  const seat=roster.adjudicator;if(seat===undefined)return null;
+  exact(seat,ADJUDICATOR_SEAT_FIELDS,'ADJUDICATOR_SEAT_FIELDS');const policy=adjudicatorPolicy();
+  requireValue(seat.role==='adjudicator','ADJUDICATOR_SEAT_ROLE');requireValue(seat.policy_sha256===sha256File(ADJUDICATOR_POLICY_FILE),'ADJUDICATOR_POLICY_DRIFT');
+  requireValue(policy.modes.includes(seat.mode),'ADJUDICATOR_MODE',String(seat.mode));
+  requireValue(policy.scopes.includes(seat.scope),'ADJUDICATOR_SCOPE',String(seat.scope));
+  requireValue(seat.family===modelFamily(seat.provider,policy)&&seat.family,'ADJUDICATOR_FAMILY_MISMATCH',`${seat.provider}:${seat.family}`);
+  const executors=executorFamilies(roster.roles,policy);requireValue(equal(seat.executor_families,executors),'ADJUDICATOR_EXECUTOR_FAMILIES_DRIFT');familiesApart(seat.family,executors);
+  requireValue(policy.harnesses.includes(seat.harness),'ADJUDICATOR_HARNESS',seat.harness);
+  requireValue(equal(seat.tools,policy.tools)&&seat.permission_profile===policy.permission_profile,'ADJUDICATOR_PERMISSION_DRIFT');adjudicatorCaps(seat.caps);
+  requireValue(equal(seat.context,adjudicatorContext()),'ADJUDICATOR_CONTEXT_DRIFT');
+  requireValue(equal(seat.reasoning_control,reasoning(seat.harness,seat.effort)),'ROSTER_REASONING_MAPPING','adjudicator');
+  requireValue(seat.catalog_source?.kind===roster.catalog_source.kind,'ADJUDICATOR_CATALOG_KIND');
+  requireValue(seat.harness_bin&&existsSync(seat.harness_bin)&&sha256File(seat.harness_bin)===seat.harness_bin_sha256,'ROSTER_HARNESS_DRIFT','adjudicator');
+  if(roster.catalog_source.kind==='fixture')requireValue([join(ROOT,'test/roster-dynamic',`stub-${seat.harness}.mjs`),join(ROOT,'test/adjudicator',`stub-adjudicator-${seat.harness}.mjs`)].some(stub=>existsSync(stub)&&realpathSync(seat.harness_bin)===realpathSync(stub)),'FIXTURE_HARNESS_NOT_TEST_STUB','adjudicator');
+  return seat;
+}
+export function selectRoster({catalog,request,catalogPath,runMode,adjudicatorCatalog=null,adjudicatorCatalogPath=null}) {
+  checkCatalog(catalog); exact(request,['schema','run_id','round','scope','target','provider','manager','overrides','allow_mixed_provider','caps','adjudicator'],'ROSTER_REQUEST_FIELDS');
   requireValue(request.schema==='team-qa/roster-request/v1','ROSTER_REQUEST_SCHEMA'); requireValue(/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(request.run_id||'')&&Number.isInteger(request.round)&&request.round>0&&typeof request.scope==='string'&&request.scope.trim()&&request.provider,'RUN_BINDING'); checkTarget(request.target);
   exact(request.manager,['provider','model','effort','harness'],'MANAGER_FIELDS'); requireValue(request.manager.provider&&request.manager.model&&request.manager.effort&&request.manager.harness,'MANAGER_UNRESOLVED');
   const policy=readJson(POLICY_FILE),overrides=new Map();
@@ -82,11 +143,13 @@ export function selectRoster({catalog,request,catalogPath,runMode}) {
     return {role:role.role,provider,model:selected.id,effort,harness:h.id,harness_version:h.version,harness_bin:bin,harness_bin_sha256:bin&&existsSync(bin)?sha256File(bin):null,...(h.id==='codex-native'?{native_host:h.native_host}:{}),tools:role.tools,permission_profile:role.permission_profile,caps,fallback:null,context:roleContext(role.role),reasoning_control:reasoning(h.id,effort),user_request:override?.user_event||null,model_status:selected.status,mcp_config:h.mcp_config?{path:resolve(dirname(catalogPath),typeof h.mcp_config==='string'?h.mcp_config:h.mcp_config.path),sha256:sha256File(resolve(dirname(catalogPath),typeof h.mcp_config==='string'?h.mcp_config:h.mcp_config.path))}:null};
   });
   requireValue(roles.find(r=>r.role==='test_manager').model===request.manager.model&&roles.find(r=>r.role==='test_manager').effort===request.manager.effort,'MANAGER_MODEL_MISMATCH');
-  return {schema:'team-qa/roster/v1',run_id:request.run_id,round:request.round,scope:request.scope,target:request.target,provider:request.provider,catalog_sha256:catalogPath?sha256File(catalogPath):sha256(stableJson(catalog)),policy_sha256:sha256File(POLICY_FILE),catalog_source:catalog.source,catalog_collected_at:catalog.collected_at,mixed_provider_request:request.allow_mixed_provider?.user_event||null,roles,selection_notes:['Availability remains unprobed until user-approved execution.','Role fit comes from supplied capability/eval metadata; no benchmark is inferred.'],...(runModeOf(runMode)==='unattended'?{run_mode:'unattended'}:{})};
+  if(adjudicatorCatalog)checkCatalog(adjudicatorCatalog);
+  const adjudicator=request.adjudicator===undefined?null:selectAdjudicatorSeat({spec:request.adjudicator,catalog:adjudicatorCatalog??catalog,catalogPath:adjudicatorCatalog?adjudicatorCatalogPath:catalogPath,roles,rosterSource:catalog.source});
+  return {schema:'team-qa/roster/v1',run_id:request.run_id,round:request.round,scope:request.scope,target:request.target,provider:request.provider,catalog_sha256:catalogPath?sha256File(catalogPath):sha256(stableJson(catalog)),policy_sha256:sha256File(POLICY_FILE),catalog_source:catalog.source,catalog_collected_at:catalog.collected_at,mixed_provider_request:request.allow_mixed_provider?.user_event||null,roles,selection_notes:['Availability remains unprobed until user-approved execution.','Role fit comes from supplied capability/eval metadata; no benchmark is inferred.'],...(adjudicator?{adjudicator}:{}),...(runModeOf(runMode)==='unattended'?{run_mode:'unattended'}:{})};
 }
 export function checkRoster(roster) {
   requireValue(roster.schema==='team-qa/roster/v1'&&Array.isArray(roster.roles),'ROSTER_SCHEMA');checkTarget(roster.target);
-  exact(roster,['schema','run_id','round','scope','target','provider','catalog_sha256','policy_sha256','catalog_source','catalog_collected_at','mixed_provider_request','roles','selection_notes','run_mode'],'ROSTER_FIELDS');requireValue(roster.run_mode===undefined||roster.run_mode==='unattended','ROSTER_RUN_MODE',String(roster.run_mode));
+  exact(roster,['schema','run_id','round','scope','target','provider','catalog_sha256','policy_sha256','catalog_source','catalog_collected_at','mixed_provider_request','roles','selection_notes','adjudicator','run_mode'],'ROSTER_FIELDS');requireValue(roster.run_mode===undefined||roster.run_mode==='unattended','ROSTER_RUN_MODE',String(roster.run_mode));
   if(roster.catalog_source.kind==='runtime'&&roster.mixed_provider_request)verifyUserMessageSource(roster.mixed_provider_request);
   const policy=readJson(POLICY_FILE);const expectedRoles=isDeployedTarget(roster.target)?WEB_ROLES:policy.roles.map(r=>r.role);
   if(isDeployedTarget(roster.target))requireValue(equal(policy.roles.filter(r=>WEB_ROLES.includes(r.role)).map(r=>r.role),WEB_ROLES),'WEB_POLICY_ROLE_SET');
@@ -99,6 +162,7 @@ export function checkRoster(roster) {
     if(seat.harness==='codex-native'){requireValue(seat.provider==='openai'&&seat.harness_bin===null&&seat.harness_bin_sha256===null&&seat.native_host.version===seat.harness_version,'NATIVE_HARNESS_BINDING');verifyNativeHost(seat.native_host);}else requireValue(seat.harness_bin&&existsSync(seat.harness_bin)&&sha256File(seat.harness_bin)===seat.harness_bin_sha256,'ROSTER_HARNESS_DRIFT',seat.role);
     if(roster.catalog_source.kind==='fixture')requireValue(realpathSync(seat.harness_bin)===realpathSync(join(ROOT,'test/roster-dynamic',`stub-${seat.harness}.mjs`)),'FIXTURE_HARNESS_NOT_TEST_STUB');
   }
+  checkAdjudicatorSeat(roster);
 }
 // Approval text (1.15.1), one decision for the roster and the plan approval. A chat message approves only when it holds
 // an affirmative word (approve, ok, yes, confirm, lgtm; Vietnamese duyet / chot / dong y, approve / settle / agree, with
@@ -205,6 +269,9 @@ function providerParser() {
   const {path}=verifyProviderInterface();return {parseNativeExecution(args){const code='const m=await import(process.argv[1]);let raw="";for await(const chunk of process.stdin)raw+=chunk;process.stdout.write(JSON.stringify(m.parseCodexNativeExecution(JSON.parse(raw))));';const r=spawnSync(process.execPath,['--input-type=module','-e',code,path],{input:JSON.stringify(args),encoding:'utf8',maxBuffer:32*1024*1024,timeout:10000});requireValue(r.status===0,'NATIVE_METADATA_PARSE');return JSON.parse(r.stdout);},parseProviderExecution(args){const input=JSON.stringify(args),key=sha256(`${path}\n${input}`);if(parsedExecutions.has(key))return structuredClone(parsedExecutions.get(key));const code='const m=await import(process.argv[1]);let raw="";for await(const chunk of process.stdin)raw+=chunk;process.stdout.write(JSON.stringify(m.parseProviderExecution(JSON.parse(raw))));';const r=spawnSync(process.execPath,['--input-type=module','-e',code,path],{input,encoding:'utf8',maxBuffer:32*1024*1024,timeout:10000});requireValue(r.status===0,'PROVIDER_METADATA_PARSE');const value=JSON.parse(r.stdout);parsedExecutions.set(key,value);return structuredClone(value);},validateProviderExecution(p,l){const errors=[...(p.errors||[])];if(p.provider!==l.provider)errors.push('PROVIDER_MISMATCH');if(p.observed?.model!==l.model)errors.push('MODEL_MISMATCH');if(p.observed?.reasoning!==l.reasoning)errors.push('REASONING_MISMATCH');if(!p.session_id)errors.push('SESSION_MISSING');return errors;}};
 }
 export function parseNativeRoleExecution(args){return providerParser().parseNativeExecution(args);}
+// R2a: the adjudicator seat's CLI stream checked like a role dispatch's (provider, model, effort, session) through the
+// declared provider-execution interface; returns the errors, none when the stream is the seat's.
+export function seatExecutionErrors({seat,stdout,stderr}){const parser=providerParser();const parsed=parser.parseProviderExecution({provider:seat.provider,stdout,stderr,allowedMcpServers:[]});return parser.validateProviderExecution(parsed,{provider:seat.provider,model:seat.model,reasoning:seat.effort});}
 export function verifyRoleSource(a,{runDir}) {
   if(a.source?.kind==='codex-native')return verifyNativeRoleSource(a,{runDir});
   const roster=assertApprovedRoster({runDir,role:a.role}),seat=roster.roles.find(s=>s.role===a.role);const allowedMcpServers=a.role==='executor_gui'?mcpRoute(seat.mcp_config).names:[];
@@ -216,7 +283,7 @@ export function verifyRoleSource(a,{runDir}) {
     requireValue(source.metadata_source?.kind==='claude-transcript'&&source.metadata_source.path,'ROLE_CONTEXT_SOURCE_MISSING');
     requireValue(a.session_id!==orchestratorSessionId(runDir),'ROLE_SESSION_NOT_INDEPENDENT');
     // A case-scoped GUI dispatch (U2) names its case and requested session after the binding: the worker got exactly that scope.
-    const marker=`TEAMQA_RUN_BINDING run=${a.run_id} round=${a.round} role=${a.role} roster=${a.roster_hash}${Object.hasOwn(a,'dispatch_case_id')?` case=${a.dispatch_case_id} attempt=${a.session_id}`:''}`;
+    const marker=`TEAMQA_RUN_BINDING run=${a.run_id} round=${a.round} role=${a.role} roster=${a.roster_hash}${Object.hasOwn(a,'dispatch_screen_id')?` screen=${a.dispatch_screen_id} attempt=${a.session_id}`:Object.hasOwn(a,'dispatch_case_id')?` case=${a.dispatch_case_id} attempt=${a.session_id}`:''}`;
     const context=seat.context.map(x=>readFileSync(join(ROOT,x.path),'utf8'));let supplied=false;
     scanOriginalSource(source.metadata_source.path,line=>{
       if(supplied)return;
@@ -252,7 +319,9 @@ export function verifyChildDispatchProof(proof,{stage='pre',attestation}={}) {
 // A Claude CLI worker launched from a Claude Code root inherits the parent session (and remote
 // session ingress) through the environment. Workers get an allowlisted environment only.
 const CLAUDE_WORKER_ENV=/^(?:PATH|HOME|USER|LOGNAME|SHELL|LANG|LC_[A-Z_]+|TERM|TMPDIR|TZ|XDG_[A-Z_]+|ANTHROPIC_[A-Z0-9_]+|CLAUDE_CONFIG_DIR|CLAUDE_CODE_OAUTH_TOKEN|CLAUDE_CODE_USE_BEDROCK|CLAUDE_CODE_USE_VERTEX|AWS_[A-Z0-9_]+|CLOUD_ML_REGION|GOOGLE_[A-Z0-9_]+|HTTPS?_PROXY|https?_proxy|NO_PROXY|no_proxy|NODE_EXTRA_CA_CERTS|SSL_CERT_FILE|SSL_CERT_DIR)$/;
-export function isolatedClaudeEnv(env=process.env){return Object.fromEntries(Object.entries(env).filter(([key])=>CLAUDE_WORKER_ENV.test(key)));}
+// DRAGON_OUT_DIR passes too (M6), as the absolute root the dispatch opens with --add-dir: without it the worker's Dragon
+// server saved screenshots in ~/.dragon/out and reading that evidence was refused.
+export function isolatedClaudeEnv(env=process.env){const kept=Object.fromEntries(Object.entries(env).filter(([key])=>CLAUDE_WORKER_ENV.test(key)));if(env.DRAGON_OUT_DIR)kept.DRAGON_OUT_DIR=dragonOutputRoot(env);return kept;}
 // Harness argv of a CLI role dispatch. Claude Code 2.1.311 `-p --safe-mode` disables every MCP server (also --mcp-config
 // ones) and `--permission-mode plan` refuses MCP calls, so only a Claude seat with a locked Dragon route (executor_gui)
 // runs without --safe-mode: slash commands disabled, default permissions, and only the route's MCP servers allowed.
@@ -271,9 +340,12 @@ export function dispatchMaxBuffer({seat,route}){return seat.harness==='claude'&&
 // large Dragon result (214,285 and 60,998 characters). The Claude seat with a locked Dragon route gets exactly that
 // directory, created before launch, as one more --add-dir (eval compat 10); other seats keep their argv.
 export function claudeToolResultsDir({runDir,attempt,env=process.env}){return join(env.CLAUDE_CONFIG_DIR?resolve(env.CLAUDE_CONFIG_DIR):join(homedir(),'.claude'),'projects',String(resolve(runDir)).replace(/[^A-Za-z0-9]/g,'-'),attempt,'tool-results');}
-export function dispatchArgs({seat,role,route,attempt,toolResultsDir=null}) {
+// Dogfood 05/11 run 5: a case dispatch with no TEAMQA_DETECTORS section gets the R1a tools that act on the page
+// withheld (withheldTools), so an executor cannot run a probe nobody planned; detector-collect also refuses one.
+export function dispatchArgs({seat,role,route,attempt,toolResultsDir=null,withheldTools=[]}) {
   const claudeRoute=seat.harness==='claude'&&Boolean(route);
-  const args=seat.harness==='codex'?['exec','--skip-git-repo-check','--ignore-user-config','--json','--sandbox',role==='executor_gui'?'workspace-write':'read-only','--disable','multi_agent','-m',seat.model,...seat.reasoning_control.args,'-']:['-p',claudeRoute?'--disable-slash-commands':'--safe-mode','--model',seat.model,...seat.reasoning_control.args,'--output-format','stream-json','--verbose','--permission-mode',claudeRoute?'default':'plan','--max-turns',String(seat.caps.max_turns),'--setting-sources','','--strict-mcp-config','--mcp-config',route?seat.mcp_config.path:'{"mcpServers":{}}','--tools',role==='executor_gui'?'Read,Glob,Grep,Bash':'Read,Glob,Grep',...(claudeRoute?['--allowedTools',...route.names.map(name=>`mcp__${name}`),'--add-dir',dragonOutputRoot(),...(toolResultsDir?['--add-dir',toolResultsDir]:[])]:[]),'--disallowedTools','Agent,Task,Edit,Write,NotebookEdit,WebSearch,WebFetch','--session-id',attempt];
+  const withheld=claudeRoute?route.names.flatMap(name=>withheldTools.map(tool=>`mcp__${name}__${tool}`)):[];
+  const args=seat.harness==='codex'?['exec','--skip-git-repo-check','--ignore-user-config','--json','--sandbox',role==='executor_gui'?'workspace-write':'read-only','--disable','multi_agent','-m',seat.model,...seat.reasoning_control.args,'-']:['-p',claudeRoute?'--disable-slash-commands':'--safe-mode','--model',seat.model,...seat.reasoning_control.args,'--output-format','stream-json','--verbose','--permission-mode',claudeRoute?'default':'plan','--max-turns',String(seat.caps.max_turns),'--setting-sources','','--strict-mcp-config','--mcp-config',route?seat.mcp_config.path:'{"mcpServers":{}}','--tools',role==='executor_gui'?'Read,Glob,Grep,Bash':'Read,Glob,Grep',...(claudeRoute?['--allowedTools',...route.names.map(name=>`mcp__${name}`),'--add-dir',dragonOutputRoot(),...(toolResultsDir?['--add-dir',toolResultsDir]:[])]:[]),'--disallowedTools',['Agent,Task,Edit,Write,NotebookEdit,WebSearch,WebFetch',...withheld].join(','),'--session-id',attempt];
   if(route&&seat.harness==='codex'){for(const [name,server] of Object.entries(route.data.mcpServers)){args.push('-c',`mcp_servers.${name}.command=${JSON.stringify(server.command)}`,'-c',`mcp_servers.${name}.args=${JSON.stringify(server.args)}`);}}
   if(seat.harness==='codex')args.push('-c','approval_policy="never"');
   return args;
@@ -297,12 +369,25 @@ export function listDispatchInputs(from){
 export const outputIsBinding=(runDir,out)=>{const dir=resolve(runDir,'role-bindings'),target=resolve(out);return target===dir||target.startsWith(dir+'/');};
 // The pre-dispatch checks read the root's live transcript; a root that keeps writing while a detached dispatch runs
 // them can change the file during the read (ORIGINAL_SOURCE_CHANGED): they run again on a fresh read, up to five times.
+// The prompt of a dispatch, read before anything is recorded (M1): a mistyped --prompt used to fail after the case
+// attempt was recorded, and three typos used up the case.
+export function readDispatchPrompt(prompt){
+  requireValue(typeof prompt==='string'&&prompt,'DISPATCH_PROMPT_MISSING','--prompt');
+  let text;try{requireValue(statSync(resolve(prompt)).isFile(),'DISPATCH_PROMPT_MISSING',`${prompt}: not a file`);text=readFileSync(resolve(prompt),'utf8');}
+  catch(error){if(error?.code==='DISPATCH_PROMPT_MISSING')throw error;fail(3,'DISPATCH_PROMPT_MISSING',`${prompt}: ${error?.code||error?.message||error}`,'ungraded');}
+  return text;
+}
 const raceReread=(read)=>{for(let attempt=1;;attempt++){try{return read();}catch(error){if(![error?.code,error?.detail].includes('ORIGINAL_SOURCE_CHANGED')||attempt>=5)throw error;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,150*attempt);}}};
-export async function dispatchRole({runDir,role,prompt,out,caseId=null,inputs=null,attemptId=null,progress=null}) {
-  runDir=resolve(runDir);role=canonicalRole(role);const roster=raceReread(()=>assertApprovedRoster({runDir,role})),seat=roster.roles.find(r=>r.role===role);const caseScoped=caseId!==null&&caseId!==undefined;
+export async function dispatchRole({runDir,role,prompt,out,caseId=null,screenId=null,inputs=null,attemptId=null,progress=null}) {
+  runDir=resolve(runDir);role=canonicalRole(role);const roster=raceReread(()=>assertApprovedRoster({runDir,role})),seat=roster.roles.find(r=>r.role===role);
+  // Fix round 1 (D1): a screen check dispatch (--screen-id) is scoped like a case dispatch: one screen per attempt.
+  const screenScoped=screenId!==null&&screenId!==undefined;requireValue(!(screenScoped&&caseId!==null&&caseId!==undefined),'DISPATCH_SCOPE_MIXED','--case-id or --screen-id, not both');
+  const caseScoped=(caseId!==null&&caseId!==undefined)||screenScoped;
   // U1: a case-scoped GUI dispatch on a deployed target proves the build in the executor's own stream (executor-identity.mjs),
   // so it needs the execute-stage preflight but not a dispatch-time fresh identity read by the root.
   const executorProvesIdentity=caseScoped&&role==='executor_gui'&&isDeployedTarget(roster.target);requireValue(seat.harness!=='codex-native','NATIVE_USE_PREPARE_AND_ATTEST');requireValue(role!=='coverage_gate','DETERMINISTIC_ROLE_NO_LLM');requireValue(!existsSync(out),'DISPATCH_OUTPUT_EXISTS');requireValue(!outputIsBinding(runDir,out),'DISPATCH_OUTPUT_IS_BINDING',`${out}: role-bindings/ is where Team QA binds the attestation; write it elsewhere, e.g. attestations/${role}${caseScoped?`-${caseId}`:''}.json`);
+  const promptText=readDispatchPrompt(prompt);
+  (await import('./cost.mjs')).assertUnderCap(runDir); // N7: every dispatch stops at the run's cost cap, not only a Claude GUI case
   if(roster.catalog_source.kind!=='fixture'){
     requireValue(roster.run_id===basename(runDir),'RUN_ID_MISMATCH');
     raceReread(()=>assertToolPreflight({runDir,roster,stage:'basic'}));
@@ -316,28 +401,39 @@ export async function dispatchRole({runDir,role,prompt,out,caseId=null,inputs=nu
   const hasInputs=inputs!==null&&inputs!==undefined;
   if(hasInputs)requireValue(role==='executor_gui'&&seat.harness==='claude','DISPATCH_INPUTS_ROUTE','--inputs is for the Claude CLI GUI executor');
   const inputFiles=hasInputs?listDispatchInputs(resolve(inputs)):[];
-  if(caseScoped)requireValue(role==='executor_gui'&&seat.harness==='claude'&&roster.catalog_source.kind==='runtime','DISPATCH_CASE_ROUTE','--case-id is for the Claude CLI GUI executor of a runtime roster');
+  if(caseScoped)requireValue(role==='executor_gui'&&seat.harness==='claude'&&roster.catalog_source.kind==='runtime','DISPATCH_CASE_ROUTE','--case-id and --screen-id are for the Claude CLI GUI executor of a runtime roster');
   // U6: a detached dispatch runs under the attempt id its starter recorded (dispatch-detach.mjs), in this very process.
   const detach=attemptId!==null||progress!==null?await import('./dispatch-detach.mjs'):null;
   if(attemptId!==null){requireValue(detach.ATTEMPT_ID.test(String(attemptId)),'DISPATCH_ATTEMPT_INVALID',String(attemptId));const st=join(runDir,'dispatch',role,attemptId,'state.json');requireValue(existsSync(st)&&(s=>s.status==='running'&&s.attempt===attemptId&&s.role===role&&s.pid===process.pid)(readJson(st)),'DISPATCH_ATTEMPT_INVALID',st);}
   const attempt=attemptId??randomUUID(),dir=join(runDir,'dispatch',role,attempt);
-  if(caseScoped){const c=await import('./run-contract.mjs');await c.startCaseDispatch({runDir,role,caseId,attempt});}
+  // Everything the worker input needs is read before the attempt is recorded.
+  const context=seat.context.map(x=>readFileSync(join(ROOT,x.path),'utf8')).join('\n\n'),evidenceGuide=caseScoped?readFileSync(join(ROOT,'references/executor-evidence.md'),'utf8'):'';
+  // Upgrade R3: what the signed plan's speed flags let this case do ('' when every flag is off).
+  const speedGuide=caseScoped&&!screenScoped&&role==='executor_gui'?await (await import('./speed-collect.mjs')).dispatchSpeedSection({runDir,caseId}):'';
+  // Upgrade integration: the QA GUI detectors this case runs, as Dragon recipes ('' without QA GUI stream detectors);
+  // a screen check gets QA GUI's screen check recipe instead (none without it: the dispatch is refused).
+  const detectorGuide=caseScoped&&!screenScoped&&role==='executor_gui'?await (await import('./detector-dispatch.mjs')).dispatchDetectorSection({runDir,caseId}):'';
+  const screenGuide=screenScoped?await (await import('./detector-dispatch.mjs')).dispatchScreenSection({runDir,screenId}):'';
+  if(screenScoped)requireValue(screenGuide,'DISPATCH_SCREEN_UNAVAILABLE',`${screenId}: no QA GUI screen check, or the screen is not in the locked plan`);
+  if(screenScoped){const c=await import('./run-contract.mjs');await c.startScreenDispatch({runDir,role,screenId,attempt});}
+  else if(caseScoped){const c=await import('./run-contract.mjs');await c.startCaseDispatch({runDir,role,caseId,attempt});}
   mkdirSync(dir,{recursive:true});const stdoutPath=join(dir,'stdout.jsonl'),stderrPath=join(dir,'stderr.txt');
   // Executor workspace (U3): the inputs it may read, and for a case-scoped dispatch the evidence draft it must print.
   let workspace='';
   if(caseScoped||hasInputs){
     const copied=inputFiles.map(f=>{const d=join(dir,'inputs',...f.rel.split('/'));mkdirSync(dirname(d),{recursive:true});copyFileSync(f.from,d);return d;});
-    workspace=`TEAMQA_EXECUTOR_WORKSPACE${caseScoped?` case=${caseId}`:''}\nInput files (read them with Read; all are inside the run folder):\n${copied.length?copied.map(p=>`- ${p}`).join('\n'):'- (none)'}\n\n${caseScoped?`${readFileSync(join(ROOT,'references/executor-evidence.md'),'utf8')}\n\n`:''}`;
+    workspace=`TEAMQA_EXECUTOR_WORKSPACE${screenScoped?` screen=${screenId}`:caseScoped?` case=${caseId}`:''}\nInput files (read them with Read; all are inside the run folder):\n${copied.length?copied.map(p=>`- ${p}`).join('\n'):'- (none)'}\n\n${screenScoped?`${evidenceGuide}\n\nThis dispatch is a screen check, not a case: prove the build as above, then follow TEAMQA_SCREEN_CHECK and print its draft instead of TEAMQA_EVIDENCE_DRAFT.\n\n${screenGuide}`:caseScoped?`${evidenceGuide}\n\n${speedGuide}${detectorGuide}`:''}`;
   }
   const toolResultsDir=seat.harness==='claude'&&route?claudeToolResultsDir({runDir,attempt}):null;if(toolResultsDir)mkdirSync(toolResultsDir,{recursive:true});
-  const args=dispatchArgs({seat,role,route,attempt,toolResultsDir});
-  const context=seat.context.map(x=>readFileSync(join(ROOT,x.path),'utf8')).join('\n\n');const input=`TEAMQA_RUN_BINDING run=${roster.run_id} round=${roster.round} role=${role} roster=${roster.roster_hash}${caseScoped?` case=${caseId} attempt=${attempt}`:''}\n${context}\n\n${workspace}${readFileSync(prompt,'utf8')}`;const runOptions={cwd:runDir,input,timeout:seat.caps.timeout_ms,maxBuffer:dispatchMaxBuffer({seat,route}),env:seat.harness==='claude'?isolatedClaudeEnv():process.env};const result=progress?await detach.runStreaming(seat.harness_bin,args,{...runOptions,progress}):spawnSync(seat.harness_bin,args,{...runOptions,encoding:'utf8'});await writeConfirmed(stdoutPath,result.stdout||'','teamqa.dispatch.log');await writeConfirmed(stderrPath,result.stderr||'','teamqa.dispatch.stderr');
+  const withheldTools=caseScoped&&!screenScoped&&role==='executor_gui'&&!detectorGuide?(await import('./detector-collect.mjs')).R1A_ACTING_TOOLS:[];
+  const args=dispatchArgs({seat,role,route,attempt,toolResultsDir,withheldTools});
+  const input=`TEAMQA_RUN_BINDING run=${roster.run_id} round=${roster.round} role=${role} roster=${roster.roster_hash}${screenScoped?` screen=${screenId} attempt=${attempt}`:caseScoped?` case=${caseId} attempt=${attempt}`:''}\n${context}\n\n${workspace}${promptText}`;const runOptions={cwd:runDir,input,timeout:seat.caps.timeout_ms,maxBuffer:dispatchMaxBuffer({seat,route}),env:seat.harness==='claude'?isolatedClaudeEnv():process.env};const result=await (detach??await import('./dispatch-detach.mjs')).runStreaming(seat.harness_bin,args,{...runOptions,progress:progress??null});await writeConfirmed(stdoutPath,result.stdout||'','teamqa.dispatch.log');await writeConfirmed(stderrPath,result.stderr||'','teamqa.dispatch.stderr');
   requireValue(result.status===0&&!result.error,'HARNESS_EXECUTION_FAILED',String(result.error||result.status));
   let parsed; if(roster.catalog_source.kind==='runtime'){const parser=providerParser();parsed=parser.parseProviderExecution({provider:seat.provider,stdout:result.stdout,stderr:result.stderr,allowedMcpServers:route?.names||[]});const errors=parser.validateProviderExecution(parsed,{provider:seat.provider,model:seat.model,reasoning:seat.effort});requireValue(!errors.length,'ROLE_RUNTIME_UNATTESTED',errors.join(','));}
   const session=parsed?.session_id||null;
   if(roster.catalog_source.kind==='runtime'&&seat.harness==='claude'){requireValue(session===attempt,'ROLE_SESSION_NOT_REQUESTED');requireValue(session!==orchestratorSessionId(runDir),'ROLE_SESSION_NOT_INDEPENDENT');}
   if(executorProvesIdentity&&roster.catalog_source.kind==='runtime'){const{executorIdentity}=await import('./executor-identity.mjs');executorIdentity({stream:result.stdout||'',target:roster.target});}
-  const a={schema:'team-qa/role-attestation/v1',run_id:roster.run_id,round:roster.round,roster_hash:roster.roster_hash,role,agent_id:session?`${seat.harness}:${session}`:null,session_id:session,runtime:{provider:seat.provider,model:seat.model,effort:seat.effort,harness:seat.harness,version:seat.harness_version,sent:{model:seat.model,effort:seat.effort},observed:{model:parsed?.observed.model||null,effort:parsed?.observed.reasoning||null,session_id:session}},context:seat.context,source:{kind:roster.catalog_source.kind==='fixture'?'fixture':`${seat.harness}-stream`,path:stdoutPath,sha256:sha256File(stdoutPath),stderr_path:stderrPath,stderr_sha256:sha256File(stderrPath),...(parsed?.metadata_source?{metadata_source:parsed.metadata_source}:{})},graded:roster.catalog_source.kind==='runtime',...(caseScoped?{dispatch_case_id:caseId}:{})};
+  const a={schema:'team-qa/role-attestation/v1',run_id:roster.run_id,round:roster.round,roster_hash:roster.roster_hash,role,agent_id:session?`${seat.harness}:${session}`:null,session_id:session,runtime:{provider:seat.provider,model:seat.model,effort:seat.effort,harness:seat.harness,version:seat.harness_version,sent:{model:seat.model,effort:seat.effort},observed:{model:parsed?.observed.model||null,effort:parsed?.observed.reasoning||null,session_id:session}},context:seat.context,source:{kind:roster.catalog_source.kind==='fixture'?'fixture':`${seat.harness}-stream`,path:stdoutPath,sha256:sha256File(stdoutPath),stderr_path:stderrPath,stderr_sha256:sha256File(stderrPath),...(parsed?.metadata_source?{metadata_source:parsed.metadata_source}:{})},graded:roster.catalog_source.kind==='runtime',...(screenScoped?{dispatch_screen_id:screenId}:caseScoped?{dispatch_case_id:caseId}:{})};
   const contract=await import('./run-contract.mjs');const bound=caseScoped?contract.sequenceCaseAttestation({runDir,attestation:a}):a;
   await writeConfirmed(out,stableJson(bound),'teamqa.dispatch.receipt');if(bound.graded)await contract.bindRoleAttestation({runDir,attestation:bound}); return bound;
 }
@@ -346,6 +442,7 @@ export async function createChildDispatchProof({runDir,repo,base,head,coder,out}
   runDir=resolve(runDir);repo=realpathSync(repo);
   const roster=assertApprovedRoster({runDir,role:'executor_code'});
   const contract=await import('./run-contract.mjs');contract.assertRunContract({runDir,action:'execute',role:'executor_code',preDispatch:true});
+  (await import('./cost.mjs')).assertUnderCap(runDir);
   exact(coder,['provider','agent_id','session_id'],'CODER_FIELDS');requireValue(coder.provider&&coder.agent_id&&coder.session_id,'CODER_IDENTITY_MISSING');
   const git=ref=>{const p=spawnSync('git',['-C',repo,'rev-parse','--verify',`${ref}^{commit}`],{encoding:'utf8'});requireValue(p.status===0,'REPO_REVISION_MISSING',ref);return p.stdout.trim();};
   const baseSha=git(base),headSha=git(head);requireValue(git('HEAD')===headSha,'REPO_HEAD_DRIFT');
@@ -365,8 +462,10 @@ export function extractHumanText(p) {
 export function verifyUserMessageSource(e,{hash,runId}={}) {
   requireValue(typeof e.text==='string'&&!e.text.includes('TEAMQA_AUTOMATIC_CONTINUATION'),'HUMAN_EVENT_AUTOMATIC_CONTINUATION');
   exact(e.source,['path','sha256','line'],'HUMAN_EVENT_SOURCE_FIELDS');requireValue(e.source.path&&e.source.sha256&&Number.isInteger(e.source.line)&&e.source.line>0,'HUMAN_EVENT_SOURCE_REQUIRED');
-  const path=realpathSync(e.source.path);requireValue([join(homedir(),'.codex','sessions'),join(homedir(),'.claude','projects')].some(root=>path.startsWith(root+'/')),'HUMAN_EVENT_SOURCE_UNTRUSTED');
-  if(path.startsWith(join(homedir(),'.claude')+'/'))requireValue(isClaudeTranscriptPath(path),'HUMAN_EVENT_SOURCE_UNTRUSTED');
+  // Trusted roots by their real paths: ~/.codex/sessions and the Claude config folder's projects (CLAUDE_CONFIG_DIR or
+  // ~/.claude, symlinks followed); under the latter only a root transcript.
+  const path=realpathSync(e.source.path),claudeRoot=claudeProjectsRoot();requireValue([codexSessionsRoot(),claudeRoot].some(root=>root&&path.startsWith(root+'/')),'HUMAN_EVENT_SOURCE_UNTRUSTED');
+  if(claudeRoot&&path.startsWith(claudeRoot+'/'))requireValue(isClaudeTranscriptPath(path),'HUMAN_EVENT_SOURCE_UNTRUSTED');
   let line='',prior=false;
   scanOriginalSource(path,(raw,index)=>{
     if(index===e.source.line-1)line=raw;

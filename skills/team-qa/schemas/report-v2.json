@@ -158,6 +158,9 @@
     "child_gates": {
       "$ref": "report.json#/properties/child_gates"
     },
+    "coverage_cells": {
+      "$ref": "report.json#/properties/coverage_cells"
+    },
     "target_kind": {
       "$ref": "report.json#/properties/target_kind"
     },

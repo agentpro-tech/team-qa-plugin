@@ -25,3 +25,16 @@ test('only the routed Claude GUI seat gets its tool-results directory as one mor
   assert.ok(!dispatchArgs({ seat: seat('claude'), role: 'analyst', route: null, attempt: 'a2', toolResultsDir: dir }).includes('--add-dir'));
   assert.ok(!dispatchArgs({ seat: seat('codex'), role: 'executor_gui', route, attempt: 'a3', toolResultsDir: dir }).includes(dir));
 });
+
+// M6: the Claude worker did not get DRAGON_OUT_DIR, so its Dragon server saved screenshots in ~/.dragon/out while
+// --add-dir opened the run's output root, and reading the evidence was refused.
+test('the Claude worker gets the output root its --add-dir opens', async () => {
+  const { isolatedClaudeEnv } = await import('../../scripts/lib/roster.mjs');
+  const env = isolatedClaudeEnv({ PATH: '/bin', HOME: '/h', DRAGON_OUT_DIR: '/runs/r1/dragon-out', CLAUDECODE: '1' });
+  assert.equal(env.DRAGON_OUT_DIR, '/runs/r1/dragon-out');
+  assert.equal(env.DRAGON_OUT_DIR, dragonOutputRoot({ DRAGON_OUT_DIR: '/runs/r1/dragon-out' }));
+  assert.equal(env.CLAUDECODE, undefined);
+  // A relative root is passed as the absolute path the root resolved (the worker runs in another directory).
+  assert.equal(isolatedClaudeEnv({ DRAGON_OUT_DIR: 'out/dragon' }).DRAGON_OUT_DIR, join(process.cwd(), 'out', 'dragon'));
+  assert.equal(Object.hasOwn(isolatedClaudeEnv({ PATH: '/bin' }), 'DRAGON_OUT_DIR'), false, 'unset stays unset: both sides use the default');
+});

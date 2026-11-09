@@ -3,13 +3,14 @@
 // Schema 3 keeps its proven visual/state receipt path. Unversioned and unknown schemas are
 // UNGRADED; no board may fall through to a structural-only PASS.
 import { createHash } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { homedir } from "node:os";
 import { comparePngFiles, decodePng } from "./visual-diff.mjs";
 import { validateCanonical } from "./teamwork/canonical.mjs";
 import { baselineApproverError, BASELINE_PENDING, boardVerdict, declaresBaselinePending } from "./teamwork/board-gates.mjs";
-import { checkGuiReleaseTruthV2, evaluateGuiWebRun } from "./lib/qa-gui-v2.mjs";
+import { caseEnvResetIssues, cellRow, cellSummaryLine, checkGuiReleaseTruthV2, evaluateGuiWebRun, evidenceIssue, evidencePolicyOn, probeVerdict, recordingSegmentIssues, stateCellIssues, stateEnvIssues, stateImageIssues } from "./lib/qa-gui-v2.mjs";
 import { caseEvidenceSessionIssues,createGuiReceiptV2,createGuiReceiptWeb,sealObject,verifyTeamQaGuiAttestation } from "./lib/release-receipt-v2.mjs";
 import { readGuiReleaseTruthContext,readGuiWebContext,webBindingAfterAttestation } from "./lib/release-truth-v2.mjs";
 
@@ -483,6 +484,8 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
   const screenshots = new Map();
   const cases = Array.isArray(data.cases) ? data.cases : [];
   const completedCases = cases.filter((entry) => entry?.status !== "TODO");
+  // Evidence policy v1 (R1f): image and recording checks that can keep a case from PASS (lib/evidence-quality.mjs).
+  const policy = evidencePolicyOn(data);
   let covered = 0;
   let total = 0;
 
@@ -502,6 +505,8 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
     let lifecycle = null;
     let derivedBehavioral = false;
     let receiptUnavailable = false;
+    let evidenceRejected = false;
+    const envStates = [];
 
     if (states.length === 0) {
       addIssue(issues, `A05 case ${id}: states[] is required before grading`, true);
@@ -535,7 +540,7 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
       unknownKeys(receipt, new Set([
         "schema", "caseId", "state", "capturedAt", "url", "build", "viewport", "domHash",
         "dragon", "screenshot", "function", "ui", "preflight", "network", "readback", "lifecycle",
-        "equivalentTo", "equivalenceReason",
+        "equivalentTo", "equivalenceReason", "target", "cell", "env", "probes",
       ]), label, issues);
       if (receipt.schema !== "qa-gui/state-receipt/v1") addIssue(issues, `A05 ${label}: schema must be qa-gui/state-receipt/v1`, true);
       if (receipt.caseId !== id || receipt.state !== state) addIssue(issues, `A05 ${label}: caseId/state binding mismatch`, true);
@@ -544,7 +549,7 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
       if (typeof receipt.url !== "string" || !/^https?:\/\//.test(receipt.url)) addIssue(issues, `A05 ${label}: http(s) URL is required`, true);
       if (!SHA_RE.test(receipt.domHash || "")) addIssue(issues, `A05 ${label}: domHash SHA-256 is required`, true);
       unknownKeys(receipt.dragon, new Set(["sessionId", "actionId", "browserInstanceId", "tabId", "innerOk"]), `${label}.dragon`, issues);
-      unknownKeys(receipt.screenshot, new Set(["path", "sha256"]), `${label}.screenshot`, issues);
+      unknownKeys(receipt.screenshot, new Set(["path", "sha256", "capture", "fit"]), `${label}.screenshot`, issues);
       unknownKeys(receipt.function, new Set(["verdict", "assertions"]), `${label}.function`, issues);
       unknownKeys(receipt.ui, new Set(["verdict", "uiSanity", "a11y", "console", "network"]), `${label}.ui`, issues);
       if (receipt.readback != null) unknownKeys(receipt.readback, new Set(["value", "evidence_ref"]), `${label}.readback`, issues);
@@ -554,6 +559,7 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
       }
       if (receipt?.dragon?.innerOk !== true) addIssue(issues, `A05 ${label}: dragon.innerOk must be true`, true);
 
+      let stateRejected = false;
       const shotRel = receipt?.screenshot?.path;
       const shotPath = safeEvidencePath(boardDir, shotRel);
       if (!shotRel || !evidencePaths.has(shotRel)) addIssue(issues, `A06 ${label}: screenshot is absent from evidenceManifest (${String(shotRel)})`);
@@ -569,7 +575,17 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
             && receipt.domHash === prior.domHash;
           if (!equivalent) addIssue(issues, `A11 ${label}: equivalentTo requires the referenced state and identical machine-measured domHash`);
         } else if (!prior) screenshots.set(shotHash, { key, domHash: receipt.domHash });
+        if (policy) {
+          const problems = stateImageIssues({ png: readFileSync(shotPath), receipt, caseId: id, state });
+          for (const problem of problems) addIssue(issues, problem.message, true);
+          if (problems.length) { evidenceRejected = true; stateRejected = true; functionParts.push("UNGRADED"); uiParts.push("UNGRADED"); }
+        }
       }
+      // R1b: a coverage cell the receipt cannot back (malformed, or contradicted by its own row count or viewport) keeps
+      // the state from PASS, like rejected evidence (lib/coverage-cell.mjs, references/coverage-cells.md).
+      const cellProblems = stateCellIssues(receipt);
+      for (const problem of cellProblems) addIssue(issues, `A05 ${label}: cell ${problem.code}${problem.detail ? ` ${problem.detail}` : ""}`, true);
+      if (cellProblems.length) { evidenceRejected = true; stateRejected = true; functionParts.push("UNGRADED"); uiParts.push("UNGRADED"); }
 
       const assertions = Array.isArray(receipt?.function?.assertions) ? receipt.function.assertions : [];
       if (assertions.length === 0) addIssue(issues, `A09 ${label}: function.assertions[] is required`);
@@ -587,9 +603,20 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
       const stateUi = [];
       for (const field of ["uiSanity", "a11y", "console", "network"]) stateUi.push(legacyUiAssertion(receipt?.ui?.[field], `${label}.ui.${field}`, issues));
       stateUi.push(legacyUiAssertion(receipt.preflight, `${label}.preflight`, issues));
+      // R1e/R1d: the detectors' probe receipts (width sweep, overlay check, transient probe) join the state's UI verdict.
+      const probed = probeVerdict({ receipt, caseId: id, state, read: readFileSync,
+        locate: (rel) => { const path = evidencePaths.has(rel) ? safeEvidencePath(boardDir, rel) : null; return path ? { absolute: path, sha256: evidencePaths.get(rel)?.sha256 ?? null } : null; } });
+      if (probed) { for (const entry of probed.issues) addIssue(issues, entry.message, entry.ungraded); stateUi.push(probed.verdict); }
       const computedStateUi = triVerdict(stateUi);
       if (receipt?.ui?.verdict !== computedStateUi) addIssue(issues, `A08 ${label}: ui.verdict ${String(receipt?.ui?.verdict)} does not match computed ${computedStateUi}`);
       uiParts.push(computedStateUi);
+      // R1d: the Dragon environment conditions the state ran under, and the case's env.reset (lib/dragon-env.mjs).
+      const envState = stateEnvIssues({ receipt, caseId: id, state, read: readFileSync,
+        locate: (rel) => { const path = evidencePaths.has(rel) ? safeEvidencePath(boardDir, rel) : null; return path && existsSync(path) ? { absolute: path } : null; } });
+      envStates.push(envState);
+      for (const entry of envState.issues) addIssue(issues, entry.message, true);
+      if (envState.issues.length) { evidenceRejected = true; stateRejected = true; functionParts.push("UNGRADED"); uiParts.push("UNGRADED"); }
+      if (Object.hasOwn(receipt, "cell")) computed.cells.push(cellRow({ caseId: id, state, receipt, receiptRef: rel, verdict: stateRejected ? "UNGRADED" : triVerdict([computedStateFunction, computedStateUi]) }));
 
       const stateNetwork = Array.isArray(receipt.network) ? receipt.network : [];
       for (const [index, entry] of stateNetwork.entries()) {
@@ -605,6 +632,10 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
       if (receipt.readback != null) readback = receipt.readback;
     }
 
+    // R1d: a case that ran with env conditions or a transient probe ends with a verified env.reset, or it cannot PASS.
+    const envReset = caseEnvResetIssues({ caseId: id, states: envStates });
+    for (const entry of envReset) addIssue(issues, entry.message, true);
+    if (envReset.length) { evidenceRejected = true; functionParts.push("UNGRADED"); uiParts.push("UNGRADED"); }
     if (receiptUnavailable) {
       computed.cases.push({ id, requirements, assertions: [], kind: c.kind, lifecycle: null, network: [], readback: null });
       computed.functionParts.push("UNGRADED");
@@ -612,10 +643,11 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
       continue;
     }
 
+    const passingRequirements = [];
     for (const requirement of requirements) {
       const assertions = assertionGroups.get(requirement) || [];
       if (assertions.length === 0) addIssue(issues, `A09 case ${id}: requirement ${requirement} has no matching assertion`);
-      else if (triVerdict(assertions.map((entry) => entry.verdict)) === "PASS") covered += 1;
+      else if (triVerdict(assertions.map((entry) => entry.verdict)) === "PASS") passingRequirements.push(requirement);
     }
     if (derivedBehavioral && c.kind !== "behavioral") addIssue(issues, `A25 case ${id}: mutating network/expectNet derives kind behavioral, not ${c.kind}`);
     if (derivedBehavioral) {
@@ -647,8 +679,27 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
         try { if (!path || statSync(path).size < MIN_RECORDING) addIssue(issues, `A08 case ${id}: recording is missing or smaller than 50KB (${recording})`); }
         catch { addIssue(issues, `A08 case ${id}: recording is missing (${recording})`); }
       }
+      if (policy) {
+        const segments = Array.isArray(c.recordingSegments) ? c.recordingSegments : [];
+        const problems = [];
+        if (segments.length === 0) problems.push(evidenceIssue("EVIDENCE_VIDEO_MANIFEST", `${id}:segment-0`, "a behavioral case needs recordingSegments[{file,startMs,endMs,manifest}]"));
+        for (const [index, segment] of segments.entries()) {
+          const scope = `${id}:segment-${index}`;
+          const listed = (ref) => typeof ref === "string" && Array.isArray(c.evidence) && c.evidence.includes(ref) && evidencePaths.has(ref);
+          const videoPath = safeEvidencePath(boardDir, segment?.file);
+          const manifestPath = safeEvidencePath(boardDir, segment?.manifest);
+          if (!listed(segment?.file) || !videoPath || !existsSync(videoPath)) { problems.push(evidenceIssue("EVIDENCE_VIDEO_MANIFEST", scope, `recording ${String(segment?.file)} must be in the case evidence and the evidence manifest`)); continue; }
+          if (!listed(segment?.manifest) || !manifestPath || !existsSync(manifestPath)) { problems.push(evidenceIssue("EVIDENCE_VIDEO_MANIFEST", scope, `manifest ${String(segment?.manifest)} must be in the case evidence and the evidence manifest`)); continue; }
+          let manifest = null;
+          try { manifest = JSON.parse(readFileSync(manifestPath, "utf8")); } catch {}
+          problems.push(...recordingSegmentIssues({ manifest, segment, videoSha256: sha256(videoPath), caseId: id, index }));
+        }
+        for (const problem of problems) addIssue(issues, problem.message, true);
+        if (problems.length) { evidenceRejected = true; functionParts.push("UNGRADED"); }
+      }
     }
 
+    if (!evidenceRejected) covered += passingRequirements.length;
     const functionVerdict = triVerdict(functionParts);
     const uiVerdict = triVerdict(uiParts);
     if (functionVerdict === "FAIL" || uiVerdict === "FAIL") addIssue(issues, `case ${id}: receipt-computed semantic FAIL`);
@@ -656,11 +707,11 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
     if (c.functionVerdict !== functionVerdict) addIssue(issues, `A08 case ${id}: board functionVerdict ${c.functionVerdict} does not match receipt-computed ${functionVerdict}`);
     if (c.uiVerdict !== uiVerdict) addIssue(issues, `A08 case ${id}: board uiVerdict ${c.uiVerdict} does not match receipt-computed ${uiVerdict}`);
 
-    const assertions = [...assertionGroups.entries()].map(([requirement_id, entries]) => ({
-      requirement_id,
-      verdict: entries.length ? triVerdict(entries.map((entry) => entry.verdict)) : "UNGRADED",
-      evidence_ref: entries.at(-1)?.evidenceRef || "",
-    }));
+    // Rejected evidence cannot back a PASS: the receipt's requirement rows say UNGRADED instead.
+    const assertions = [...assertionGroups.entries()].map(([requirement_id, entries]) => {
+      const verdict = entries.length ? triVerdict(entries.map((entry) => entry.verdict)) : "UNGRADED";
+      return { requirement_id, verdict: evidenceRejected && verdict === "PASS" ? "UNGRADED" : verdict, evidence_ref: entries.at(-1)?.evidenceRef || "" };
+    });
     computed.cases.push({ id, requirements, assertions, kind: derivedBehavioral ? "behavioral" : c.kind, lifecycle, network: networks, readback });
     computed.functionParts.push(functionVerdict);
     computed.uiParts.push(uiVerdict);
@@ -687,7 +738,22 @@ function checkReleaseTruthSemantics(data, boardPath, issues, notes, computed) {
   notes.push(`Requirements: ${covered}/${total}`);
 }
 
-function writeGateReceipt(data, computed, semanticVerdict) {
+// Where a receipt goes: <base>/.teamcode/runs/<run uuid>/receipts/qa-gui.receipt.json. The base is the working folder,
+// as before, unless that folder is inside an installed skill or plugin (this QA GUI when it is installed, that is holds
+// SOURCE.json; ~/.agents/skills, ~/.claude/skills, ~/.codex/skills, a Claude Code or Codex plugin folder;
+// CLAUDE_CONFIG_DIR honoured): then it is the board's folder, next to the run, so a receipt never lands inside an
+// install that an update replaces (L1). A source checkout keeps the working folder.
+const QA_GUI_ROOT = fileURLToPath(new URL("../", import.meta.url));
+const realOr = (path) => { try { return realpathSync(path); } catch { return resolve(path); } };
+function receiptBase(boardPath, { cwd = process.cwd(), home = homedir(), env = process.env } = {}) {
+  const claude = env.CLAUDE_CONFIG_DIR ? resolve(env.CLAUDE_CONFIG_DIR) : join(home, ".claude");
+  const installs = [...(existsSync(join(QA_GUI_ROOT, "SOURCE.json")) ? [QA_GUI_ROOT] : []), join(home, ".agents", "skills"), join(claude, "skills"), join(claude, "plugins"), join(home, ".claude", "skills"), join(home, ".claude", "plugins"),
+    join(home, ".codex", "skills"), join(home, ".codex", "plugins")].map(realOr);
+  const here = realOr(cwd);
+  return installs.some((root) => here === root || here.startsWith(root.endsWith(sep) ? root : root + sep)) ? dirname(resolve(boardPath)) : cwd;
+}
+
+function writeGateReceipt(data, computed, semanticVerdict, boardPath) {
   if (!UUID_RE.test(data.runUuid || "")) return null;
   const unsigned = {
     schema: RECEIPT_SCHEMA,
@@ -707,16 +773,16 @@ function writeGateReceipt(data, computed, semanticVerdict) {
     created_at: new Date().toISOString(),
   };
   const receipt = { ...unsigned, integrity: integrityOf(unsigned) };
-  const target = resolve(process.cwd(), ".teamcode", "runs", data.runUuid, "receipts", "qa-gui.receipt.json");
+  const target = resolve(receiptBase(boardPath), ".teamcode", "runs", data.runUuid, "receipts", "qa-gui.receipt.json");
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, `${JSON.stringify(receipt, null, 2)}\n`);
   return target;
 }
 
-function writeGateReceiptV2(data, context, semanticVerdict, atomicCoverage, teamqa=null) {
+function writeGateReceiptV2(data, context, semanticVerdict, atomicCoverage, teamqa=null, boardPath=".") {
   if (!UUID_RE.test(data.runUuid || "")) return null;
   const receipt = sealObject({...createGuiReceiptV2({ context, data, semanticVerdict, atomicCoverage }),...(teamqa||{})});
-  const target = resolve(process.cwd(), ".teamcode", "runs", data.runUuid, "receipts", "qa-gui.receipt.json");
+  const target = resolve(receiptBase(boardPath), ".teamcode", "runs", data.runUuid, "receipts", "qa-gui.receipt.json");
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, `${JSON.stringify(receipt, null, 2)}\n`);
   return target;
@@ -747,6 +813,9 @@ function printSummary(data, notes, verdict = "PASS", receiptPath = null, compute
   }
   process.stdout.write(`Coverage: ${(data.coverage || []).length}/${TAXONOMY.length} · Release: ${data.release && data.release.verdict ? data.release.verdict : "—"}\n`);
   if (computed?.acceptance) process.stdout.write(`Requirement coverage: ${computed.acceptance.covered}/${computed.acceptance.total}\n`);
+  // R1b: printed only when some state receipt named its coverage cell, so older boards print what they always printed.
+  const cells = cellSummaryLine(computed?.cells);
+  if (cells) process.stdout.write(`${cells}\n`);
   if (receiptPath) process.stdout.write(`Receipt: ${receiptPath}\n`);
   for (const note of notes) process.stdout.write(`Vision: ${note}\n`);
 }
@@ -808,7 +877,7 @@ function main() {
   }
   const issues = [];
   const notes = [];
-  const computed = { cases: [], functionParts: [], uiParts: [], functionVerdict: "PASS", uiVerdict: "PASS", acceptance: { covered: 0, total: 0 } };
+  const computed = { cases: [], functionParts: [], uiParts: [], functionVerdict: "PASS", uiVerdict: "PASS", acceptance: { covered: 0, total: 0 }, cells: [] };
   let v2 = null;
   let v2Context = null;
   let canonicalOk = false;
@@ -874,7 +943,7 @@ function main() {
   if (completed && cli.webMode && canonicalOk && v2Context && teamqa && v2?.receiptEligible) {
     try {
       const receipt = createGuiReceiptWeb({ context: v2Context, data, semanticVerdict, atomicCoverage: v2.atomicCoverage, teamqa });
-      receiptPath = resolve(process.cwd(), '.teamcode', 'runs', data.runUuid, 'receipts', 'qa-gui.receipt.json');
+      receiptPath = resolve(receiptBase(boardPath), '.teamcode', 'runs', data.runUuid, 'receipts', 'qa-gui.receipt.json');
       mkdirSync(dirname(receiptPath), { recursive: true });
       if (existsSync(receiptPath)) {
         const archive = resolve(dirname(dirname(receiptPath)), 'archive', 'receipts');
@@ -884,13 +953,13 @@ function main() {
       writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
     } catch (error) { fail(error.message); { process.exitCode = 20; return; } }
   } else if (completed && cli.releaseTruthV2 && canonicalOk && v2Context && v2?.receiptEligible) {
-    try { receiptPath = writeGateReceiptV2(data, v2Context, semanticVerdict, v2.atomicCoverage, teamqa); }
+    try { receiptPath = writeGateReceiptV2(data, v2Context, semanticVerdict, v2.atomicCoverage, teamqa, boardPath); }
     catch (error) {
       fail(error.message);
       { process.exitCode = 20; return; }
     }
   } else if (completed && !cli.releaseTruthV2 && !cli.webMode) {
-    receiptPath = writeGateReceipt(data, computed, semanticVerdict);
+    receiptPath = writeGateReceipt(data, computed, semanticVerdict, boardPath);
   }
   printSummary(data, notes, semanticVerdict, receiptPath, computed);
   if (semanticVerdict === "PASS") { process.exitCode = 0; return; }

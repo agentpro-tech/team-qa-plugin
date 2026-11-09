@@ -66,7 +66,7 @@ test('a runtime signed by someone else is refused before any of its code runs', 
 
 test('the attestation checks the signature first, keeps git only for unsigned runtimes, and runs its own package tool (static)', () => {
   const source = readFileSync(new URL('../scripts/lib/teamqa-attestation.mjs', import.meta.url), 'utf8');
-  const signedAt = source.indexOf('verifySignedRuntime(runtime'), gitAt = source.indexOf("spawnSync('git'"), toolAt = source.indexOf("[packageTool,'verify-runtime'"), contractAt = source.indexOf('scripts/lib/run-contract.mjs');
+  const signedAt = source.indexOf('verifySignedRuntime(runtime'), gitAt = source.indexOf("runtimeCheck('git'"), toolAt = source.indexOf("[packageTool,'verify-runtime'"), contractAt = source.indexOf('scripts/lib/run-contract.mjs');
   assert.ok(signedAt > 0 && signedAt < gitAt && gitAt < toolAt && toolAt < contractAt);
   assert.match(source, /if\(!signed\)\{/);
 });

@@ -3,12 +3,12 @@
   "key_id": "0cf79a5cf736467e17536e403e95fa66d9b901f29457b98d3111452329b3caa8",
   "signed": {
     "skill": "qa-code",
-    "version": "1.11.1",
-    "commit": "882d7da86810bb86877f83bcbb6a8350a43daef3",
-    "tree": "e5c91bdc08b283f455bd58eabaa505e2f034fc14",
+    "version": "1.11.2",
+    "commit": "455661338c17319e3473a03a5ffc2247e8688c15",
+    "tree": "2ca4a83924fe03d75a6f08c2ebb947d53b3b07e2",
     "repo": "https://github.com/agentpro-tech/qa-code.git",
-    "manifest_sha256": "4bba0d152e6f346ebd1fa21e0d60f2f2a87d9fde4d97dd1fd9090f908f7342f4",
-    "package_sha256": "b00ea65ddfcfca0a3f178543f2bdeb492a79d9dcc42488c8e3a59c30ccec9e24"
+    "manifest_sha256": "649231dc7cda8c79a8ff087c25b80547f3f8187a6249132371820542ba81c26a",
+    "package_sha256": "00d4575c4ec9cc5e847fa9328ba81e0eae56ce62bdcf07fe59224f32eb331144"
   },
-  "signature": "7gaWeAi093UtzkVtSKQ/cLjTM0hm796Wa3MfdL7Ip5/WdAve9YBuCFtea57KAB+gOEUywbrrdfKqYnqoCj4PBQ=="
+  "signature": "gB8Oz61q+O++LiPyMTBjlFfK2K+6j4U52CRxOkd3Gzz8izhT65lvfZYoPUF//eMY/VAolWqHud2lspHUvJi2Aw=="
 }

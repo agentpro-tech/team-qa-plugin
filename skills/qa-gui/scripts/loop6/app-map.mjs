@@ -14,6 +14,11 @@
  *    that admits un-crawled territory yields total=null plus a reason.
  */
 
+import {
+  ANY, APP_MAP_V2_SCHEMA, DEFAULT_ACTION, DEFAULT_CONDITION, NOT_EXPLORED_CODES, STATE_LABEL, STOP_REASONS,
+  coarseStateOf, conditionKey, routeOf, viewportRow,
+} from '../lib/coverage-cell.mjs';
+
 const SEPARATORS = /[/-]/;
 const SEQUENCE_TOKEN = /^(?:step|page)\d+$/;
 /** id tokens that describe structure, not the human name of the surface. */
@@ -108,6 +113,11 @@ function triggerFor(obs) {
   if (kind === 'breadcrumb') return `click:breadcrumb-${name.toLowerCase()}`;
   if (kind === 'row') return `click:${name.replace(/[-_]\d+$/, '')}-row`;
   return `click:${name}`;
+}
+
+/** R1e: the cell action of a candidate affordance, in the trigger form of the app map's edges (`click:Save`). */
+export function actionOf(candidate) {
+  return triggerFor({ action: candidate?.action ?? 'click', target: candidate?.target });
 }
 
 export function buildAppMap(observations) {
@@ -206,4 +216,183 @@ export function buildAppMap(observations) {
   return graph;
 }
 
-export default { buildAppMap };
+/**
+ * R1b — app map v2: the v1 graph plus what the exploration did NOT do and why it stopped.
+ *
+ * Pure, deterministic, no I/O. `buildAppMap` above stays exactly as the frozen V6.1 corpus wants it; v2 reads the
+ * same log plus optional fields that v1 ignores (references/coverage-cells.md):
+ *   - on a settled observation: `domHash` (the strict state key), `rows` (a read row count), `viewport` (a responsive
+ *     matrix row id or its `WxH`), `conditions` (environment conditions forced for it), `route`, and `candidates`
+ *     ([{target, action?, blocked?, leadsTo?, detail?}], the affordances seen in that state);
+ *   - a nodeless observation with `blocked: <code>`: an attempt on `target` that was refused (not an edge);
+ *   - `{action: "skip", route, state, reason, viewport?, conditions?, detail?}`: a state the explorer did not reach;
+ *   - `{action: "stop", reason, code?, detail?}`: why the exploration ended.
+ * Output: {schema, nodes (v1 + route), edges (v1), visited, total, denominatorReason?, states, frontier, stop,
+ * saturation: {strict, coarse}, issues}. A frontier entry is a cell the exploration saw and did not run; each carries
+ * one NOT_EXPLORED code. Saturation is Good-Turing's unseen mass Û = f1/n over the settled state observations, once
+ * per state grouping: strict by DOM hash, coarse by the rule `route|coarse state`.
+ */
+const LOADING_STATE = /^(loading|skeleton|busy)$/i;
+
+function surfaceOf(id, obs) {
+  const { prefix, tail } = splitTail(id);
+  if (prefix === 'route') return tail || id;
+  // A dialog, drawer, popover or tab is its own surface; only a screen takes the URL it was seen at.
+  if (prefix !== 'screen') return id;
+  const raw = obs.route ?? obs.resultRoute ?? (obs.action === 'goto' ? obs.url : undefined) ?? obs.resultHash;
+  return routeOf(raw) ?? id;
+}
+
+function rowOf(value, issues) {
+  if (value === undefined || value === null) return ANY;
+  const row = viewportRow(value);
+  if (row) return row.id;
+  issues.add('VIEWPORT_NOT_A_ROW');
+  return ANY;
+}
+
+function conditionOf(value, issues) {
+  if (value === undefined || value === null) return DEFAULT_CONDITION;
+  if (typeof value !== 'object' || Array.isArray(value)) { issues.add('CONDITIONS_INVALID'); return DEFAULT_CONDITION; }
+  return conditionKey(value);
+}
+
+function saturationOf(keys) {
+  const counts = new Map();
+  for (const key of keys) counts.set(key, (counts.get(key) ?? 0) + 1);
+  const n = keys.length;
+  const f1 = [...counts.values()].filter((count) => count === 1).length;
+  return { n, f1, distinct: counts.size, u: n === 0 ? null : f1 / n };
+}
+
+const SEP = '\u0000';
+
+export function buildAppMapV2(observations) {
+  const log = Array.isArray(observations) ? observations.filter((obs) => obs && typeof obs === 'object') : [];
+  const graph = buildAppMap(log);
+  const issues = new Set();
+  const routes = new Map();
+  const states = [];
+  const candidates = new Map();
+  const refused = new Map();
+  const taken = new Set();
+  const skips = [];
+  let declaredStop = null;
+  let root = null;
+  let current = null;
+  let pending = null;
+
+  log.forEach((obs, index) => {
+    const step = Number.isInteger(obs.step) ? obs.step : index + 1;
+    if (obs.action === 'stop') { declaredStop = { ...obs, step }; return; }
+    if (obs.action === 'skip') { skips.push({ ...obs, step }); return; }
+    const id = obs.node;
+    if (typeof id !== 'string' || id.length === 0) {
+      if (typeof obs.target === 'string' && obs.blocked !== undefined && current !== null) {
+        refused.set(`${current}${SEP}${obs.target}`, { code: obs.blocked, detail: obs.detail });
+      } else if (typeof obs.target === 'string') pending = obs;
+      // A transient state seen on a known route (a loading skeleton) is a state observation, never a node.
+      const route = routeOf(obs.route ?? obs.resultRoute);
+      if (route && typeof obs.readyState === 'string' && LOADING_STATE.test(obs.readyState)) {
+        states.push({ step, node: null, route, state: 'loading', strict: typeof obs.domHash === 'string' ? obs.domHash : null,
+          viewport: rowOf(obs.viewport, issues), condition: conditionOf(obs.conditions, issues) });
+      }
+      return;
+    }
+    if (root === null) root = id;
+    const driver = typeof obs.target === 'string' ? obs : (pending ?? obs);
+    pending = null;
+    const from = typeof driver.target === 'string' && driver.target.startsWith('nav:') ? root : current;
+    if (from !== null && typeof driver.target === 'string') taken.add(`${from}${SEP}${driver.target}`);
+    current = id;
+    if (!routes.has(id)) routes.set(id, surfaceOf(id, obs));
+    const seen = {
+      step, node: id, route: routes.get(id), state: coarseStateOf(obs), strict: typeof obs.domHash === 'string' ? obs.domHash : null,
+      viewport: rowOf(obs.viewport, issues), condition: conditionOf(obs.conditions, issues),
+    };
+    states.push(seen);
+    for (const candidate of Array.isArray(obs.candidates) ? obs.candidates : []) {
+      if (!candidate || typeof candidate.target !== 'string' || !candidate.target) { issues.add('CANDIDATE_INVALID'); continue; }
+      const key = `${id}${SEP}${candidate.target}`;
+      if (!candidates.has(key)) candidates.set(key, { candidate, seen });
+    }
+  });
+
+  const frontier = [];
+  for (const [key, { candidate, seen }] of candidates) {
+    if (taken.has(key)) continue;
+    const block = candidate.blocked !== undefined ? { code: candidate.blocked, detail: candidate.detail } : refused.get(key);
+    let reason = null;
+    if (block) {
+      if (NOT_EXPLORED_CODES.includes(block.code)) reason = block.code;
+      else issues.add('BLOCKED_CODE_INVALID');
+    }
+    const leadsTo = routeOf(candidate.leadsTo);
+    const detail = block?.detail ?? candidate.detail;
+    frontier.push({
+      id: `f:${seen.node}>${candidate.target}`, kind: 'action', from: seen.node, route: seen.route, state: seen.state, strict: seen.strict,
+      action: triggerFor({ action: candidate.action ?? 'click', target: candidate.target }), target: candidate.target,
+      viewport: seen.viewport, condition: seen.condition, reason,
+      ...(leadsTo ? { leadsTo } : {}), ...(typeof detail === 'string' && detail ? { detail } : {}),
+    });
+  }
+  for (const skip of skips) {
+    const route = routeOf(skip.route);
+    if (!route || typeof skip.state !== 'string' || !STATE_LABEL.test(skip.state)) { issues.add('SKIP_INVALID'); continue; }
+    const valid = NOT_EXPLORED_CODES.includes(skip.reason);
+    if (!valid) issues.add('SKIP_REASON_INVALID');
+    frontier.push({
+      id: `f:${route}>state=${skip.state}`, kind: 'state', from: null, route, state: skip.state, strict: null, action: DEFAULT_ACTION, target: null,
+      viewport: skip.viewport === undefined ? ANY : rowOf(skip.viewport, issues),
+      condition: skip.conditions === undefined ? ANY : conditionOf(skip.conditions, issues),
+      reason: valid ? skip.reason : null, ...(typeof skip.detail === 'string' && skip.detail ? { detail: skip.detail } : {}),
+    });
+  }
+
+  // The stop reason: as declared when it holds, else what the log implies. FRONTIER_EMPTY while an explorable
+  // candidate is left is not true, so it is corrected and reported.
+  const open = frontier.filter((entry) => entry.kind === 'action' && entry.reason === null).length;
+  let stop = null;
+  if (declaredStop) {
+    if (!STOP_REASONS.includes(declaredStop.reason)) issues.add('STOP_REASON_INVALID');
+    else {
+      let code = null;
+      if (declaredStop.reason === 'BLOCKED') {
+        if (NOT_EXPLORED_CODES.includes(declaredStop.code)) code = declaredStop.code;
+        else { issues.add('STOP_CODE_MISSING'); code = 'TOOL_LIMIT'; }
+      }
+      stop = { reason: declaredStop.reason, code, detail: typeof declaredStop.detail === 'string' ? declaredStop.detail : null, step: declaredStop.step };
+    }
+  }
+  if (!stop && typeof graph.denominatorReason === 'string') stop = { reason: 'BUDGET_EXHAUSTED', code: null, detail: graph.denominatorReason, step: null };
+  if (!stop) stop = open > 0 ? { reason: 'BLOCKED', code: 'TOOL_LIMIT', detail: 'STOP_UNDECLARED: the log ends with candidates left and names no stop reason', step: null }
+    : { reason: 'FRONTIER_EMPTY', code: null, detail: null, step: null };
+  if (stop.reason === 'FRONTIER_EMPTY' && open > 0) {
+    issues.add('STOP_FRONTIER_NOT_EMPTY');
+    stop = { reason: 'BLOCKED', code: 'TOOL_LIMIT', detail: `declared FRONTIER_EMPTY with ${open} explorable candidate(s) left`, step: stop.step };
+  }
+  const implied = stop.reason === 'BUDGET_EXHAUSTED' ? 'BUDGET' : stop.reason === 'BLOCKED' ? stop.code : 'UNREACHABLE';
+  for (const entry of frontier) if (entry.reason === null) entry.reason = implied;
+
+  const finished = stop.reason === 'FRONTIER_EMPTY';
+  return {
+    schema: APP_MAP_V2_SCHEMA,
+    nodes: graph.nodes.map((node) => ({ ...node, route: routes.get(node.id) ?? node.id })),
+    edges: graph.edges,
+    visited: graph.visited,
+    total: finished ? graph.total : null,
+    ...(finished && graph.denominatorReason === undefined ? {} : {
+      denominatorReason: graph.denominatorReason ?? `stop ${stop.reason}: ${frontier.length} candidate(s) left in the frontier`,
+    }),
+    states,
+    frontier,
+    stop,
+    saturation: {
+      strict: saturationOf(states.filter((entry) => entry.strict !== null).map((entry) => entry.strict)),
+      coarse: saturationOf(states.map((entry) => `${entry.route}|${entry.state}`)),
+    },
+    issues: [...issues].sort(),
+  };
+}
+
+export default { buildAppMap, buildAppMapV2 };

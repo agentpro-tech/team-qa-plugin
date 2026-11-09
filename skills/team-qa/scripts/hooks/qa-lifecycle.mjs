@@ -1,14 +1,15 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { readContinuationBinding, readContinuation, automaticContinuationReason } from '../lib/continuation.mjs';
-import { appendScrollLedger, readJson, sha256, sha256File, stableJson, writeConfirmed, runAdapter } from '../lib/core.mjs';
+import { appendScrollLedger, readJson, sha256, sha256File, stableJson, writeAtomic, writeConfirmed, runAdapter } from '../lib/core.mjs';
 import { inspectDragonAdmission } from '../lib/dragon-admission.mjs';
 import { assertRunContract } from '../lib/run-contract.mjs';
 import { verifyProviderInterface } from '../lib/roster.mjs';
 import { readFirstOriginalLine, verifyNativeHost } from '../lib/native-host.mjs';
 import { SPACE_CREATE_PAGE_TOOL, inspectBoardWrite } from '../lib/board-write-admission.mjs';
+import { admitNotionWrite, boardWriteKind, notionToolKind, plannedCall, recordNotionResult } from '../lib/board-notion.mjs';
 import { claudeHostSource, isClaudeTranscriptPath, lastClaudeAssistantText } from '../lib/host-transcript.mjs';
 import { dragonStatusUrl } from '../lib/dragon-endpoint.mjs';
 import { dragonStatusVerdict } from '../lib/dragon-requirements.mjs';
@@ -18,13 +19,25 @@ import { WAIT_MARKER, startsWithWaitMarker } from '../lib/report-tokens.mjs';
 const deny = code => ({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: code } });
 const nativeTool = name => /^mcp__.*dragon.*__dragon_rpc$/i.test(name || '');
 const NATIVE_SPACE_CREATE_PAGE_TOOL = 'mcp__codex_apps__chatgpt_space__create_page';
+// Every board write a registered run can make (upgrade B0): the sealed Space create_page, the planned Notion calls of
+// `teamqa board publish`, and nothing else. Other Notion, Claude Docs, Google Drive and Space writes are refused, so a
+// board can no longer be written by hand next to the canonical one.
 function directBoardWrite(name) {
   if (name === SPACE_CREATE_PAGE_TOOL || name === NATIVE_SPACE_CREATE_PAGE_TOOL) return 'space-create-page';
-  if (/^mcp__codex_apps__chatgpt_space_{1,2}(?:create_page|update|edit|append|delete|create_visualization|update_visualization)/i.test(name || '')) return 'unsupported-space-write';
-  if (/^mcp__codex_apps__notion_{1,2}notion_(?:create|update|append|delete|patch|post)/i.test(name || '')
-    || /^mcp__notion__.*(?:create|update|append|delete|patch|post)/i.test(name || '')) return 'unsupported-notion-write';
-  return null;
+  const kind = boardWriteKind(name);
+  return kind === 'space-write' ? 'unsupported-space-write' : kind;
 }
+const shellDragonRoute = input => /^(?:Bash|exec_command|mcp__.*__exec_command)$/.test(input.tool_name || '') && /qa_do\.mjs/.test(input.tool_input?.cmd || input.tool_input?.command || '');
+// A session whose binding cannot be used (it drifted from its run: a new round, the run deleted, another Team QA
+// runtime; or the binding file is unreadable) keeps Dragon and board writes refused. Every other call goes ahead with
+// a warning naming the way out, and a Stop is not continued; nothing is recorded in the run.
+function unusableBinding(input, code, registryDir) {
+  const warning = `Team QA: this session's run binding no longer matches its run (${code}). Dragon calls and board writes stay refused; other calls go ahead. `
+    + `Register the session again for the run's current round, or end the binding: teamqa continuation unregister --session ${input.session_id} --registry ${registryDir}`;
+  if (input.hook_event_name === 'PreToolUse') return nativeTool(input.tool_name) || directBoardWrite(input.tool_name) || shellDragonRoute(input) ? deny(code) : { systemMessage: warning };
+  return input.hook_event_name === 'Stop' ? { systemMessage: warning } : {};
+}
+const toolResponse = (input) => input.tool_response ?? input.tool_output ?? input.output;
 function unwrap(output) {
   for (let n = 0; n < 5; n++) {
     if (typeof output === 'string') { output = JSON.parse(output); continue; }
@@ -172,10 +185,38 @@ function liveSession(session, policy) {
     && (!policy || runtime.extension?.version === policy.dragon.version);
 }
 
+// One trusted Dragon input at a time: browser-input.pending.json names the admitted input until its PostToolUse.
+// An input whose PostToolUse never comes (the user refused the call, or the turn was interrupted) no longer blocks the
+// run: a Stop or Interrupt of the same caller and turn after it means the call is over; so does a time longer than any
+// role of the roster may run (its longest caps.timeout_ms, at least INPUT_IN_FLIGHT_MAX_MS). The next input records
+// it as abandoned (<event>.input-abandoned.json, naming it in its own admission) and goes ahead. The abandoned input
+// keeps its admission; with no confirmed result it never counts as a verified operation.
+export const INPUT_IN_FLIGHT_MAX_MS = 5 * 60 * 1000;
+const TURN_END = { stop: 'STOP_AFTER_INPUT', interrupt: 'INTERRUPT_AFTER_INPUT', 'worker-stop': 'STOP_AFTER_INPUT', 'worker-interrupt': 'INTERRUPT_AFTER_INPUT' };
+function inputBoundMs(binding) {
+  let caps = [];
+  try { caps = readJson(join(binding.run_dir, 'roster.json')).roles?.map(role => role.caps?.timeout_ms).filter(v => Number.isInteger(v) && v > 0 && v <= 1800000) || []; } catch { caps = []; }
+  return Math.max(INPUT_IN_FLIGHT_MAX_MS, ...caps);
+}
+function abandonedInput(pendingPath, prior, binding, nowMs) {
+  let record = null;
+  try { record = JSON.parse(readFileSync(pendingPath, 'utf8')); } catch { record = null; }
+  let admittedAt = Date.parse(record?.at);
+  if (!Number.isFinite(admittedAt)) { try { admittedAt = statSync(pendingPath).mtimeMs; } catch { return null; } }
+  const caller = record?.caller?.sessionId ?? binding.session_id;
+  const ended = prior.find(e => TURN_END[e.type] && Date.parse(e.at) >= admittedAt && (e.caller?.sessionId ?? binding.session_id) === caller
+    && (!record?.turnId || !e.turnId || e.turnId === record.turnId));
+  if (ended) return { toolUseId: record?.toolUseId ?? null, reason: TURN_END[ended.type], at: record?.at ?? null };
+  if (nowMs - admittedAt > inputBoundMs(binding)) return { toolUseId: record?.toolUseId ?? null, reason: 'IN_FLIGHT_TIMEOUT', at: record?.at ?? null };
+  return null;
+}
+
 export async function handleQaHook(input, { registryDir, decide = readContinuation, inspect = inspectDragonAdmission, live = liveSession,
   lookup = readContinuationBinding, readNativeMetadata = readNativeHookMetadata, verifyHost = verifyNativeHost,
   inspectChild = childInspector, inspectWrite = inspectBoardWrite, permitExecution = executionAllowed, loadPolicy = policyForRun, ledger = appendScrollLedger, now = Date.now } = {}) {
-  const owner = resolveHookOwner(input, { registryDir, lookup, readNativeMetadata, verifyHost });
+  let owner;
+  try { owner = resolveHookOwner(input, { registryDir, lookup, readNativeMetadata, verifyHost }); }
+  catch (error) { return unusableBinding(input, error?.code || error?.message || 'CONTINUATION_BINDING_UNREADABLE', registryDir); }
   if (!owner) return {};
   const { binding, caller } = owner;
   const dir = join(binding.run_dir, 'hook-events');
@@ -212,30 +253,42 @@ export async function handleQaHook(input, { registryDir, decide = readContinuati
     // Claude Code Stop input may omit last_assistant_message; read it from the original transcript.
     const claudeStop = input.last_assistant_message === undefined && typeof input.transcript_path === 'string' && isClaudeTranscriptPath(input.transcript_path);
     const lastMessage = input.last_assistant_message ?? (claudeStop ? lastClaudeAssistantText(input.transcript_path) : undefined);
-    // Claude Code: one automatic WAIT correction per blocked code; a repeat only reports.
-    // A WAIT report starts with the marker SKILL.md names (report-tokens.mjs; the legacy marker is accepted too).
-    const repeated = claudeStop && input.stop_hook_active === true && prior.some(e => e.type === 'stop' && e.correction === true && e.decision?.code === decision.code);
+    // One automatic WAIT correction per blocked code, on every host: Claude Code now sends last_assistant_message on
+    // each Stop, so the guard cannot depend on reading the transcript. A Stop that continues an earlier hook block
+    // (stop_hook_active) after a correction of the same code only reports.
+    // A WAIT report starts with the marker SKILL.md names (report-tokens.mjs; the legacy marker is accepted too),
+    // markdown emphasis around it included.
+    const repeated = input.stop_hook_active === true && prior.some(e => e.type === 'stop' && e.correction === true && e.decision?.code === decision.code);
     const correction = decision.disposition === 'WAIT' && !repeated && !startsWithWaitMarker(lastMessage);
     const output = decision.disposition === 'CONTINUE' || correction ? { decision: 'block', reason: automaticContinuationReason(correction
       ? { ...decision, next: { kind: 'report', action: `Report ${WAIT_MARKER} with blocked operations, evidence, owner and recovery condition. Do not resume blocked work or claim completion.` } } : decision) }
       : decision.disposition === 'WAIT' ? { systemMessage: `QA ${WAIT_MARKER}: ${decision.code}. Blocked work and its recovery condition remain in the run evidence.` } : {};
-    await immutable(path, { type: 'stop', at, turnId: input.turn_id, decision, output, ...(claudeStop && correction ? { correction: true } : {}) });
+    await immutable(path, { type: 'stop', at, turnId: input.turn_id, decision, output, ...(correction ? { correction: true } : {}) });
     await ledger({ cwd: dirname(dirname(binding.run_dir)), runId: binding.run_id, caseId: `hook:${decision.next?.caseId || decision.disposition}`, status: decision.disposition.toLowerCase(), evidence: [path], digest: decision.code, tries: earlier.filter(e => e.decision.next?.caseId === decision.next?.caseId).length + 1 });
     return output;
   }
   const writeKind = directBoardWrite(input.tool_name);
   if (writeKind) {
+    if (event === 'PostToolUse' && writeKind.startsWith('notion-create') && plannedCall({ runDir: binding.run_dir, toolInput: input.tool_input })) {
+      recordNotionResult({ runDir: binding.run_dir, toolName: input.tool_name, toolUseId: input.tool_use_id, toolInput: input.tool_input, toolResponse: toolResponse(input) });
+    }
     if (event !== 'PreToolUse') return {};
     const result = writeKind === 'space-create-page'
       ? inspectWrite({ runDir: binding.run_dir, toolName: SPACE_CREATE_PAGE_TOOL, toolInput: input.tool_input })
-      : { allowed: false, code: 'BOARD_CONNECTOR_UNSUPPORTED_PROJECTION' };
+      : writeKind === 'notion-create-database' || writeKind === 'notion-create-pages'
+        ? admitNotionWrite({ runDir: binding.run_dir, toolName: input.tool_name, toolInput: input.tool_input })
+        : { allowed: false, code: writeKind === 'unsupported-space-write' ? 'BOARD_CONNECTOR_UNSUPPORTED_PROJECTION' : 'BOARD_WRITE_NOT_PLANNED' };
     await immutable(path, { type: 'board-admission', at, toolUseId: input.tool_use_id, caller,
       toolName: input.tool_name, requestHash: sha256(stableJson(input.tool_input ?? null)), allowed: result.allowed === true,
       code: result.code, evidence: result.allowed ? result : undefined, output: {} });
     return result.allowed ? {} : deny(result.code || 'BOARD_WRITE_ADMISSION_FAILED');
   }
+  if (event === 'PostToolUse' && notionToolKind(input.tool_name) === 'read' && plannedCall({ runDir: binding.run_dir, toolInput: input.tool_input })) {
+    recordNotionResult({ runDir: binding.run_dir, toolName: input.tool_name, toolUseId: input.tool_use_id, toolInput: input.tool_input, toolResponse: toolResponse(input) });
+    return {};
+  }
   if (!nativeTool(input.tool_name)) {
-    if (event === 'PreToolUse' && /^(?:Bash|exec_command|mcp__.*__exec_command)$/.test(input.tool_name || '') && /qa_do\.mjs/.test(input.tool_input?.cmd || input.tool_input?.command || '')) return deny('DRAGON_USE_REGISTERED_MCP');
+    if (event === 'PreToolUse' && shellDragonRoute(input)) return deny('DRAGON_USE_REGISTERED_MCP');
     return {};
   }
   const request = input.tool_input, session = browserState(binding, prior);
@@ -252,12 +305,18 @@ export async function handleQaHook(input, { registryDir, decide = readContinuati
     if (!result.allowed) return deny(result.code);
     if (result.requiresLive && !live(session, policy)) return deny('DRAGON_SESSION_STALE');
     const pending = join(dir, 'browser-input.pending.json');
+    let supersedes = null;
     if (result.mutating) {
-      if (existsSync(pending)) return deny('DRAGON_INPUT_IN_FLIGHT');
-      try { writeFileSync(pending, stableJson({ toolUseId: input.tool_use_id, requestHash: sha256(stableJson(request)) }), { flag: 'wx' }); }
+      if (existsSync(pending)) {
+        supersedes = abandonedInput(pending, prior, binding, now());
+        if (!supersedes) return deny('DRAGON_INPUT_IN_FLIGHT');
+        try { renameSync(pending, eventPath(dir, input, 'input-abandoned')); }
+        catch (e) { if (e.code !== 'ENOENT') throw e; /* a parallel hook moved it first */ }
+      }
+      try { writeAtomic(pending, stableJson({ toolUseId: input.tool_use_id, requestHash: sha256(stableJson(request)), at, turnId: input.turn_id ?? null, caller }), { exclusive: true }); }
       catch (e) { if (e.code === 'EEXIST') return deny('DRAGON_INPUT_IN_FLIGHT'); throw e; }
     }
-    await immutable(path, { type: 'dragon-admission', at, toolUseId: input.tool_use_id, caller, requestHash: sha256(stableJson(request)), output: {} });
+    await immutable(path, { type: 'dragon-admission', at, toolUseId: input.tool_use_id, caller, requestHash: sha256(stableJson(request)), ...(supersedes ? { supersedes } : {}), output: {} });
     return {};
   }
   if (event === 'PostToolUse') {

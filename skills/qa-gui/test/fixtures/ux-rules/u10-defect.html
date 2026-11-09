@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>U10 defect: stacked Vietnamese diacritics clipped by a tight line box</title>
+<style>
+  body { font: 16px sans-serif; margin: 24px; color: #222; }
+  /* Defect: a fixed-height chip with a line-height below the font size and overflow hidden cuts the
+     marks above Ặ, Ỗ, Ẫ and the dot below Ặ. */
+  .chip { display: inline-block; height: 16px; line-height: 16px; font-size: 20px; overflow: hidden; padding: 0 10px; background: #e0f2fe; border-radius: 4px; }
+</style>
+</head>
+<body>
+  <h1>Khách hàng</h1>
+  <p>Nhóm: <span class="chip" id="tag">ĐẶNG VŨ ỖNG ẪM</span></p>
+</body>
+</html>

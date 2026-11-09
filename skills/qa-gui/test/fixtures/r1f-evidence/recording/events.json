@@ -1,0 +1,139 @@
+{
+  "id": "rec-20261027-232931-e45f32",
+  "startedAt": 1793143771543,
+  "durationMs": 5006,
+  "viewport": {
+    "deviceWidth": 1280,
+    "deviceHeight": 800
+  },
+  "frameCount": 20,
+  "frames": [
+    {
+      "t": 70,
+      "file": "f-000000.jpg"
+    },
+    {
+      "t": 267,
+      "file": "f-000001.jpg"
+    },
+    {
+      "t": 489,
+      "file": "f-000002.jpg"
+    },
+    {
+      "t": 755,
+      "file": "f-000003.jpg"
+    },
+    {
+      "t": 989,
+      "file": "f-000004.jpg"
+    },
+    {
+      "t": 1232,
+      "file": "f-000005.jpg"
+    },
+    {
+      "t": 1626,
+      "file": "f-000006.jpg"
+    },
+    {
+      "t": 1877,
+      "file": "f-000007.jpg"
+    },
+    {
+      "t": 2136,
+      "file": "f-000008.jpg"
+    },
+    {
+      "t": 2381,
+      "file": "f-000009.jpg"
+    },
+    {
+      "t": 2641,
+      "file": "f-000010.jpg"
+    },
+    {
+      "t": 2873,
+      "file": "f-000011.jpg"
+    },
+    {
+      "t": 3125,
+      "file": "f-000012.jpg"
+    },
+    {
+      "t": 3484,
+      "file": "f-000013.jpg"
+    },
+    {
+      "t": 3745,
+      "file": "f-000014.jpg"
+    },
+    {
+      "t": 4007,
+      "file": "f-000015.jpg"
+    },
+    {
+      "t": 4255,
+      "file": "f-000016.jpg"
+    },
+    {
+      "t": 4511,
+      "file": "f-000017.jpg"
+    },
+    {
+      "t": 4758,
+      "file": "f-000018.jpg"
+    },
+    {
+      "t": 5006,
+      "file": "f-000019.jpg"
+    }
+  ],
+  "events": [],
+  "privacy": {
+    "masked": true,
+    "rects": [
+      {
+        "h": 48,
+        "kind": "secret",
+        "w": 318,
+        "x": 114,
+        "y": 224
+      },
+      {
+        "h": 48,
+        "kind": "pii",
+        "w": 318,
+        "x": 72,
+        "y": 288
+      }
+    ],
+    "rejectedFrames": 0,
+    "maskFailures": 0,
+    "maskFailureReasons": {},
+    "cleanup": {
+      "ok": true,
+      "capturesStopped": true,
+      "masksRemoved": true,
+      "error": null
+    }
+  },
+  "delivery": {
+    "extensionFrames": 20,
+    "persistedFrames": 20,
+    "ingestErrors": 0,
+    "lastIngestError": null,
+    "captureAttempts": 21,
+    "captureErrors": 0,
+    "pushAttempts": 20,
+    "pushErrors": 0,
+    "navigationSkips": 1,
+    "navigationSkipReasons": {
+      "mask-moved": 1
+    },
+    "lastCaptureError": null,
+    "lastPushError": null
+  },
+  "result": "ok",
+  "_fixture": "Trimmed from a real Dragon 1.6.6 recording (run4 rec-20261027-232931-e45f32): its first 20 frames, re-encoded at 320x200 JPEG q50 to keep the fixture small; equal frames stay byte-equal and distinct frames stay distinct. Delivery counts are the trimmed counts."
+}

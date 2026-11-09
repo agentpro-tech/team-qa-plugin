@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-files/v1",
   "skill": "qa-gui",
-  "version": "2.17.1",
+  "version": "2.18.0",
   "include": [
     "SKILL.md",
     "VERSION",
@@ -35,6 +35,7 @@
     "scripts/teamwork/page-exporter.mjs",
     "scripts/teamwork/example-*.json",
     "test/fixtures/teamwork-page-observed/**",
+    "test/fixtures/ux-rules/u10-*.html",
     "test/loop6/corpus/v6.*.json",
     "test/loop8/approved-render-recipe.sh",
     "test/loop8/corpus/caption-cases.json",

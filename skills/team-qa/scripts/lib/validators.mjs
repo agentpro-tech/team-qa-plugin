@@ -16,13 +16,18 @@ import { ATTEMPT_SEQUENCE_FIELDS, attemptHistoryIssue, attemptShapeErrors } from
 import { FAILURE_CLASS_FIELD, FAILURE_METRIC_FIELDS, failureClassShapeErrors } from './failure-separation.mjs';
 import { deployedTargetShapeErrors } from './deployed-target.mjs';
 import { REPORT_INTEGRITY_FIELDS, reportIntegrityErrors } from './report-integrity.mjs';
+import { caseCellErrors, coverageReportErrors, planCoverageErrors, trackedCoverageErrors } from './coverage-cells.mjs';
 import {
   SOURCE_TRACEABILITY_VERSION,
   TRACKED_PLAN_SCHEMA_VERSION,
   sourceRefErrors,
   sourceRegistryErrors,
 } from './source-traceability.mjs';
+import { planSpeedErrors } from './speed.mjs';
+import { LANE_IDENTITY_FIELDS, planParallelErrors } from './parallel-lanes.mjs';
 
+// R1b: the report field of the cell coverage (lib/coverage-cells.mjs).
+const COVERAGE_REPORT_FIELDS = Object.freeze(['coverage_cells']);
 const PLAN_START = 'TEAMQA_PLAN_START';
 const PLAN_END = 'TEAMQA_PLAN_END';
 const REPORT_START = 'TEAMQA_REPORT_START';
@@ -68,7 +73,11 @@ export function planErrors(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return ['PLAN_TYPE root'];
   const root = ['run_id', 'app', 'plan_version', 'lanes', 'tiers', 'exit_criteria'];
   missing(value, root, 'PLAN', errors);
-  unknown(value, [...root, 'preflight'], 'PLAN', '', errors);
+  // `coverage` (R1b, optional): the N/A cells the owner signs with the plan (lib/coverage-cells.mjs).
+  unknown(value, [...root, 'preflight', 'coverage', 'speed'], 'PLAN', '', errors);
+  if (Object.hasOwn(value, 'coverage')) errors.push(...planCoverageErrors(value.coverage));
+  // Upgrade R3: the optional speed flags (lib/speed.mjs); a plan without them validates exactly as before.
+  if (Object.hasOwn(value, 'speed')) errors.push(...planSpeedErrors(value.speed), ...planParallelErrors(value));
   if (Object.hasOwn(value, 'preflight')) {
     const p = value.preflight;
     if (!p || typeof p !== 'object' || Array.isArray(p)) errors.push('PLAN_TYPE preflight');
@@ -95,7 +104,9 @@ export function planErrors(value) {
         }
         const fields = ['id', 'scope', 'parallel_ok', 'vi_sao'];
         for (const field of fields) if (!Object.hasOwn(lane, field)) errors.push(`PLAN_MISSING_FIELD ${where}.${field}`);
-        for (const key of Object.keys(lane)) if (!fields.includes(key)) errors.push(`PLAN_UNKNOWN_FIELD ${where}.${key}`);
+        // Upgrade R3: a lane may name its own test account or tenant, data namespace and Dragon session (lib/parallel-lanes.mjs).
+        for (const key of Object.keys(lane)) if (!fields.includes(key) && !LANE_IDENTITY_FIELDS.includes(key)) errors.push(`PLAN_UNKNOWN_FIELD ${where}.${key}`);
+        for (const key of LANE_IDENTITY_FIELDS) if (Object.hasOwn(lane, key) && !isNonEmptyString(lane[key])) errors.push(`PLAN_TYPE ${where}.${key}`);
         if (Object.hasOwn(lane, 'id')) {
           if (!isNonEmptyString(lane.id)) errors.push(`PLAN_TYPE ${where}.id`);
           else if (ids.has(lane.id)) errors.push(`PLAN_DUPLICATE ${where}.id`);
@@ -165,13 +176,17 @@ const CASE_REQUIRED = ['id', 'req_id', 'lane', 'steps', 'expected', 'data', 'pri
 const CASE_REQUIRED_V2 = [...CASE_REQUIRED, 'title', 'sourceRefs'];
 const CASE_FIELDS = [...CASE_REQUIRED, ...COVERAGE_FIELDS];
 const CASE_FIELDS_V2 = [...CASE_REQUIRED_V2, ...COVERAGE_FIELDS];
+const CASE_CELL_FIELDS = ['route', 'actions', 'conditions'];
 
 export function trackedErrors(value, options = {}) {
   const errors = [];
   if (!value || typeof value !== 'object' || Array.isArray(value)) return ['CASE_TYPE root'];
   const versioned = Object.hasOwn(value, 'schemaVersion');
   const sourceVersion = value.schemaVersion === TRACKED_PLAN_SCHEMA_VERSION;
-  unknown(value, sourceVersion ? ['schemaVersion', 'sourceItems', 'cases'] : ['cases'], 'CASE', '', errors);
+  // R1b: a v2 plan may add a versioned `coverage` block; its cases then may name a route, actions and conditions.
+  const cells = sourceVersion && Object.hasOwn(value, 'coverage');
+  unknown(value, sourceVersion ? ['schemaVersion', 'sourceItems', 'cases', 'coverage'] : ['cases'], 'CASE', '', errors);
+  if (cells) errors.push(...trackedCoverageErrors(value.coverage));
   if (versioned && !sourceVersion) errors.push(`CASE_SCHEMA_VERSION ${String(value.schemaVersion)}`);
   if (sourceVersion && !Object.hasOwn(value, 'sourceItems')) errors.push('CASE_FIELD root sourceItems');
   if (sourceVersion) errors.push(...sourceRegistryErrors(value.sourceItems));
@@ -180,7 +195,7 @@ export function trackedErrors(value, options = {}) {
   const lock = options.lock ?? null;
   const ids = new Set();
   const fields = sourceVersion ? CASE_REQUIRED_V2 : CASE_REQUIRED;
-  const allowedFields = sourceVersion ? CASE_FIELDS_V2 : CASE_FIELDS;
+  const allowedFields = sourceVersion ? [...CASE_FIELDS_V2, ...(cells ? CASE_CELL_FIELDS : [])] : CASE_FIELDS;
   value.cases.forEach((item, index) => {
     const fallbackId = `cases[${index}]`;
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
@@ -193,7 +208,8 @@ export function trackedErrors(value, options = {}) {
     // The three coverage matrix axes: the shape is always checked, while whether they must be declared follows
     // the run's lock, exactly like target identity and dual verdict.
     for (const field of missingCoverageAxes(item, lock)) errors.push(`CASE_FIELD ${id} ${field}`);
-    errors.push(...coverageShapeErrors(item, `CASE_TYPE ${id}`));
+    errors.push(...coverageShapeErrors(item, `CASE_TYPE ${id}`, { cells }));
+    if (cells) errors.push(...caseCellErrors(item, value.coverage, id));
     for (const field of ['id', 'req_id', 'lane', 'expected', ...(sourceVersion ? ['title'] : [])]) {
       if (Object.hasOwn(item, field) && !isNonEmptyString(item[field])) errors.push(`CASE_TYPE ${id} ${field}`);
     }
@@ -338,11 +354,14 @@ export function parseReport(path) {
   const sourceVersion = value.reportSchemaVersion === 2;
   if (Object.hasOwn(value, 'reportSchemaVersion') && !sourceVersion) fail(2, 'REPORT_SCHEMA_VERSION', String(value.reportSchemaVersion));
   const reportFields = [
-    ...(sourceVersion ? ['reportSchemaVersion', 'traceabilityVersion', 'sourceTraceability'] : []),
+    ...(sourceVersion ? ['reportSchemaVersion', 'traceabilityVersion', 'sourceTraceability'] : []), ...COVERAGE_REPORT_FIELDS,
     'run_id', 'task_base', 'source_revision', 'verification_lane', 'contract_sha256', 'exact_final_sha',
-    'target', 'decision', 'metrics', 'reasons', 'waived_p1', ...REPORT_INTEGRITY_FIELDS, 'board_delivery',
+    'target', 'decision', 'metrics', 'reasons', 'waived_p1', ...REPORT_INTEGRITY_FIELDS, 'board_delivery', 'board_conformance',
+    // R2a: the adjudicator's results next to the real verdicts (shadow) or as applied (enforce).
+    'adjudication',
   ];
   rejectUnknownFields(value, reportFields, 'REPORT_UNKNOWN_FIELD');
+  if (Object.hasOwn(value, 'adjudication') && value.adjudication?.schema !== 'team-qa/adjudication-report/v1') fail(2, 'REPORT_ADJUDICATION_SCHEMA', String(value.adjudication?.schema ?? ''));
   if (sourceVersion) {
     if (value.traceabilityVersion !== SOURCE_TRACEABILITY_VERSION) fail(2, 'REPORT_TRACEABILITY_VERSION', String(value.traceabilityVersion ?? ''));
     requireObject(value.sourceTraceability, 'REPORT_TRACEABILITY_TYPE', 'sourceTraceability');
@@ -382,6 +401,14 @@ export function parseReport(path) {
   const metricFields = ['coverage_high_pct', 'coverage_low_pct', 'defects', 'pass', 'fail', 'ungraded', ...FAILURE_METRIC_FIELDS];
   rejectUnknownFields(value.metrics, metricFields, 'REPORT_UNKNOWN_FIELD', 'metrics');
   if (value.metrics.defects) rejectUnknownFields(value.metrics.defects, ['p0', 'p1', 'p2'], 'REPORT_UNKNOWN_FIELD', 'metrics.defects');
+  // R1b: the cell coverage block of a run whose tracked plan has the coverage block (lib/coverage-cells.mjs).
+  if (Object.hasOwn(value, 'coverage_cells')) {
+    const coverageErrors = coverageReportErrors(value.coverage_cells);
+    if (coverageErrors.length > 0) {
+      const [code, ...detail] = coverageErrors[0].split(' ');
+      fail(2, code, detail.join(' '));
+    }
+  }
   // A report read back must still have its traceability intact: every reason has an origin,
   // every checker declares how much it inspected, every child gate is present.
   const integrity = reportIntegrityErrors(value);

@@ -29,6 +29,16 @@ export function assertNativeGuiPolicyGuard(attestation,{targetBindingSha256=null
   }
   return attestation;
 }
+// The Team QA runtime check (L4): every process it starts (git show of the canonical manifest, package-tool
+// verify-runtime) stops after TEAMQA_RUNTIME_CHECK_TIMEOUT_MS, the same bound in QA GUI and QA Code, and a check that
+// ran out of time fails TEAMQA_RUNTIME_CHECK_TIMEOUT, not as an invalid provenance.
+export const TEAMQA_RUNTIME_CHECK_TIMEOUT_MS=10000;
+const timedOut=r=>r?.error?.code==='ETIMEDOUT';
+function runtimeCheck(command,args,label){
+  const r=spawnSync(command,args,{encoding:'utf8',maxBuffer:1024*1024,timeout:TEAMQA_RUNTIME_CHECK_TIMEOUT_MS});
+  if(timedOut(r))throw new Error(`TEAMQA_RUNTIME_CHECK_TIMEOUT:${label} did not finish in ${TEAMQA_RUNTIME_CHECK_TIMEOUT_MS/1000} s`);
+  return r;
+}
 export function verifyTeamQaGuiAttestation({attestationPath,runtimeRoot,runUuid,exactFinalSha,requirementsHash,targetBindingSha256=null,caseId=null}) {
   const runtime=realpathSync(runtimeRoot||defaultTeamQaRoot());
   const source=JSON.parse(readFileSync(join(runtime,'SOURCE.json'),'utf8'));
@@ -42,11 +52,11 @@ export function verifyTeamQaGuiAttestation({attestationPath,runtimeRoot,runUuid,
     let anchor;
     try{anchor=JSON.parse(readFileSync(join(homedir(),'.agents/skills/team-qa/release-truth.json'),'utf8'));}
     catch{throw new Error('TEAMQA_CANONICAL_ANCHOR_UNAVAILABLE');}
-    const committed=spawnSync('git',['-C',anchor.repo,'show',`${source.commit}:package-manifest.json`],{encoding:'utf8',timeout:10000});
+    const committed=runtimeCheck('git',['-C',anchor.repo,'show',`${source.commit}:package-manifest.json`],'git show of the canonical manifest');
     if(anchor.repo_url!==source.repo||committed.status!==0||hash(committed.stdout)!==source.manifest_sha256)throw new Error('TEAMQA_SOURCE_NOT_IN_CANONICAL_GIT');
   }
   const packageTool=resolve(dirname(fileURLToPath(import.meta.url)),'..','package-tool.mjs');
-  const check=spawnSync(process.execPath,[packageTool,'verify-runtime','--root',runtime],{encoding:'utf8',timeout:10000});
+  const check=runtimeCheck(process.execPath,[packageTool,'verify-runtime','--root',runtime],'package-tool verify-runtime');
   if(check.status!==0)throw new Error('TEAMQA_RUNTIME_PROVENANCE_INVALID');
   // The run's first GUI attestation (role-bindings/executor_gui.json) or, for a case-scoped receipt (--case; Team QA
   // case-scoped dispatch, upgrade U2), a later one at role-bindings/executor_gui/attempt-<n>.json.

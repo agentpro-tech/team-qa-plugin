@@ -14,8 +14,16 @@
 // FALSE-POSITIVE POLICY: conservative — intentional patterns (text-overflow:ellipsis,
 // line-clamp, sr-only, elements behind an open modal backdrop, object-fit:cover/contain,
 // pointer-events:none decoys) are NOT flagged.
+// UX rule (R1c, references/ux-rules.md), in the same sweep and the same report:
+//   U9 occluded-control-partial — a control with >= 2 of its five points (centre + 20%/80% corners)
+//      hit-testing to an unrelated element; closes A3's centre-only blind spot.
+// report.ux.rules.U9 is PASS / FAIL / UNGRADED (no control in view). Level and threshold are settings:
+//   __uiSanity('label', {ux:{levels:{U9:'block'}, thresholds:{U9:{minCovered:2}}, require:['U9']}})
+// `__uxObserve(opts)` (below) returns the observation the Node graders of U1/U2/U3/U8/U10 compare
+// (scripts/lib/ux-rules.mjs); it measures only.
 
-window.__uiSanity = function (stateLabel) {
+window.__uiSanity = function (stateLabel, opts) {
+  opts = opts || {};
   var EPS = 2;                       // px tolerance
   var MAX_SCAN = 3000;               // element scan cap (perf)
   var MAX_ISSUES = 24;
@@ -39,11 +47,16 @@ window.__uiSanity = function (stateLabel) {
     }
     return s;
   }
-  function push(sev, rule, el, detail) {
+  // The cap bounds the list, never the verdict: warnings stop at MAX_ISSUES, a high finding is always kept (up to
+  // MAX_ISSUES of them more), so many warnings found first (U9 on a grid of controls) cannot push one out.
+  function push(sev, rule, el, detail, id) {
     var key = rule + '|' + sel(el);
-    if (seen[key] || issues.length >= MAX_ISSUES) return;
+    if (seen[key]) return;
+    if (sev === 'high' ? issues.length >= MAX_ISSUES * 2 : issues.length >= MAX_ISSUES) return;
     seen[key] = 1;
-    issues.push({ sev: sev, rule: rule, sel: sel(el), detail: detail, text: (el && el.textContent || '').trim().slice(0, 60) });
+    var issue = { sev: sev, rule: rule, sel: sel(el), detail: detail, text: (el && el.textContent || '').trim().slice(0, 60) };
+    if (id) issue.id = id;
+    issues.push(issue);
   }
   function cs(el) { return window.getComputedStyle(el); }
   function visible(el, st) {
@@ -129,6 +142,76 @@ window.__uiSanity = function (stateLabel) {
     push('high', 'occluded-control', el, 'center hit ' + sel(hit) + ' instead');
     return false;
   });
+
+  // ---------- U9. OCCLUSION AT FIVE POINTS (R1c) ----------
+  // Same controls and exclusions as A3, tested at the centre and the 20%/80% corners of the part in view.
+  var U9D = { level: 'warn', t: { minCovered: 2 } };   // mirrors UX_RULES.U9 in scripts/lib/ux-rules.mjs
+  var uxOpt = opts.ux || {};
+  var uxRules = {};
+  (function () {
+    var cfg = { level: U9D.level, t: { minCovered: U9D.t.minCovered }, bad: false };
+    var lv = uxOpt.levels && uxOpt.levels.U9;
+    if (lv != null) { if (lv === 'block' || lv === 'warn') cfg.level = lv; else cfg.bad = true; }
+    var th = uxOpt.thresholds && uxOpt.thresholds.U9;
+    if (th != null) {
+      if (typeof th !== 'object') cfg.bad = true;
+      else for (var k in th) { if (k !== 'minCovered' || typeof th[k] !== 'number' || !(th[k] >= 1 && th[k] <= 5)) cfg.bad = true; else cfg.t[k] = th[k]; }
+    }
+    function done(verdict, reason, measured) {
+      var r = { id: 'U9', rule: 'occluded-control-partial', verdict: verdict, level: cfg.level, source: 'dom', thresholds: cfg.t };
+      if (reason) r.reason = reason;
+      if (measured) for (var m in measured) r[m] = measured[m];
+      uxRules.U9 = r;
+    }
+    if (cfg.bad) return done('UNGRADED', 'SETTINGS_INVALID');
+    function part(el) {
+      var r = el.getBoundingClientRect();
+      var l = Math.max(r.left, 0), t = Math.max(r.top, 0), rt = Math.min(r.right, vw), b = Math.min(r.bottom, vh);
+      var fixed = cs(el).position === 'fixed';
+      for (var a = el.parentElement; a && !fixed && a !== document.body && a !== document.documentElement; a = a.parentElement) {
+        var st = cs(a);
+        if (st.overflowX !== 'visible' || st.overflowY !== 'visible') {
+          var ar = a.getBoundingClientRect();
+          l = Math.max(l, ar.left); t = Math.max(t, ar.top); rt = Math.min(rt, ar.right); b = Math.min(b, ar.bottom);
+        }
+        if (st.position === 'fixed') fixed = true;
+      }
+      return (rt - l >= 4 && b - t >= 4) ? { l: l, t: t, r: rt, b: b } : null;
+    }
+    function within(a, b) { return a.left >= b.left - EPS && a.right <= b.right + EPS && a.top >= b.top - EPS && a.bottom <= b.bottom + EPS; }
+    function cover(el, x, y) {
+      var hit = document.elementFromPoint(x, y);
+      if (!hit || el === hit || el.contains(hit) || hit.contains(el)) return null;
+      var lab = hit.closest && hit.closest('label');
+      if (lab && ((lab.htmlFor && lab.htmlFor === el.id) || lab.contains(el))) return null;
+      // An adornment drawn inside the control's own box by its own wrapper (an icon in a field) is design.
+      var p = el.parentElement;
+      if (p && p !== document.body && p.contains(hit) && within(hit.getBoundingClientRect(), el.getBoundingClientRect())) return null;
+      return hit;
+    }
+    var fx = [0.5, 0.2, 0.8, 0.2, 0.8], fy = [0.5, 0.2, 0.2, 0.8, 0.8];
+    var checked = 0, failed = 0;
+    Array.prototype.some.call(interactives, function (el) {
+      if (checked >= 150) return true;
+      var st = cs(el);
+      if (!visible(el, st) || isSrOnly(el) || el.disabled || (el.tagName === 'INPUT' && el.type === 'hidden')) return false;
+      var pr = part(el);
+      if (!pr) return false;
+      checked++;
+      var n = 0, by = null;
+      for (var i = 0; i < 5; i++) {
+        var c = cover(el, pr.l + (pr.r - pr.l) * fx[i], pr.t + (pr.b - pr.t) * fy[i]);
+        if (c) { n++; by = by || c; }
+      }
+      if (n >= cfg.t.minCovered) {
+        failed++;
+        push(cfg.level === 'block' ? 'high' : 'warn', 'occluded-control-partial', el, n + '/5 points covered by ' + sel(by), 'U9');
+      }
+      return false;
+    });
+    if (!checked) return done('UNGRADED', 'NO_CONTROLS_IN_VIEW');
+    done(failed ? 'FAIL' : 'PASS', null, { checked: checked, failed: failed });
+  })();
 
   // ---------- A10. INVISIBLE-INTERACTIVE (clickable but opacity:0) ----------
   var a10 = document.querySelectorAll('button,a[href],input,select,textarea,[role="button"],[role="menuitem"],[role="tab"]');
@@ -261,13 +344,231 @@ window.__uiSanity = function (stateLabel) {
   });
 
   var high = issues.filter(function (x) { return x.sev === 'high'; }).length;
+  var blockFail = Object.keys(uxRules).some(function (id) { return uxRules[id].verdict === 'FAIL' && uxRules[id].level === 'block'; });
+  var required = (uxOpt.require || []).some(function (id) { return uxRules[id] && uxRules[id].verdict === 'UNGRADED'; });
   return {
     v: 'ui-sanity/2.0',
     state: stateLabel || 'unlabeled',
     viewport: { w: vw, h: vh },
     scanned: n,
-    verdict: high ? 'FAIL' : 'PASS',
+    verdict: (high || blockFail) ? 'FAIL' : (required ? 'UNGRADED' : 'PASS'),
     counts: { high: high, warn: issues.length - high },
-    issues: issues
+    issues: issues,
+    ux: { v: 'ux-rules/1', rules: uxRules }
+  };
+};
+
+// __uxObserve(opts) — one UX observation of the current state (R1c). Measures only; it never acts.
+// The executor reads it around an action in the same `do` chain:
+//   before the action, while a forced request is still pending (`during`), and after the result,
+//   { read: "<contents of this file>; return __uxObserve({trigger:'#save'});", as: "ux_before" }
+// and grades the observations with scripts/lib/ux-rules.mjs (gradeU1 / gradeU2 / gradeU3 / U8 context).
+// Typed values never leave the page: a field is reported by key, type, filled, length and an 8-hex FNV-1a hash.
+// opts.trigger (+ opts.nth): CSS selector of the control the action used (U2 reads its state).
+window.__uxObserve = function (opts) {
+  opts = opts || {};
+  var vw = window.innerWidth, vh = window.innerHeight;
+  function cs(el) { return window.getComputedStyle(el); }
+  function sel(el) {
+    if (!el || el.nodeType !== 1) return null;
+    if (el.id) return el.tagName.toLowerCase() + '#' + el.id;
+    var s = el.tagName.toLowerCase();
+    var c = (typeof el.className === 'string' ? el.className : '').trim().split(/\s+/)[0];
+    return c ? s + '.' + c : s;
+  }
+  function shown(el, st) {
+    st = st || cs(el);
+    if (st.display === 'none' || st.visibility === 'hidden' || parseFloat(st.opacity) === 0) return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  }
+  function mix(h, s) { for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h; }
+  function hex(h) { return ('0000000' + (h >>> 0).toString(16)).slice(-8); }
+  function fnv(s) { return hex(mix(0x811c9dc5, String(s))); }
+  function textOf(el) { return (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim(); }
+  function directText(el) {
+    var out = '';
+    for (var i = 0; i < el.childNodes.length; i++) if (el.childNodes[i].nodeType === 3) out += el.childNodes[i].textContent;
+    return out.replace(/\s+/g, ' ').trim();
+  }
+  function tokens(el) {
+    var c = typeof el.className === 'string' ? el.className : (el.getAttribute && el.getAttribute('class')) || '';
+    return (c + ' ' + (el.id || '')).trim().split(/\s+/).filter(Boolean);
+  }
+  function anyToken(el, re) { var t = tokens(el); for (var i = 0; i < t.length; i++) if (re.test(t[i])) return true; return false; }
+  function list(selector, cap) {
+    var out = [], nodes = document.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length && out.length < (cap || 8); i++) if (shown(nodes[i])) out.push(nodes[i]);
+    return out;
+  }
+
+  // Visible-content digest: what a user can see change. Document-wide and viewport-only.
+  var STATE_ATTRS = ['disabled', 'aria-busy', 'aria-disabled', 'aria-expanded', 'aria-invalid', 'aria-pressed', 'aria-selected', 'aria-checked', 'hidden', 'open', 'src', 'role', 'style'];
+  var hDoc = 0x811c9dc5, hView = 0x811c9dc5, counted = 0;
+  var els = document.body ? document.body.getElementsByTagName('*') : [];
+  for (var i = 0; i < els.length && i < 6000; i++) {
+    var el = els[i];
+    if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(el.tagName)) continue;
+    var st = cs(el);
+    if (st.display === 'none' || st.visibility === 'hidden') continue;
+    counted++;
+    var part = el.tagName + '|' + (typeof el.className === 'string' ? el.className : '') + '|' + directText(el) + '|' + (parseFloat(st.opacity) < 0.05 ? 'o0' : '');
+    for (var a = 0; a < STATE_ATTRS.length; a++) { var v = el.getAttribute(STATE_ATTRS[a]); if (v != null) part += '|' + STATE_ATTRS[a] + '=' + v; }
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) {
+      if (/^password$/i.test(el.type || '')) part += '|pw';
+      else if (/^(checkbox|radio)$/i.test(el.type || '')) part += '|' + (el.checked ? 'on' : 'off');
+      else part += '|v=' + fnv(el.value || '');
+      part += el.disabled ? '|dis' : '';
+    }
+    hDoc = mix(hDoc, part + '\n');
+    var r = el.getBoundingClientRect();
+    if (r.right > 0 && r.bottom > 0 && r.left < vw && r.top < vh) hView = mix(hView, part + '\n');
+  }
+
+  // Form fields: never the value itself. Passwords, files and hidden inputs are left out.
+  var SKIP = /^(hidden|submit|button|reset|image|password|file)$/i;
+  function collect(controls) {
+    var out = [];
+    Array.prototype.forEach.call(controls, function (c, ci) {
+      if (!/^(INPUT|SELECT|TEXTAREA)$/.test(c.tagName)) return;
+      var type = String(c.type || c.tagName).toLowerCase();
+      if (SKIP.test(type)) return;
+      var key = c.id || c.getAttribute('name') || (c.tagName.toLowerCase() + ci);
+      if (type === 'checkbox' || type === 'radio') {
+        if (type === 'radio' && !c.id) key = (c.getAttribute('name') || 'radio') + ':' + c.value;
+        out.push({ key: key, sel: sel(c), type: type, filled: !!c.checked, len: c.checked ? 1 : 0, hash: c.checked ? 'on' : 'off' });
+      } else {
+        var val = String(c.value || '');
+        out.push({ key: key, sel: sel(c), type: type, filled: val.length > 0, len: val.length, hash: val.length ? fnv(val) : '' });
+      }
+    });
+    return out;
+  }
+  var forms = [];
+  Array.prototype.forEach.call(document.forms, function (f, fi) {
+    forms.push({ key: f.id || f.getAttribute('name') || ('form' + fi), sel: sel(f), fields: collect(f.elements) });
+  });
+  var loose = Array.prototype.filter.call(document.querySelectorAll('input,select,textarea'), function (c) { return !c.form; });
+  if (loose.length) forms.push({ key: '(no form)', sel: 'document', fields: collect(loose) });
+
+  // Busy signals: in a given subtree (U2) and on the whole page (U1 context).
+  var SPIN = /(^|[-_])(spin|spinner|loader|loading|busy|progress)([-_]|$)/i;
+  var BUSY = '[role="progressbar"],progress,[aria-busy="true"]';
+  function busyIn(root) {
+    var nodes = root.querySelectorAll(BUSY + ',[class]');
+    for (var n = 0; n < nodes.length && n < 2000; n++) {
+      var e = nodes[n];
+      if ((e.matches(BUSY) || anyToken(e, SPIN)) && shown(e)) return true;
+    }
+    if (document.getAnimations) {
+      var an = document.getAnimations();
+      for (var k = 0; k < an.length; k++) {
+        var tgt = an[k].effect && an[k].effect.target, timing = an[k].effect && an[k].effect.getTiming && an[k].effect.getTiming();
+        if (tgt && tgt.nodeType === 1 && root.contains(tgt) && an[k].playState === 'running' && timing && timing.iterations === Infinity) return true;
+      }
+    }
+    return false;
+  }
+  var busy = {
+    ariaBusy: list('[aria-busy="true"]').map(sel),
+    progress: list('[role="progressbar"],progress').map(sel),
+    spinners: list('[class]', 400).filter(function (e) { return anyToken(e, SPIN); }).slice(0, 8).map(sel)
+  };
+
+  var trigger = null;
+  if (opts.trigger) {
+    var te = document.querySelectorAll(opts.trigger)[opts.nth || 0];
+    if (!te) trigger = { sel: opts.trigger, found: false };
+    else {
+      var tst = cs(te), tr = te.getBoundingClientRect();
+      var cx = tr.left + tr.width / 2, cy = tr.top + tr.height / 2;
+      var hit = (cx >= 0 && cy >= 0 && cx <= vw && cy <= vh) ? document.elementFromPoint(cx, cy) : null;
+      var form = te.form || (te.closest && te.closest('form'));
+      trigger = {
+        sel: sel(te), found: true, text: (textOf(te) || String(te.value || '')).slice(0, 60),
+        disabled: !!te.disabled || !!(te.matches && te.matches(':disabled')),
+        ariaDisabled: (te.getAttribute('aria-disabled') || '') === 'true',
+        inert: !!(te.closest && te.closest('[inert]')),
+        pointerEventsNone: tst.pointerEvents === 'none',
+        covered: !!(hit && hit !== te && !te.contains(hit) && !hit.contains(te)),
+        coveredBy: hit && hit !== te && !te.contains(hit) && !hit.contains(te) ? sel(hit) : null,
+        visible: shown(te, tst),
+        ariaBusy: !!(te.closest && te.closest('[aria-busy="true"]')),
+        spinner: busyIn(te),
+        formBusy: !!form && ((form.getAttribute('aria-busy') || '') === 'true' || busyIn(form))
+      };
+    }
+  }
+
+  // U10 pre-screen: visible text with Vietnamese marks (letters with a mark above the cap height or a dot below),
+  // its glyph ink measured with canvas metrics against the box that clips it. The verdict stays with vision; this
+  // says where to look and what the machine measured. Inline boxes are listed but not measured.
+  var VI = /[\u00c0-\u00c3\u00c8-\u00ca\u00cc\u00cd\u00d2-\u00d5\u00d9\u00da\u00dd\u0102\u0110\u0128\u0168\u01a0\u01af\u1ea0-\u1ef9]/;
+  var tol = typeof opts.inkTolerancePx === 'number' ? opts.inkTolerancePx : 1;
+  var diacritics = [];
+  var ctx = null;
+  try { ctx = document.createElement('canvas').getContext('2d'); } catch (e) { ctx = null; }
+  for (var d = 0; d < els.length && d < 6000 && diacritics.length < 24; d++) {
+    var de = els[d];
+    if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|TEXTAREA|INPUT|SELECT|OPTION)$/.test(de.tagName)) continue;
+    var dt = directText(de);
+    if (!dt || !VI.test(dt)) continue;
+    var dst = cs(de);
+    if (!shown(de, dst)) continue;
+    var dr = de.getBoundingClientRect();
+    var cand = { sel: sel(de), text: dt.slice(0, 40), rect: { x: Math.round(dr.left), y: Math.round(dr.top), w: Math.round(dr.width), h: Math.round(dr.height) },
+      fontPx: parseFloat(dst.fontSize) || null, lineHeightPx: null, clipBy: null, overflowTopPx: null, overflowBottomPx: null, clipped: null };
+    if (dst.display !== 'inline' && ctx) {
+      ctx.font = dst.fontStyle + ' ' + dst.fontWeight + ' ' + dst.fontSize + ' ' + dst.fontFamily;
+      var m = ctx.measureText(dt.slice(0, 200));
+      var fA = m.fontBoundingBoxAscent, fD = m.fontBoundingBoxDescent;
+      var lineH = dst.lineHeight === 'normal' ? fA + fD : parseFloat(dst.lineHeight);
+      var padT = parseFloat(dst.paddingTop) || 0, padB = parseFloat(dst.paddingBottom) || 0;
+      var contentTop = dr.top + (parseFloat(dst.borderTopWidth) || 0) + padT;
+      var lines = Math.max(1, Math.round((de.scrollHeight - padT - padB) / lineH));
+      var baseFirst = contentTop + (lineH - (fA + fD)) / 2 + fA;
+      var inkTop = baseFirst - m.actualBoundingBoxAscent, inkBottom = baseFirst + (lines - 1) * lineH + m.actualBoundingBoxDescent;
+      // The clip box: this element's padding box when it clips, then every clipping ancestor's.
+      var top = -Infinity, bottom = Infinity, by = null;
+      for (var ce = de; ce && ce !== document.body && ce !== document.documentElement; ce = ce.parentElement) {
+        var cst = ce === de ? dst : cs(ce);
+        if (cst.overflowX !== 'visible' || cst.overflowY !== 'visible') {
+          var cr = ce.getBoundingClientRect();
+          var ct = cr.top + (parseFloat(cst.borderTopWidth) || 0), cb = cr.bottom - (parseFloat(cst.borderBottomWidth) || 0);
+          if (ct > top) { top = ct; by = by || (ce === de ? 'self' : 'ancestor'); }
+          if (cb < bottom) { bottom = cb; by = by || (ce === de ? 'self' : 'ancestor'); }
+        }
+        if (cst.position === 'fixed') break;
+      }
+      cand.lineHeightPx = Math.round(lineH * 10) / 10;
+      if (by) {
+        cand.clipBy = by;
+        cand.overflowTopPx = Math.round((top - inkTop) * 10) / 10;
+        cand.overflowBottomPx = Math.round((inkBottom - bottom) * 10) / 10;
+        cand.clipped = cand.overflowTopPx > tol || cand.overflowBottomPx > tol;
+      } else cand.clipped = false;
+    }
+    diacritics.push(cand);
+  }
+
+  var UNDO = /^(undo|restore|recover|ho\u00e0n t\u00e1c|kh\u00f4i ph\u1ee5c)\b/i;
+  var ae = document.activeElement;
+  return {
+    v: 'ux-observe/1', t: Date.now(),
+    url: window.location.origin + window.location.pathname + window.location.hash,
+    viewport: { w: vw, h: vh },
+    digest: { doc: hex(hDoc), view: hex(hView), elements: counted },
+    forms: forms,
+    trigger: trigger,
+    busy: busy,
+    dialogs: list('[role="dialog"],[role="alertdialog"],dialog[open]').map(sel),
+    live: list('[role="status"],[role="alert"],[role="log"],[aria-live="polite"],[aria-live="assertive"],output', 12)
+      .map(function (e) { return { sel: sel(e), text: textOf(e).slice(0, 80) }; })
+      .filter(function (x) { return x.text.length > 0; }),
+    undo: list('button,a[href],[role="button"]', 400)
+      .filter(function (e) { var tx = textOf(e); return tx.length <= 30 && UNDO.test(tx); })
+      .slice(0, 4).map(function (e) { return { sel: sel(e), text: textOf(e) }; }),
+    focus: ae && ae !== document.body && ae !== document.documentElement ? sel(ae) : null,
+    diacritics: diacritics
   };
 };

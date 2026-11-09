@@ -2,9 +2,22 @@ import { lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 import { decodePng } from '../visual-diff.mjs';
+import { evidenceIssue, evidencePolicyOn, recordingSegmentIssues, stateImageIssues } from './evidence-quality.mjs';
 import { inspectEvidenceManifest, isObject } from './release-receipt-v2.mjs';
+import { cellSummaryLine, stateCell, stateCellIssues } from './coverage-cell.mjs';
+// The gate reaches the coverage cell checks (R1b) and the probe receipts (R1e) the same way.
+export { cellSummaryLine, stateCellIssues };
+import { probeVerdict } from './probes.mjs';
+export { probeVerdict };
+// The gate reaches the evidence policy checks through this module (one import path for qa-gate.mjs and its mutants).
+export { evidenceIssue, evidencePolicyOn, recordingSegmentIssues, stateImageIssues };
+// The Dragon environment checks (R1d) the same way.
+import { caseEnvResetIssues, stateEnvIssues } from './dragon-env.mjs';
+export { caseEnvResetIssues, stateEnvIssues };
 import { validateCanonical } from '../teamwork/canonical.mjs';
 import { boardVerdict } from '../teamwork/board-gates.mjs';
+import { speedPolicyErrors } from './speed-flags.mjs';
+import { inheritedStateIssues } from './vision-by-diff.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SHA40 = /^[a-f0-9]{40}$/;
@@ -94,11 +107,13 @@ function checkBoardPath(boardPath, root) {
   return errors;
 }
 
-function validateVisionAssertion(assertion, label, paths, issue, { caseId, state } = {}) {
+function validateVisionAssertion(assertion, label, paths, issue, { caseId, state, inheritAllowed = false } = {}) {
   const risk = Object.hasOwn(assertion ?? {}, 'risk_dimension') || Object.hasOwn(assertion ?? {}, 'scenario');
+  // `inherited` (vision by diff, upgrade R3) exists only on a board that declares a speed policy; the state loop of
+  // checkGuiReleaseTruthV2 recomputes it.
   const allowed = [
     'assertion_id', 'case_id', 'state', 'verdict', 'evidence_ref', 'evidence_type',
-    ...(risk ? ['requirement_id', 'risk_dimension', 'scenario', 'observed_internal_identifiers', 'observed_order'] : ['rule']),
+    ...(risk ? ['requirement_id', 'risk_dimension', 'scenario', 'observed_internal_identifiers', 'observed_order'] : ['rule', ...(inheritAllowed ? ['inherited'] : [])]),
   ];
   if (!exactKeys(assertion, allowed, label, issue)) return null;
   for (const key of ['assertion_id', 'case_id', 'state', 'evidence_ref', 'evidence_type']) {
@@ -122,6 +137,7 @@ function checkVision(data, context, paths, issue) {
     return;
   }
   const assertions = vision.assertions;
+  const inheritAllowed = Object.hasOwn(data, 'speedPolicy');
   const completed = (data.cases ?? []).filter((entry) => entry?.status !== 'TODO');
   for (const testCase of completed) {
     for (const state of Array.isArray(testCase.states) ? testCase.states : []) {
@@ -136,6 +152,7 @@ function checkVision(data, context, paths, issue) {
           validateVisionAssertion(assertion, `vision:${testCase.id}:${state}:${rule}:${index}`, paths, issue, {
             caseId: testCase.id,
             state,
+            inheritAllowed,
           });
         }
       }
@@ -236,6 +253,20 @@ function checkDwell(receipt, planCase, requirement, label, issue) {
   }
 }
 
+// The cell row the gate reports for one state receipt that has a `cell`: the normalized cell when it is valid, the raw
+// coordinates (UNGRADED) when it is not.
+export function cellRow({ caseId, state, receipt, receiptRef, verdict }) {
+  const valid = stateCell(receipt);
+  const raw = isObject(receipt?.cell) ? receipt.cell : {};
+  const text = (value) => (typeof value === 'string' ? value : null);
+  return {
+    receipt: receiptRef, case_id: caseId ?? null,
+    route: valid?.route ?? text(raw.route), state: valid?.state ?? text(raw.state) ?? state, action: valid?.action ?? text(raw.action),
+    viewport: valid?.viewport ?? text(raw.viewport), condition: valid?.condition ?? null, strict: text(receipt?.domHash),
+    verdict: valid ? verdict : 'UNGRADED',
+  };
+}
+
 export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context }) {
   const issues = [];
   const notes = [];
@@ -246,6 +277,13 @@ export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context 
     if (web && /^(WEB_|state-receipt:.*:(TARGET_BINDING_MISMATCH|PREVIEW_ORIGIN_MISMATCH))/.test(message)) receiptEligible = false;
   };
   const web = context.kind === 'deployed-build';
+  // Evidence policy v1 (R1f): image and recording checks that can keep a case from PASS (lib/evidence-quality.mjs).
+  const policy = evidencePolicyOn(data);
+  // Speed policy (R3): a board may declare one; it must be valid. Only vision by diff reads it here.
+  if (Object.hasOwn(data, 'speedPolicy')) {
+    const errors = speedPolicyErrors(data.speedPolicy);
+    if (errors.length) issue(`SPEED_POLICY_INVALID:${errors.join(',')}`, true);
+  }
 
   for (const [field, value] of [
     ['build', data.build], ['env', data.env], ['db', data.db], ['role', data.role], ['testProfile', data.testProfile],
@@ -291,6 +329,8 @@ export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context 
   const computed = {
     cases: [], functionParts: [], uiParts: [], functionVerdict: 'PASS', uiVerdict: 'PASS',
     acceptance: { covered: 0, total: context.guiIds.length },
+    // R1b: one row per state receipt that names its coverage cell (lib/coverage-cell.mjs), with the state's verdict.
+    cells: [],
   };
 
   for (const testCase of completedCases) {
@@ -317,7 +357,10 @@ export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context 
     const caseFunction = [];
     const caseUi = [];
     const caseAssertions = [];
+    let uiRowEvidence = null;
     let derivedBehavioral = false;
+    let evidenceRejected = false;
+    const envStates = [];
     if (states.length === 0) issue(`GUI_CASE_STATES_MISSING:${caseId}`, true);
 
     for (const state of states) {
@@ -351,7 +394,7 @@ export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context 
       exactKeys(receipt, [
         'schema', 'caseId', 'state', 'capturedAt', 'url', 'build', 'viewport', 'domHash',
         'dragon', 'screenshot', 'function', 'ui', 'preflight', 'auth', 'network',
-        'network_summary', 'readback', 'lifecycle', 'equivalentTo', 'equivalenceReason',
+        'network_summary', 'readback', 'lifecycle', 'equivalentTo', 'equivalenceReason', 'target', 'cell', 'env', 'probes',
         ...(web ? ['targetBindingSha256'] : []),
       ], label, issue);
       if (receipt.schema !== 'qa-gui/state-receipt/v1') issue(`${label}:SCHEMA_INVALID`, true);
@@ -371,10 +414,29 @@ export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context 
       }
       if (receipt?.dragon?.innerOk !== true) issue(`${label}:DRAGON_INNER_NOT_OK`, true);
 
-      exactKeys(receipt.screenshot, ['path', 'sha256'], `${label}.screenshot`, issue);
+      exactKeys(receipt.screenshot, ['path', 'sha256', 'capture', 'fit'], `${label}.screenshot`, issue);
       const screenshot = pngEvidence(inspected.paths, receipt?.screenshot?.path, `${label}:screenshot`, issue, { caseId, state });
       if (!screenshot) receiptEligible = false;
       else if (receipt.screenshot.sha256 !== screenshot.entry.sha256) issue(`SCREENSHOT_HASH_MISMATCH:${caseId}:${state}`);
+      let stateRejected = false;
+      if (policy && screenshot) {
+        const problems = stateImageIssues({ png: readFileSync(screenshot.absolute), receipt, caseId, state });
+        for (const problem of problems) issue(problem.message, true);
+        if (problems.length) { evidenceRejected = true; stateRejected = true; caseFunction.push('UNGRADED'); caseUi.push('UNGRADED'); }
+      }
+      // R1b: a cell the receipt cannot back (malformed, or contradicted by its own row count or viewport) keeps the
+      // state from PASS, exactly like rejected evidence.
+      const cellProblems = stateCellIssues(receipt);
+      for (const problem of cellProblems) issue(`${label}:${problem.code}${problem.detail ? `:${problem.detail}` : ''}`, true);
+      if (cellProblems.length) { evidenceRejected = true; stateRejected = true; caseFunction.push('UNGRADED'); caseUi.push('UNGRADED'); }
+      // Vision by diff (R3): an inherited C10–C16 assertion is decided again from this receipt and screenshot; one the
+      // gate cannot recompute is UNGRADED and the case's PASS rows with it.
+      if (screenshot) {
+        const inherit = inheritedStateIssues({ assertions: data.vision?.assertions, policy: data.speedPolicy, evidenceRoot: inspected.root ?? evidenceRoot,
+          png: readFileSync(screenshot.absolute), receipt, caseId, state });
+        for (const message of inherit) issue(message, true);
+        if (inherit.length) evidenceRejected = true;
+      }
 
       exactKeys(receipt.function, ['verdict', 'assertions'], `${label}.function`, issue);
       const assertions = Array.isArray(receipt?.function?.assertions) ? receipt.function.assertions : [];
@@ -426,9 +488,23 @@ export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context 
       const stateUi = ['uiSanity', 'a11y', 'console', 'network']
         .map((field) => rawUiVerdict(receipt?.ui?.[field], `${label}.ui.${field}`, issue));
       stateUi.push(rawUiVerdict(receipt.preflight, `${label}.preflight`, issue));
+      // R1e/R1d: the detectors' probe receipts (width sweep, overlay check, transient probe) join the state's UI verdict.
+      const probed = probeVerdict({ receipt, caseId, state, read: readFileSync,
+        locate: (rel) => { const found = inspected.paths.get(rel); return found ? { absolute: found.absolute, sha256: found.entry.sha256 } : null; } });
+      if (probed) { for (const entry of probed.issues) issue(entry.message, entry.ungraded); stateUi.push(probed.verdict); }
       const uiVerdict = triVerdict(stateUi);
       if (receipt?.ui?.verdict !== uiVerdict) issue(`UI_VERDICT_MISMATCH:${caseId}:${state}:${receipt?.ui?.verdict}:${uiVerdict}`);
       caseUi.push(uiVerdict);
+      if (screenshot && uiVerdict !== 'PASS' && (!uiRowEvidence || (uiVerdict === 'FAIL' && uiRowEvidence.verdict !== 'FAIL'))) {
+        uiRowEvidence = { verdict: uiVerdict, ref: receipt.screenshot.path, sha256: screenshot.entry.sha256 };
+      }
+      // R1d: the Dragon environment conditions the state ran under, and the case's env.reset (lib/dragon-env.mjs).
+      const envState = stateEnvIssues({ receipt, caseId, state, read: readFileSync,
+        locate: (rel) => { const found = inspected.paths.get(rel); return found ? { absolute: found.absolute } : null; } });
+      envStates.push(envState);
+      for (const entry of envState.issues) issue(entry.message, true);
+      if (envState.issues.length) { evidenceRejected = true; stateRejected = true; caseFunction.push('UNGRADED'); caseUi.push('UNGRADED'); }
+      if (Object.hasOwn(receipt, 'cell')) computed.cells.push(cellRow({ caseId, state, receipt, receiptRef, verdict: stateRejected ? 'UNGRADED' : triVerdict([functionVerdict, uiVerdict]) }));
 
       const network = Array.isArray(receipt.network) ? receipt.network : [];
       for (const [index, entry] of network.entries()) {
@@ -452,19 +528,58 @@ export function checkGuiReleaseTruthV2({ data, boardPath, evidenceRoot, context 
       }
     }
 
-    if (web && testCase.kind === 'behavioral') {
+    // R1d: a case that ran with env conditions or a transient probe ends with a verified env.reset, or it cannot PASS.
+    const envReset = caseEnvResetIssues({ caseId, states: envStates });
+    for (const entry of envReset) issue(entry.message, true);
+    if (envReset.length) { evidenceRejected = true; caseFunction.push('UNGRADED'); caseUi.push('UNGRADED'); }
+    // The web route always had these recording rules; a board under evidence policy v1 gets them on any target, and
+    // each segment's recording manifest is then checked against the action times.
+    if ((web || policy) && testCase.kind === 'behavioral') {
       const segments = Array.isArray(testCase.recordingSegments) ? testCase.recordingSegments : [];
-      if (segments.length === 0) issue(`BEHAVIORAL_RECORDING_REQUIRED:${caseId}`, true);
-      for (const segment of segments) {
+      if (segments.length === 0) {
+        issue(`BEHAVIORAL_RECORDING_REQUIRED:${caseId}`, true);
+        if (policy) { evidenceRejected = true; caseFunction.push('UNGRADED'); }
+      }
+      for (const [index, segment] of segments.entries()) {
         const recording = inspected.paths.get(segment?.file);
         if (!recording || !String(segment.file).toLowerCase().endsWith('.mp4')) issue(`BEHAVIORAL_RECORDING_MISSING:${caseId}:${segment?.file || 'missing'}`, true);
         else if (lstatSync(recording.absolute).size < 50 * 1024) issue(`BEHAVIORAL_RECORDING_TOO_SMALL:${caseId}:${segment.file}`, true);
         if (!Number.isFinite(segment?.startMs) || !Number.isFinite(segment?.endMs) || segment.startMs < 0 || segment.endMs <= segment.startMs) issue(`BEHAVIORAL_RECORDING_SEGMENT_INVALID:${caseId}`, true);
         if (!testCase.evidence?.includes(segment?.file)) issue(`BEHAVIORAL_RECORDING_NOT_IN_CASE:${caseId}:${segment?.file || 'missing'}`, true);
+        if (!policy) continue;
+        const scope = `${caseId}:segment-${index}`;
+        const ref = segment?.manifest;
+        const found = typeof ref === 'string' ? inspected.paths.get(ref) : null;
+        let problems;
+        if (typeof ref !== 'string' || !ref) problems = [evidenceIssue('EVIDENCE_VIDEO_MANIFEST', scope, 'recordingSegments[].manifest is missing')];
+        else if (!found || !testCase.evidence?.includes(ref)) problems = [evidenceIssue('EVIDENCE_VIDEO_MANIFEST', scope, `${ref} must be in the case evidence and the evidence manifest`)];
+        else {
+          let manifest = null;
+          try { manifest = JSON.parse(readFileSync(found.absolute, 'utf8')); } catch {}
+          problems = recordingSegmentIssues({ manifest, segment, videoSha256: recording?.entry.sha256, caseId, index });
+        }
+        for (const problem of problems) issue(problem.message, true);
+        if (problems.length) { evidenceRejected = true; caseFunction.push('UNGRADED'); }
       }
     }
+    // Rejected evidence cannot back a PASS: the case's PASS rows become UNGRADED, so a case-scoped receipt reader
+    // (Team QA reads a case's verdict from its own atomic rows) sees the same verdict the gate computed.
+    if (evidenceRejected) for (const row of caseAssertions) if (row.result === 'PASS') row.result = 'UNGRADED';
     const functionVerdict = triVerdict(caseFunction);
     const uiVerdict = triVerdict(caseUi);
+    // Dogfood 05/11 (CHILD_VERDICT_CONFLICT): the atomic rows held only the function assertions, so a case whose UI
+    // dimension FAILed (Gate-0, a probe) with every function row PASS read as PASS to a case-scoped reader, and Team QA
+    // could record it neither as FAIL nor as PASS. The UI dimension now joins the rows as one assertion of the case,
+    // `<case>#ui`, bound to the case's primary requirement and to the screenshot of the state that set it, whenever
+    // the rows would otherwise say less than the UI verdict.
+    const uiRequirement = [planCase?.requirementId, ...requirements].find((id) => id && requirements.includes(id) && activeById.get(id)?.evidence_contract?.allowed_types?.includes('gui-screenshot'));
+    const rowsSay = triVerdict(caseAssertions.map((row) => row.result));
+    if (uiVerdict !== 'PASS' && uiRowEvidence && uiRequirement && (caseAssertions.length === 0 || rowsSay === 'PASS' || (uiVerdict === 'FAIL' && rowsSay !== 'FAIL'))) {
+      const row = { requirement_id: uiRequirement, assertion_id: `${caseId}#ui`, case_id: caseId, evidence_ref: uiRowEvidence.ref,
+        evidence_sha256: uiRowEvidence.sha256, evidence_type: 'gui-screenshot', result: uiVerdict === 'FAIL' ? 'FAIL' : 'UNGRADED' };
+      if (assertionIds.has(row.assertion_id)) issue(`ATOMIC_ASSERTION_DUPLICATE:${row.assertion_id}`);
+      else { assertionIds.add(row.assertion_id); atomicCoverage.push(row); caseAssertions.push(row); assertionGroups.get(uiRequirement)?.push(row); }
+    }
     if (functionVerdict === 'FAIL' || uiVerdict === 'FAIL') issue(`CASE_RECEIPT_SEMANTIC_FAIL:${caseId}`);
     if (functionVerdict === 'UNGRADED' || uiVerdict === 'UNGRADED') issue(`CASE_RECEIPT_UNGRADED:${caseId}`, true);
     if (testCase.functionVerdict !== functionVerdict) issue(`BOARD_FUNCTION_VERDICT_MISMATCH:${caseId}:${testCase.functionVerdict}:${functionVerdict}`);

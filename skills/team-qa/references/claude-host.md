@@ -9,7 +9,7 @@ transcript and the way workers are called are new.
 
 | Source | Accepted path | Used for |
 |---|---|---|
-| Root transcript | `~/.claude/projects/<project>/<session-id>.jsonl`; the file name must be the session ID and match `sessionId` of the first metadata line | host descriptor, shown roster/plan tables, approval line, preflight, continuation |
+| Root transcript | `~/.claude/projects/<project>/<session-id>.jsonl` (`$CLAUDE_CONFIG_DIR/projects/…` when set; compared by real path); the file name must be the session ID and match `sessionId` of the first metadata line | host descriptor, shown roster/plan tables, approval line, preflight, continuation |
 | Worker transcript | the same root folder, the `<session-id>.jsonl` file of the `claude -p` session | observed model and effort, the supplied context packet |
 | Subagent transcript, `tool-results/`, other files | every other file under `~/.claude` | **not** a source; rejected |
 
@@ -88,6 +88,7 @@ The seat uses the `claude` harness in the roster (`roster collect --provider ant
 
 ```bash
 teamqa continuation register --run <id> --session <claude-session-id> --registry <abs-registry>
+teamqa continuation unregister --session <claude-session-id> --registry <abs-registry>   # when the run ends or its binding drifted
 teamqa continuation stage-hooks --host claude --registry <abs-registry> --out <claude-hooks.json>
 ```
 
@@ -116,6 +117,16 @@ unchanged into the assistant chat, right before the question. The command writes
 file) and rejects cases outside the tracked plan, cases that have used all 3 tries (`RUN_OFFER_ATTEMPTS_EXHAUSTED`), a run out of budget, and a run that is already
 COMPLETE (`RUN_OFFER_COMPLETE`). The marker only makes the question machine-readable: a new round still goes through roster and plan approval; to change
 the target, roster or plan, ask in words and do not use the marker.
+
+## Board delivery on Claude Code
+
+Codex Space does not exist on Claude Code. Deliver the board with `teamqa board publish --to notion` when a Notion MCP
+connection is available (claude.ai Notion connector or `claude mcp add`), otherwise `--to html`. The root makes each
+planned Notion call itself with `board-notion/next-input.json` unchanged and runs `teamqa board publish-next` after it;
+the plugin hook admits only that call and records its result, and `publish-next` also finds the result in the root's
+original transcript. Lock `board_notion` and `board_quality` as `publish-next` prints them. Never create a Notion
+page, database, Doc or Drive file for the board yourself: the hook refuses it in a registered run and the report lists
+it as written outside Team QA.
 
 ## Board review on Claude Code
 
@@ -224,7 +235,8 @@ in `runs/<id>/archive/`.
 12. DESIGN: the Designer writes tracked plan v2 with every case `lane:"gui"`, `design validate`, `rtm build`, a board
     revision with cases, `run lock-docs` locking at least `source`, `plan`, `tracked`. This board revision is the canonical
     board that `web collect` writes into and that the QA GUI gate reads: create it with QA GUI's `teamwork init` with
-    `--run-uuid <a new UUID>` and `--target-binding-sha256 <target_binding_sha256 in runs/<id>/identity/target.json>`,
+    `--run-uuid <a new UUID>`, `--target-binding-sha256 <target_binding_sha256 in runs/<id>/identity/target.json>` and
+    `--evidence-policy 1` (QA GUI evidence policy v1: the gate checks every screenshot and recording; `web collect` also sets it),
     then pass exactly that UUID to `--run-uuid` in step 14. A board that carries a `runUuid` different from the binding is rejected by `web collect`
     (`WEB_COLLECT_BOARD_RUN_UUID`) and the gate reports `TEAMQA_WEB_TARGET_MISMATCH`.
 13. `teamqa web requirements --run <id> [--allowed-types <a,b>] [--threshold <n>]` writes
@@ -240,7 +252,8 @@ in `runs/<id>/archive/`.
     because the Executor itself reads the identity on its own tab (see [evidence draft](executor-evidence.md)) and Team QA checks
     that sequence in the Executor's stream when it binds the attestation, and again everywhere the attestation is used, with exactly the
     checks of the execute preflight: the tab opens the exact `preview_url` on the Dragon session that the Executor created itself, `getPageIdentity` (or
-    `getPageHtml`) → `getNetwork` → `getTabInfo` are the first three reads on that tab and come before any `screenshot`, on the same
+    `getPageHtml`) → `getNetwork` → `getTabInfo` are the first three reads on that tab (or the `identity` triple Dragon made inside
+    `openTab {proveIdentity:true}`, each read timed inside that call) and come before any `screenshot`, on the same
     session/tab, within 300 seconds, there is a 2xx/3xx request to `backend_origin`, and the build with the same `asset_manifest_sha256` equals the
     target. Otherwise the dispatch binds no attestation, and the case is recorded ungraded with the code of the failed check
     (`PREFLIGHT_WEB_CURRENT_BUILD`, `PREFLIGHT_WEB_BACKEND_OBSERVATION`, `PREFLIGHT_WEB_EXECUTOR_IDENTITY_SEQUENCE`,
@@ -262,7 +275,10 @@ in `runs/<id>/archive/`.
     dispatches (Dragon returns `POLICY_LOCKED` for a name already used). A per-case dispatch includes the
     [evidence draft](executor-evidence.md) contract: the executor writes no files and ends its turn with `TEAMQA_EVIDENCE_DRAFT v1`.
     After that, `teamqa web collect --run <id> --attestation <attestation> --board <canonical board>` builds the images, video, state
-    receipts, manifest, vision and the case on the board from the exact stream bound to the attestation; the root does not write receipts itself. When
+    receipts, manifest, vision and the case on the board from the exact stream bound to the attestation; the root does not write receipts itself.
+    Through QA GUI's evidence tools it fits each screenshot to at most 1,280 px, binds it to its capture, builds the recording manifest
+    from the Dragon recording folder and turns on `evidencePolicy` (QA GUI not found: `WEB_COLLECT_QA_GUI_EVIDENCE_UNAVAILABLE`);
+    a case whose evidence QA GUI rejects is UNGRADED with the `EVIDENCE_*` code in `issues`, and is dispatched again. When
     `docs-lock.json` pins that board, the command re-locks the new revision itself (`relocked` in the result, the old lock goes to `archive/`),
     so there is no need to run `run lock-docs` again before the gate. QA GUI accepts only a
     `claude-stream` attestation on a web receipt under the rule `qa-gui/claude-stream-dragon-route/v1`: the executor's stream has

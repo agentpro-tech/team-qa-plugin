@@ -90,10 +90,16 @@ function installNotes(deps) {
   const skillsInstall = join(deps.home, '.agents', 'skills', 'team-qa', 'SOURCE.json');
   const configDir = deps.env.CLAUDE_CONFIG_DIR || join(deps.home, '.claude');
   const pluginInstalled = () => { try { return deps.readText(join(configDir, 'plugins', 'installed_plugins.json')).includes(`"${PLUGIN_ID}"`); } catch { return false; } };
-  if ((layout.mode === 'plugin' && deps.exists(skillsInstall)) || (layout.mode === 'skills' && pluginInstalled()))
+  // Claude Code loads Team QA twice only when its own skills folder also holds team-qa (the suite installer's link). A
+  // suite install in ~/.agents/skills that only Codex links to sits beside the plugin without a clash.
+  const claudeSkill = join(configDir, 'skills', 'team-qa');
+  const loadedTwice = () => { try { return deps.exists(claudeSkill); } catch { return false; } };
+  if ((layout.mode === 'plugin' || (layout.mode === 'skills' && pluginInstalled())) && loadedTwice())
     notes.push({ id: 'duplicate-install', status: 'warn', code: 'DUPLICATE_INSTALL',
-      detail: `Team QA is installed twice: as the Claude Code plugin ${PLUGIN_ID} and in ~/.agents/skills (linked from ~/.claude/skills); Claude Code loads both`,
-      help: `Keep one. Remove the plugin with /plugin uninstall ${PLUGIN_ID}, or move ~/.agents/skills/team-qa, qa-gui and qa-code and their ~/.claude/skills links out of the way.` });
+      detail: `Team QA is installed twice for Claude Code: as the plugin ${PLUGIN_ID} and as ${claudeSkill}; Claude Code loads both`,
+      help: `Keep one for Claude Code. Remove the plugin with /plugin uninstall ${PLUGIN_ID}, or move the team-qa, qa-gui and qa-code links out of ${join(configDir, 'skills')}; Codex keeps using ~/.agents/skills.` });
+  else if (layout.mode === 'plugin' && deps.exists(skillsInstall))
+    notes.push({ id: 'codex-install', status: 'info', detail: 'a suite install in ~/.agents/skills serves Codex; Claude Code uses the plugin' });
   if (layout.mode === 'plugin') {
     // The plugin's hooks and command come from this signed Team QA (scripts/plugin); any other copy is not ours.
     const drift = [['hooks/hooks.json', 'scripts/plugin/hooks.json'], ['bin/teamqa', 'scripts/plugin/teamqa']].filter(([inPlugin, signed]) => {

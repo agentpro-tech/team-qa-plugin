@@ -48,6 +48,16 @@ const CHECKERS = Object.freeze([
 
 export const REPORT_CHECKER_IDS = Object.freeze(CHECKERS.map((item) => item.id));
 
+// A checker that runs only for a report that carries its field (R1b: `coverage_cells`, when the tracked plan has the
+// coverage block). It is declared exactly when that field is present, so a report in the old shape keeps its ledger.
+const FIELD_CHECKERS = Object.freeze([
+  { id: 'coverage-cells', contract: 'RED-TQ-COVERAGE-CELLS-001', scope: 'tracked_case', field: 'coverage_cells', option: 'coverageCells' },
+]);
+
+function checkersFor(fields) {
+  return [...CHECKERS, ...FIELD_CHECKERS.filter((checker) => fields.has(checker.field))];
+}
+
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
@@ -83,9 +93,10 @@ export function issueReasons(issues) {
 // `checked` is the number of items that checker inspected in this run. Undeclared means 0, and
 // 0 is a real declaration, not a temporary patch value: a checker that inspected no items
 // must not be read as having vouched for anything.
-export function redCheckerLedger(issues, checked = {}) {
+export function redCheckerLedger(issues, checked = {}, options = {}) {
   const found = issues ?? [];
-  return CHECKERS.map((checker) => ({
+  const fields = new Set(FIELD_CHECKERS.filter((checker) => options[checker.option] === true).map((checker) => checker.field));
+  return checkersFor(fields).map((checker) => ({
     id: checker.id,
     contract: checker.contract,
     scope: checker.scope,
@@ -128,7 +139,7 @@ function shapeErrors(item, fields, code, context) {
   return errors;
 }
 
-function issueErrors(issue, index) {
+function issueErrors(issue, index, known = REPORT_CHECKER_IDS) {
   const context = `grounded_issues[${index}]`;
   const errors = shapeErrors(issue, ISSUE_FIELDS, 'REPORT_INTEGRITY_TYPE', context);
   if (errors.length > 0) return errors;
@@ -142,13 +153,13 @@ function issueErrors(issue, index) {
   if (!Array.isArray(issue.evidence) || issue.evidence.some((item) => !isNonEmptyString(item))) {
     errors.push(`REPORT_INTEGRITY_TYPE ${context}.evidence`);
   }
-  if (errors.length === 0 && !REPORT_CHECKER_IDS.includes(issue.checker)) {
+  if (errors.length === 0 && !known.includes(issue.checker)) {
     errors.push(`REPORT_CHECKER_UNKNOWN ${issue.checker}`);
   }
   return errors;
 }
 
-function checkerErrors(entry, index) {
+function checkerErrors(entry, index, known = REPORT_CHECKER_IDS) {
   const context = `red_checkers[${index}]`;
   const errors = shapeErrors(entry, CHECKER_FIELDS, 'REPORT_INTEGRITY_TYPE', context);
   if (errors.length > 0) return errors;
@@ -159,7 +170,7 @@ function checkerErrors(entry, index) {
   for (const field of ['checked', 'issues']) {
     if (!isCount(entry[field])) errors.push(`REPORT_INTEGRITY_TYPE ${context}.${field}`);
   }
-  if (errors.length === 0 && !REPORT_CHECKER_IDS.includes(entry.id)) {
+  if (errors.length === 0 && !known.includes(entry.id)) {
     errors.push(`REPORT_CHECKER_UNKNOWN ${entry.id}`);
   }
   return errors;
@@ -192,13 +203,14 @@ export function reportIntegrityErrors(value) {
   }
   if (errors.length > 0) return errors;
 
-  value.grounded_issues.forEach((issue, index) => errors.push(...issueErrors(issue, index)));
-  value.red_checkers.forEach((entry, index) => errors.push(...checkerErrors(entry, index)));
+  const known = checkersFor(new Set(FIELD_CHECKERS.map((checker) => checker.field).filter((field) => Object.hasOwn(value, field)))).map((checker) => checker.id);
+  value.grounded_issues.forEach((issue, index) => errors.push(...issueErrors(issue, index, known)));
+  value.red_checkers.forEach((entry, index) => errors.push(...checkerErrors(entry, index, known)));
   value.child_gates.forEach((entry, index) => errors.push(...gateErrors(entry, index)));
   if (errors.length > 0) return errors;
 
   const declared = new Set(value.red_checkers.map((entry) => entry.id));
-  for (const id of REPORT_CHECKER_IDS) if (!declared.has(id)) errors.push(`REPORT_CHECKER_UNDECLARED ${id}`);
+  for (const id of known) if (!declared.has(id)) errors.push(`REPORT_CHECKER_UNDECLARED ${id}`);
   const gates = new Set(value.child_gates.map((entry) => entry.gate));
   for (const gate of CHILD_SKILLS) if (!gates.has(gate)) errors.push(`REPORT_CHILD_GATE_UNDECLARED ${gate}`);
 

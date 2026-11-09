@@ -1,0 +1,201 @@
+{
+  "recordedWith": "Dragon env-controller (extension/env-controller.js) at lane build 1.6.9-qa.f108af9 over a Playwright CDP session, Chromium headless, viewport 800x600",
+  "fixture": "u1-slow-defect.html",
+  "sensorsStart": {
+    "ok": true,
+    "kinds": [
+      "mutation",
+      "resize",
+      "visibility",
+      "loaf",
+      "event",
+      "input",
+      "focus",
+      "scroll",
+      "layout-shift",
+      "animation"
+    ],
+    "streams": {
+      "layout-shift": "cdp",
+      "animation": "cdp"
+    },
+    "watch": "#save,#msg,form,[role=status],[aria-busy]"
+  },
+  "held": [
+    {
+      "requestId": "interception-job-1.0",
+      "ruleId": "save",
+      "action": "hold",
+      "url": "http://127.0.0.1:8080/api/save",
+      "method": "POST",
+      "resourceType": "XHR",
+      "t": 1793795141121,
+      "until": 1793795171121
+    }
+  ],
+  "envAfterRelease": {
+    "held": [],
+    "requests": [
+      {
+        "t": 1793795141121,
+        "ruleId": "save",
+        "action": "hold",
+        "url": "http://127.0.0.1:8080/api/save",
+        "method": "POST",
+        "outcome": "held"
+      },
+      {
+        "t": 1793795142626,
+        "ruleId": "save",
+        "action": "hold",
+        "url": "http://127.0.0.1:8080/api/save",
+        "method": "POST",
+        "outcome": "released:release"
+      }
+    ],
+    "ruleStats": {
+      "save": {
+        "matched": 1,
+        "lastAt": 1793795141120
+      }
+    }
+  },
+  "read": {
+    "ok": true,
+    "running": true,
+    "events": [
+      {
+        "k": "input",
+        "t": 1793795141112.2,
+        "type": "pointerdown",
+        "trusted": true,
+        "target": "button#save",
+        "x": 341,
+        "y": 139,
+        "src": "page",
+        "doc": "z6ic6ugb",
+        "seq": 20
+      },
+      {
+        "k": "focus",
+        "t": 1793795141115.3,
+        "type": "out",
+        "target": "input#name",
+        "active": "html>body",
+        "src": "page",
+        "doc": "z6ic6ugb",
+        "seq": 21
+      },
+      {
+        "k": "focus",
+        "t": 1793795141116.3,
+        "type": "in",
+        "target": "button#save",
+        "active": "button#save",
+        "src": "page",
+        "doc": "z6ic6ugb",
+        "seq": 22
+      },
+      {
+        "k": "input",
+        "t": 1793795141112.2,
+        "type": "pointerup",
+        "trusted": true,
+        "target": "button#save",
+        "x": 341,
+        "y": 139,
+        "src": "page",
+        "doc": "z6ic6ugb",
+        "seq": 23
+      },
+      {
+        "k": "input",
+        "t": 1793795141112.2,
+        "type": "click",
+        "trusted": true,
+        "target": "button#save",
+        "x": 340,
+        "y": 139,
+        "src": "page",
+        "doc": "z6ic6ugb",
+        "seq": 24
+      },
+      {
+        "k": "event",
+        "t": 1793795141112.2,
+        "name": "pointerdown",
+        "duration": 8,
+        "processingStart": 1793795141114.6,
+        "processingEnd": 1793795141115.3,
+        "interactionId": 7164,
+        "target": "button#save",
+        "first": true,
+        "src": "page",
+        "doc": "z6ic6ugb",
+        "seq": 25
+      },
+      {
+        "k": "mutation",
+        "t": 1793795142630.2,
+        "added": 0,
+        "removed": 0,
+        "attrs": 0,
+        "text": 1,
+        "attrNames": [],
+        "targets": [
+          "p#msg[role=status]"
+        ],
+        "src": "page",
+        "doc": "z6ic6ugb",
+        "seq": 26
+      }
+    ],
+    "cursor": 26,
+    "latest": 26,
+    "more": false,
+    "gap": false,
+    "overflow": 0,
+    "pageDropped": 0,
+    "total": 26,
+    "clock": {
+      "unit": "ms",
+      "base": "unix-epoch",
+      "pageSkewMs": 3.4,
+      "measuredWithinMs": 6
+    },
+    "docs": 2,
+    "contexts": 1,
+    "conditions": {
+      "v": 1,
+      "caseId": "u1-slow-defect",
+      "role": "test",
+      "network": null,
+      "cpu": null,
+      "timezone": null,
+      "locale": null,
+      "media": null,
+      "animation": null,
+      "requests": [
+        {
+          "id": "save",
+          "urlPattern": "*/api/save*",
+          "action": "hold",
+          "status": null,
+          "errorReason": null,
+          "matched": 1
+        }
+      ],
+      "probes": {
+        "sensors": true,
+        "frames": false
+      },
+      "verified": true,
+      "setAt": 1793795141062,
+      "expiresAt": 1793796041062
+    }
+  },
+  "reset": {
+    "ok": true,
+    "atDefault": true
+  }
+}

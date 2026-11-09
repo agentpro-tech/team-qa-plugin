@@ -141,6 +141,12 @@ Team QA locks the skill's dispatcher, phase transitions, intake and current reco
 host-universal lock that blocks every shell/tool/model API on the machine; do not claim that every host call is
 intercepted. Work outside the route may exist but is not accepted as official QA evidence.
 
+The optional adjudicator seat (`adjudicator` in the roster) is independent by family, not only by session: its
+provider's model line (`provider_families` in `references/adjudicator-policy.json`) must differ from every executor
+seat's, and the roster validator refuses `ADJUDICATOR_SAME_FAMILY`. Its context is the hash of the adjudicator
+instructions and policy; it runs through `teamqa adjudicate`, not `roster.mjs dispatch`. Its mode (`shadow`, the
+default, or `enforce`) is part of the approved bytes. See [adjudicator contract](adjudicator-contract.md).
+
 ## Child interfaces and GUI
 
 QA Code runs through the declared child interface; the executor_code seat is not dispatched directly as a

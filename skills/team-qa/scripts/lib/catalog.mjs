@@ -21,6 +21,8 @@ function probeEnvironment(provider,opts){
   let root;
   if(opts.probeDir){root=resolve(opts.probeDir);if(existsSync(root))fail('PROBE_DIR_MUST_BE_NEW',root);mkdirSync(root,{recursive:false,mode:0o700});}
   else root=mkdtempSync(join(tmpdir(),'teamqa-catalog-probe-'));
+  // The sandbox profile matches real paths: on macOS tmpdir() is under /var/folders, really /private/var/folders.
+  root=realpathSync(root);
   const configHome=join(root,provider==='openai'?'codex':'claude'),xdg=join(root,'xdg');
   mkdirSync(configHome,{recursive:true,mode:0o700});mkdirSync(xdg,{recursive:true,mode:0o700});
   const env={PATH:opts.env?.PATH||process.env.PATH||'/usr/bin:/bin',LANG:'C',HOME:root,XDG_CONFIG_HOME:xdg};

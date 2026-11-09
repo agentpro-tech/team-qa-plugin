@@ -5,7 +5,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { RTM_REQUIREMENT, isRtmEmpty, rtmRequirementIndex } from './report-tokens.mjs';
 import { assertUnderCap } from './cost.mjs';
-import { fail, readJson, rejectUnknownFields, sha256File, stableJson, writeConfirmed, runAdapter } from './core.mjs';
+import { fail, readJson, rejectUnknownFields, sha256File, stableJson, withFileLock, writeConfirmed, runAdapter } from './core.mjs';
 import { assertApprovedRoster, verifyRoleSource, verifyChildDispatchProof, verifyPlanUserEvent } from './roster.mjs';
 import { loadBoard, loadPlan, loadTracked, evidenceIssue } from './validators.mjs';
 import { childVerdictIssue } from './child-verdict.mjs';
@@ -14,18 +14,20 @@ import { dualVerdictIssue } from './dual-verdict.mjs';
 import { attemptSequenceIssue, latestAttemptByCase } from './attempt-sequence.mjs';
 import { sourceTraceabilityRows } from './source-traceability.mjs';
 import { selectRetestCases } from './retest-scope.mjs';
-import { boardIntegrityVerify, boardComparePage } from '../board-teamwork.mjs';
+import { boardIntegrityVerify, boardComparePage, verifyNotionReceipt } from '../board-teamwork.mjs';
+import { verifyBoardDelivery } from './board-quality.mjs';
 import { assertToolPreflight } from './tool-preflight.mjs';
 import { executorIdentity } from './executor-identity.mjs';
 import { verifyBlockedBoardDelivery } from './board-delivery.mjs';
 import { loadPlanPresentation, assertPlanPresented } from './chat-presentation.mjs';
 import { siblingSkillRoot } from './install-layout.mjs';
+import { SCREEN_ATTEMPTS, SCREEN_ID, screenPlan } from './screen-checks.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const RUN_CONTRACT = 'team-qa/run-contract/v1';
 const PHASES = ['PLAN', 'SIGN', 'DESIGN', 'EXECUTE', 'COMPLETE'];
 const ROLES = ['test_manager', 'analyst', 'designer', 'executor_gui', 'executor_code'];
-const PUBLICATION_ARTIFACTS = ['board_render', 'board_snapshot', 'board_evidence_map', 'board_payload', 'board_quality', 'board_write'];
+const PUBLICATION_ARTIFACTS = ['board_render', 'board_snapshot', 'board_evidence_map', 'board_payload', 'board_quality', 'board_write', 'board_notion'];
 const DOCUMENT_ARTIFACTS = ['source', 'dossier', 'plan', 'tracked', 'rtm', 'board', 'template', 'selection', 'change', 'fix_proof', ...PUBLICATION_ARTIFACTS];
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const requireValue = (v, code, detail) => { if (!v) fail(3, code, detail); };
@@ -53,7 +55,11 @@ function roleAttemptLimit(runDir, role) {
   requireValue(ref && typeof ref.path === 'string' && /^[a-f0-9]{64}$/.test(ref.sha256 || ''), 'ROLE_ATTEMPT_SCOPE_LOCK');
   const path = resolve(runDir, ref.path); requireValue(existsSync(path) && sha256File(path) === ref.sha256, 'ROLE_ATTEMPT_SCOPE_DRIFT');
   const tracked = loadTracked(path); valid(tracked.errors); requireValue(tracked.value.cases.length > 0, 'ROLE_ATTEMPT_SCOPE_EMPTY');
-  return tracked.value.cases.length * 3;
+  // Fix round 1 (D1): each screen check (one per route and role of a GUI case, screen-checks.mjs screenPlan) is a GUI
+  // dispatch of its own, with the same three attempts. Kept inline: this function's source is evaluated on its own.
+  const screens = new Set(tracked.value.cases.filter((c) => (c.lane === undefined || c.lane === 'gui') && typeof c.route === 'string' && c.route.startsWith('/'))
+    .map((c) => `${c.route}|${typeof c.role === 'string' && c.role ? c.role : ''}`));
+  return tracked.value.cases.length * 3 + screens.size * 3;
 }
 // Case-scoped GUI dispatch on the Claude CLI route (upgrade U2): each `roster.mjs dispatch --case-id <case>` is one
 // attempt for one signed case. Every started attempt is appended to dispatch/<role>/case-dispatches.jsonl before the
@@ -82,30 +88,73 @@ export function caseDispatchBudget({ runDir, role, caseId }) {
   const used = started.filter((row) => row.case_id === caseId).length + legacy;
   return { caseId, used, left: CASE_ATTEMPTS - used, run_used: started.length + legacy, run_limit: cases.length * CASE_ATTEMPTS };
 }
+// Parallel dispatches are separate processes: the budget check and the append run under one lock on the ledger
+// (core.mjs withFileLock), so no started attempt is lost and no case gets a fourth.
 export async function startCaseDispatch({ runDir, role, caseId, attempt }) {
-  const budget = caseDispatchBudget({ runDir, role, caseId });
-  requireValue(budget.left > 0, 'DISPATCH_CASE_ATTEMPTS_EXHAUSTED', `${caseId} used ${budget.used}/${CASE_ATTEMPTS}`);
-  requireValue(budget.run_used < budget.run_limit, 'DISPATCH_CASE_BUDGET_EXHAUSTED', `${budget.run_used}/${budget.run_limit}`);
-  assertUnderCap(runDir); // S2: a run that has spent its cost cap starts no new case
+  caseDispatchBudget({ runDir, role, caseId });
+  // Upgrade R3: under parallel_gui_lanes on, a GUI case starts beside a running one only on another valid parallel lane.
+  if (role === 'executor_gui') { const refused = await (await import('./parallel-lanes.mjs')).parallelDispatchIssue({ runDir, caseId, attempt }); if (refused) fail(3, 'DISPATCH_PARALLEL_LANES_REFUSED', refused.slice('DISPATCH_PARALLEL_LANES_REFUSED '.length)); }
   requireValue(typeof attempt === 'string' && /^[a-zA-Z0-9_-]{8,128}$/.test(attempt), 'DISPATCH_CASE_ATTEMPT_ID', String(attempt));
   const path = caseLedgerPath(runDir, role);
-  requireValue(!caseLedger(runDir, role).some((row) => row.attempt === attempt), 'DISPATCH_CASE_ATTEMPT_ID', `${attempt} already started`);
-  const rows = existsSync(path) ? readFileSync(path, 'utf8') : '';
-  await writeConfirmed(path, `${rows}${JSON.stringify({ case_id: caseId, attempt, started_at: new Date().toISOString() })}\n`, 'teamqa.dispatch.case');
-  return { ...budget, used: budget.used + 1, left: budget.left - 1 };
+  return withFileLock(path, async () => {
+    const budget = caseDispatchBudget({ runDir, role, caseId });
+    requireValue(budget.left > 0, 'DISPATCH_CASE_ATTEMPTS_EXHAUSTED', `${caseId} used ${budget.used}/${CASE_ATTEMPTS}`);
+    requireValue(budget.run_used < budget.run_limit, 'DISPATCH_CASE_BUDGET_EXHAUSTED', `${budget.run_used}/${budget.run_limit}`);
+    assertUnderCap(runDir); // S2: a run that has spent its cost cap starts no new case
+    requireValue(!caseLedger(runDir, role).some((row) => row.attempt === attempt), 'DISPATCH_CASE_ATTEMPT_ID', `${attempt} already started`);
+    const rows = existsSync(path) ? readFileSync(path, 'utf8') : '';
+    await writeConfirmed(path, `${rows}${JSON.stringify({ case_id: caseId, attempt, started_at: new Date().toISOString() })}\n`, 'teamqa.dispatch.case');
+    return { ...budget, used: budget.used + 1, left: budget.left - 1 };
+  });
 }
+// Fix round 1 (D1): a screen check dispatch (`roster.mjs dispatch --screen-id <S>`) is one attempt for one screen of the
+// locked tracked plan, at most three per screen, recorded in dispatch/<role>/screen-dispatches.jsonl before it runs.
+const screenLedgerPath = (runDir, role) => join(runDir, 'dispatch', role, 'screen-dispatches.jsonl');
+function screenLedger(runDir, role) {
+  const path = screenLedgerPath(runDir, role);
+  if (!existsSync(path)) return [];
+  return readFileSync(path, 'utf8').split('\n').filter(Boolean).map((line) => { let row; try { row = JSON.parse(line); } catch { fail(3, 'DISPATCH_SCREEN_LEDGER_INVALID', path); } return row; });
+}
+export function lockedScreens(runDir) {
+  const lock = readJson(join(runDir, 'docs-lock.json')), ref = lock.artifacts?.tracked;
+  requireValue(ref && typeof ref.path === 'string', 'ROLE_ATTEMPT_SCOPE_LOCK');
+  const path = resolve(runDir, ref.path); requireValue(existsSync(path) && sha256File(path) === ref.sha256, 'ROLE_ATTEMPT_SCOPE_DRIFT');
+  return screenPlan(readJson(path)).screens;
+}
+export async function startScreenDispatch({ runDir, role, screenId, attempt }) {
+  requireValue(role === 'executor_gui', 'DISPATCH_SCREEN_ROLE', role);
+  requireValue(typeof screenId === 'string' && SCREEN_ID.test(screenId) && lockedScreens(runDir).some((s) => s.id === screenId), 'DISPATCH_SCREEN_NOT_IN_PLAN', String(screenId));
+  requireValue(typeof attempt === 'string' && /^[a-zA-Z0-9_-]{8,128}$/.test(attempt), 'DISPATCH_CASE_ATTEMPT_ID', String(attempt));
+  const path = screenLedgerPath(runDir, role);
+  return withFileLock(path, async () => {
+    const used = screenLedger(runDir, role).filter((row) => row.screen_id === screenId).length;
+    requireValue(used < SCREEN_ATTEMPTS, 'DISPATCH_SCREEN_ATTEMPTS_EXHAUSTED', `${screenId} used ${used}/${SCREEN_ATTEMPTS}`);
+    assertUnderCap(runDir);
+    const rows = existsSync(path) ? readFileSync(path, 'utf8') : '';
+    await writeConfirmed(path, `${rows}${JSON.stringify({ screen_id: screenId, attempt, started_at: new Date().toISOString() })}\n`, 'teamqa.dispatch.screen');
+    return { screenId, used: used + 1, left: SCREEN_ATTEMPTS - used - 1 };
+  });
+}
+// The chain value of a scoped dispatch: its case, or `screen:<id>`.
+const scopeOf = (a) => (typeof a.dispatch_case_id === 'string' ? a.dispatch_case_id : `screen:${a.dispatch_screen_id}`);
 const caseChain = (previousSha256, attemptId, caseId) => createHash('sha256').update(`${previousSha256}\n${attemptId}\n${caseId}`).digest('hex');
 const priorAttemptPath = (runDir, role, seq) => seq === 2 ? join(runDir, 'role-bindings', `${role}.json`) : join(runDir, 'role-bindings', role, `attempt-${seq - 1}.json`);
 // The case binding of a case-scoped claude-stream attestation, or null when it has none: a GUI claude-stream attestation
 // naming a case of the locked tracked plan; a v2 one is the requested worker session and chains to the one before it.
 export function caseAttestationIssue(runDir, a) {
-  if (!Object.hasOwn(a ?? {}, 'dispatch_case_id')) return null;
-  if (a.source?.kind !== 'claude-stream' || a.role !== 'executor_gui' || typeof a.dispatch_case_id !== 'string' || !CASE_ID_PATTERN.test(a.dispatch_case_id)) return 'ROLE_DISPATCH_CASE_BINDING';
-  if (!lockedTrackedCases(runDir).some((item) => item.id === a.dispatch_case_id)) return 'ROLE_DISPATCH_CASE_NOT_IN_PLAN';
+  const screen = Object.hasOwn(a ?? {}, 'dispatch_screen_id');
+  if (!Object.hasOwn(a ?? {}, 'dispatch_case_id') && !screen) return null;
+  if (screen) {
+    if (Object.hasOwn(a, 'dispatch_case_id') || a.source?.kind !== 'claude-stream' || a.role !== 'executor_gui' || typeof a.dispatch_screen_id !== 'string' || !SCREEN_ID.test(a.dispatch_screen_id)) return 'ROLE_DISPATCH_SCREEN_BINDING';
+    if (!lockedScreens(runDir).some((item) => item.id === a.dispatch_screen_id)) return 'ROLE_DISPATCH_SCREEN_NOT_IN_PLAN';
+  } else {
+    if (a.source?.kind !== 'claude-stream' || a.role !== 'executor_gui' || typeof a.dispatch_case_id !== 'string' || !CASE_ID_PATTERN.test(a.dispatch_case_id)) return 'ROLE_DISPATCH_CASE_BINDING';
+    if (!lockedTrackedCases(runDir).some((item) => item.id === a.dispatch_case_id)) return 'ROLE_DISPATCH_CASE_NOT_IN_PLAN';
+  }
   if (a.schema === 'team-qa/role-attestation/v2') {
     if (a.dispatch_attempt_id !== a.session_id || !Number.isInteger(a.dispatch_attempt_seq) || a.dispatch_attempt_seq < 2) return 'ROLE_DISPATCH_ATTEMPT_BINDING';
     const prior = priorAttemptPath(runDir, a.role, a.dispatch_attempt_seq);
-    if (!existsSync(prior) || caseChain(sha256File(prior), a.dispatch_attempt_id, a.dispatch_case_id) !== a.dispatch_chain_sha256) return 'ROLE_DISPATCH_CHAIN';
+    if (!existsSync(prior) || caseChain(sha256File(prior), a.dispatch_attempt_id, scopeOf(a)) !== a.dispatch_chain_sha256) return 'ROLE_DISPATCH_CHAIN';
   }
   return null;
 }
@@ -114,14 +163,14 @@ export function caseAttestationIssue(runDir, a) {
 // sequence, chained to the attestation before it.
 export function sequenceCaseAttestation({ runDir, attestation }) {
   const a = attestation;
-  requireValue(a?.source?.kind === 'claude-stream' && typeof a.dispatch_case_id === 'string', 'DISPATCH_CASE_ATTESTATION', a?.role);
+  requireValue(a?.source?.kind === 'claude-stream' && (typeof a.dispatch_case_id === 'string' || typeof a.dispatch_screen_id === 'string'), 'DISPATCH_CASE_ATTESTATION', a?.role);
   const primary = join(runDir, 'role-bindings', `${a.role}.json`);
   if (!existsSync(primary)) return a;
   const seq = roleAttestationPaths(runDir, a.role).length + 2;
   const prior = priorAttemptPath(runDir, a.role, seq);
   requireValue(existsSync(prior), 'ROLE_ATTEMPT_PREDECESSOR_MISSING', a.role);
   return { ...a, schema: 'team-qa/role-attestation/v2', dispatch_attempt_id: a.session_id, dispatch_attempt_seq: seq,
-    dispatch_chain_sha256: caseChain(sha256File(prior), a.session_id, a.dispatch_case_id) };
+    dispatch_chain_sha256: caseChain(sha256File(prior), a.session_id, scopeOf(a)) };
 }
 // A machine-readable offer to run again (upgrade U4). Roots worded "open round 2 / run another attempt" five ways in
 // the G2 canary; `teamqa run offer` checks the offer and prints one marker line the root pastes right before its
@@ -171,11 +220,11 @@ export function roleContext(role) {
     .concat(['SKILL.md', 'references/interfaces.md']).map((path) => ({ path, sha256: sha256File(join(ROOT, path)) }));
 }
 function verifyAttestation(runDir, a, roster) {
-  rejectUnknownFields(a, ['schema', 'run_id', 'round', 'roster_hash', 'role', 'agent_id', 'session_id', 'runtime', 'context', 'source', 'graded', 'dispatch_attempt_id', 'dispatch_attempt_seq', 'dispatch_chain_sha256', 'dispatch_case_id'], 'ROLE_ATTESTATION_UNKNOWN');
+  rejectUnknownFields(a, ['schema', 'run_id', 'round', 'roster_hash', 'role', 'agent_id', 'session_id', 'runtime', 'context', 'source', 'graded', 'dispatch_attempt_id', 'dispatch_attempt_seq', 'dispatch_chain_sha256', 'dispatch_case_id', 'dispatch_screen_id'], 'ROLE_ATTESTATION_UNKNOWN');
   requireValue(['team-qa/role-attestation/v1','team-qa/role-attestation/v2'].includes(a.schema), 'ROLE_ATTESTATION_SCHEMA');
   // Case-scoped Claude CLI GUI dispatch (U2): claude-stream attestations name their signed case; v2 retries chain to
   // the attestation before them and their attempt id is the worker session the dispatcher requested.
-  const caseScoped = a.source?.kind === 'claude-stream' && Object.hasOwn(a, 'dispatch_case_id');
+  const caseScoped = a.source?.kind === 'claude-stream' && (Object.hasOwn(a, 'dispatch_case_id') || Object.hasOwn(a, 'dispatch_screen_id'));
   if (a.schema === 'team-qa/role-attestation/v2') requireValue((a.source?.kind === 'codex-native' || caseScoped) && typeof a.dispatch_attempt_id === 'string' && /^[a-zA-Z0-9_-]{8,128}$/.test(a.dispatch_attempt_id) && Number.isInteger(a.dispatch_attempt_seq) && a.dispatch_attempt_seq >= 2 && a.dispatch_attempt_seq <= roleAttemptLimit(runDir, a.role) && /^[a-f0-9]{64}$/.test(a.dispatch_chain_sha256 || ''), 'ROLE_DISPATCH_ATTEMPT_BINDING');
   else requireValue(!Object.hasOwn(a, 'dispatch_attempt_id') && !Object.hasOwn(a, 'dispatch_attempt_seq') && !Object.hasOwn(a, 'dispatch_chain_sha256'), 'ROLE_DISPATCH_ATTEMPT_BINDING');
   const caseIssue = caseAttestationIssue(runDir, a);
@@ -535,11 +584,16 @@ function completeReadback(runDir, roster, lock) {
   const board = documentPath(runDir, lock, 'board');
   // U5: an unattended run whose board review stayed FAIL after the repair rounds completes with its blocked delivery
   // (board-delivery.mjs) in place of the published board; a run with a published board keeps every readback.
-  const blocked = lock.artifacts.board_render || lock.artifacts.board_payload ? null : verifyBlockedBoardDelivery({ runDir, roster, boardPath: board });
+  const delivered = lock.artifacts.board_render || lock.artifacts.board_payload || lock.artifacts.board_notion;
+  const blocked = delivered ? null : verifyBlockedBoardDelivery({ runDir, roster, boardPath: board });
   if (blocked) requireValue(!lock.artifacts.board_quality && !lock.artifacts.board_snapshot && !lock.artifacts.board_write, 'BOARD_DELIVERY_CONFLICT', 'a blocked board has no delivery artifacts');
-  const artifact = blocked ? null : documentPath(runDir, lock, lock.artifacts.board_render ? 'board_render' : 'board_payload');
+  // B0: a Notion delivery through the Notion MCP is proved by its receipt; its quality seal sits on the projection.
+  const notion = !blocked && lock.artifacts.board_notion ? verifyNotionReceipt({ runDir, receiptPath: documentPath(runDir, lock, 'board_notion'), boardPath: board }) : null;
+  const artifact = blocked ? null : notion ? notion.projection.path : documentPath(runDir, lock, lock.artifacts.board_render ? 'board_render' : 'board_payload');
   if (!blocked) requireValue(realpathSync(documentPath(runDir, lock, 'board_quality')) === realpathSync(artifact + '.quality.json'), 'RUN_BOARD_QUALITY_PATH');
-  if (blocked) { /* no delivery to read back */ }
+  const renderedWith = !blocked && !notion && lock.artifacts.board_render ? readJson(artifact + '.quality.json').renderer : null;
+  if (blocked || notion) { /* no delivery to read back, or the Notion receipt above */ }
+  else if (renderedWith === 'native') verifyBoardDelivery({ file: board, artifactPath: artifact, renderer: 'native' });
   else if (lock.artifacts.board_render) boardIntegrityVerify(['--file', board, '--artifact', documentPath(runDir, lock, 'board_render')], true);
   else {
     const args = ['--file', board, '--snapshot', documentPath(runDir, lock, 'board_snapshot'), '--payload', artifact];

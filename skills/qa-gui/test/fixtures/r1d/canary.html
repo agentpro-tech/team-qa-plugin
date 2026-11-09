@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R1d transient canaries</title>
+<!--
+  Upgrade R1d canary page: one transient defect per scenario, `?s=<scenario>&at=<ms>` (the defect starts <ms> after the
+  click on #go), and its clean twin with `&clean=1` (same action, no defect). Scenarios:
+  T1 layout jump, T2 transient occlusion, T3 wrong-state flash, T3theme theme flash, T4 overflow during a transition,
+  T5 double-click window, T6focus focus lost, T6scroll scroll lost, T6size size oscillation, T7 jank, T8flash flashing,
+  T8lint layout-property animation, none (the clean screen the overhead is measured on).
+  Synthetic fixture: never evidence of a product run.
+-->
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.4 system-ui, sans-serif; background: #fff; color: #111; }
+  html.dark body { background: #121212; color: #eee; }
+  header { height: 56px; padding: 16px; background: #234; color: #fff; }
+  main { padding: 16px; }
+  #slot { min-height: 48px; }
+  .notice { height: 48px; padding: 12px; background: #fe8; }
+  form { margin: 8px 0; }
+  button { font: inherit; padding: 6px 14px; }
+  #go { width: 140px; height: 36px; }
+  #status { display: inline-block; margin-left: 12px; }
+  ul#list { list-style: none; padding: 0; margin: 8px 0; }
+  ul#list li { height: 32px; padding: 6px; border-bottom: 1px solid #ddd; }
+  .skeleton { height: 96px; background: #eee; }
+  .empty-state { height: 96px; padding: 30px; background: #fdd; }
+  .toast { position: fixed; display: none; padding: 16px; background: #333; color: #fff; z-index: 10; }
+  .details { margin: 8px 0; padding: 8px; background: #def; white-space: nowrap; }
+  #dlg { position: fixed; left: 150px; top: 120px; width: 400px; height: 220px; background: #fff; border: 2px solid #333; padding: 16px; }
+  #panel { width: 300px; height: 80px; background: #8ad; margin: 8px 0; }
+  @keyframes slide { from { transform: translateX(0); } to { transform: translateX(200px); } }
+  .sliding { animation: slide 400ms linear 1; }
+  #banner { width: 600px; height: 200px; margin: 8px 0; background: #e33; opacity: 0; }
+  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } }
+  #banner.blinking { animation: blink 200ms steps(1) 6; opacity: 1; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  #banner.fading { animation: fadein 200ms linear 1; opacity: 1; }
+  #more { overflow: hidden; background: #cfc; height: 0; }
+  #more.grow { height: 300px; transition: height 600ms linear; }
+  #more.fade { height: 300px; opacity: 1; transition: opacity 200ms linear; }
+  #more.fade-start { height: 300px; opacity: 0; }
+</style>
+</head>
+<body>
+<header>R1d canary</header>
+<main id="main">
+  <div id="slot"></div>
+  <form id="f" onsubmit="return false">
+    <button id="go" type="button">Save</button><span id="status" role="status"></span>
+  </form>
+  <div id="stage"></div>
+</main>
+<div id="toast" class="toast" role="status">Saved</div>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const s = q.get('s') || 'none', at = Number(q.get('at') || 300), clean = q.get('clean') === '1';
+  const go = document.getElementById('go'), status = document.getElementById('status'), stage = document.getElementById('stage');
+  const later = (ms, fn) => setTimeout(fn, ms);
+  const label = { T1: 'Save', T2: 'Save', T3: 'Load', T3theme: 'Theme', T4: 'Show details', T5: 'Submit', T6focus: 'Close', T6scroll: 'Refresh',
+    T6size: 'Save', T7: 'Open panel', T8flash: 'Promo', T8lint: 'More', none: 'Save' }[s] || 'Save';
+  go.textContent = label;
+  const items = (n) => Array.from({ length: n }, (_, i) => `<li>Item ${i + 1}</li>`).join('');
+  if (s === 'T1' && !clean) document.getElementById('slot').style.minHeight = '0';
+  if (s === 'T3') stage.innerHTML = '<ul id="list"></ul>';
+  if (s === 'T3theme') document.documentElement.classList.add('dark');
+  if (s === 'T6scroll') { stage.innerHTML = `<ul id="list">${items(60)}</ul>`; stage.after(document.getElementById('f')); }
+  if (s === 'T6focus') {
+    go.textContent = 'Open';
+    go.id = 'open';
+    const dlg = document.createElement('div');
+    dlg.id = 'dlg'; dlg.setAttribute('role', 'dialog'); dlg.setAttribute('aria-modal', 'true');
+    dlg.innerHTML = '<p>Settings</p><button id="go" type="button">Close</button>';
+    document.body.append(dlg);
+    document.getElementById('go').focus();
+  }
+  if (s === 'T7') stage.innerHTML = '<div id="panel"></div>';
+  if (s === 'T8flash') stage.innerHTML = '<div id="banner" class="promo"></div>';
+  if (s === 'T8lint') { go.setAttribute('aria-expanded', 'false'); go.setAttribute('aria-controls', 'more'); stage.innerHTML = '<section id="more">More details</section>'; }
+  const busyLoop = (ms) => { const end = performance.now() + ms; while (performance.now() < end) {} };
+  document.getElementById('go').addEventListener('click', () => {
+    if (s === 'none') { status.textContent = 'Saved'; return; }
+    if (s === 'T1') later(at, () => { const n = document.createElement('div'); n.className = 'notice'; n.textContent = 'Saved'; document.getElementById('slot').append(n); });
+    if (s === 'T2') later(at, () => {
+      const toast = document.getElementById('toast'), r = go.getBoundingClientRect();
+      Object.assign(toast.style, clean ? { left: '560px', top: '8px', width: '220px', height: '50px' } : { left: `${r.left - 20}px`, top: `${r.top - 10}px`, width: '300px', height: '60px' });
+      toast.style.display = 'block';
+      later(700, () => { toast.style.display = 'none'; });
+    });
+    if (s === 'T3') {
+      const list = document.getElementById('list');
+      list.innerHTML = '<div class="skeleton" aria-busy="true"></div>';
+      later(at, () => {
+        if (!clean) list.innerHTML = '<div class="empty-state">No items</div>';
+        later(150, () => { list.innerHTML = items(3); });
+      });
+    }
+    if (s === 'T3theme') later(at, () => {
+      document.documentElement.classList.remove('dark');
+      if (!clean) later(120, () => document.documentElement.classList.add('dark'));
+    });
+    if (s === 'T4') later(at, () => {
+      const d = document.createElement('div'); d.className = 'details'; d.textContent = 'Order details: '.repeat(4);
+      d.style.width = clean ? '100%' : '1100px'; if (clean) d.style.overflow = 'hidden';
+      stage.append(d);
+      if (!clean) later(800, () => { d.style.width = '100%'; d.style.overflow = 'hidden'; });
+    });
+    if (s === 'T5') {
+      go.disabled = true;
+      fetch(`/api/save?delay=${at + 700}`, { method: 'POST', body: '{}' }).then(() => { status.textContent = 'Saved'; go.disabled = false; });
+      if (!clean) later(at, () => { go.disabled = false; });
+    }
+    if (s === 'T6focus') later(at, () => { document.getElementById('dlg').remove(); if (clean) document.getElementById('open').focus(); });
+    if (s === 'T6scroll') later(at, () => {
+      const list = document.getElementById('list');
+      if (clean) { for (const li of list.children) li.textContent = `${li.textContent} (fresh)`; return; }
+      list.innerHTML = '';
+      later(50, () => { list.innerHTML = items(60); });
+    });
+    if (s === 'T6size') later(at, () => {
+      const words = clean ? ['Saving…', 'Saved'] : ['Saving…', 'Saved', 'Saving…', 'Saved'];
+      words.forEach((w, i) => later(i * 120, () => { status.textContent = w; }));
+    });
+    if (s === 'T7') later(at, () => {
+      document.getElementById('panel').classList.add('sliding');
+      if (!clean) later(100, () => busyLoop(150));
+    });
+    if (s === 'T8flash') later(at, () => { document.getElementById('banner').classList.add(clean ? 'fading' : 'blinking'); });
+    if (s === 'T8lint') later(at, () => {
+      const more = document.getElementById('more');
+      go.setAttribute('aria-expanded', 'true');
+      if (clean) { more.className = 'fade-start'; requestAnimationFrame(() => requestAnimationFrame(() => { more.className = 'fade'; })); }
+      else more.className = 'grow';
+    });
+  });
+})();
+</script>
+</body>
+</html>

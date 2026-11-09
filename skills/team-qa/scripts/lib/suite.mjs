@@ -11,9 +11,9 @@
 // Every signature uses the owner key (security/owner-grant-key.json holds its public half). Nothing here runs a
 // command a downloaded file names: the installer runs install.sh from envelopes whose bytes the signature covers.
 import { createHash, createPrivateKey, createPublicKey, sign, verify } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { basename, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { stableJson } from './core.mjs';
@@ -23,7 +23,7 @@ import { compareVersions, readRequirements } from './dragon-requirements.mjs';
 import { activateLicense, loadLicense } from './license.mjs';
 import { verifyDragonRuntime } from './dragon-install.mjs';
 import { sourceRepoUrl } from './source-repo.mjs';
-import { PLUGIN_ID, pluginInfo } from './install-layout.mjs';
+import { PLUGIN_ID, pluginInfo, pluginRegistryDir } from './install-layout.mjs';
 
 export const SUITE_SCHEMA = 'agentpro/teamqa-suite/v1';
 export const CHANNEL_SCHEMA = 'agentpro/teamqa-channel/v1';
@@ -184,16 +184,41 @@ export function installSuite(dir, { destRoot = join(homedir(), '.agents/skills')
   const candidates = suite.skills.filter(s => s.folder.endsWith('-local-candidate')).map(s => s.skill);
   if (candidates.length && !allowLocalCandidate) die('SUITE_LOCAL_CANDIDATE', `${candidates.join(', ')}: pass --allow-local-candidate with --dest-root and --compat-root`);
   const work = mkdtempSync(join(tmpdir(), 'teamqa-suite-install-'));
-  const done = [];
+  // Every envelope is unpacked and its installer checked before the first one runs (M8).
   for (const s of suite.skills) {
     unzip(['-q', join(dir, s.zip), '-d', work]);
-    if (compatRoot && !/--compat-root\)/.test(readFileSync(join(work, s.folder, 'install.sh'), 'utf8'))) die('SUITE_INSTALLER_COMPAT_ROOT', `${s.skill}: its install.sh takes no --compat-root; nothing of it was installed`);
+    const installer = join(work, s.folder, 'install.sh');
+    if (!existsSync(installer)) die('SUITE_INSTALLER_MISSING', `${s.skill}: nothing was installed`);
+    if (compatRoot && !/--compat-root\)/.test(readFileSync(installer, 'utf8'))) die('SUITE_INSTALLER_COMPAT_ROOT', `${s.skill}: its install.sh takes no --compat-root; nothing was installed`);
+  }
+  // One version of the suite or the one before, never a mix: each installed skill is moved aside into
+  // <dest-root>/.backups before its installer runs, and when any installer fails every skill of this install goes back
+  // to what was there before. The new copies are moved aside too (<skill>-failed-…); nothing is deleted.
+  const exists = path => { try { lstatSync(path); return true; } catch { return false; } };
+  const backups = join(destRoot, '.backups'), stamp = `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`;
+  const moved = [], done = [];
+  const rollBack = () => {
+    for (const m of [...moved].reverse()) {
+      if (exists(m.dest)) { mkdirSync(backups, { recursive: true }); renameSync(m.dest, join(backups, `${m.skill}-failed-suite-${stamp}`)); }
+      if (m.previous) renameSync(m.previous, m.dest);
+    }
+    return moved.map(m => m.skill);
+  };
+  for (const s of suite.skills) {
+    const target = join(destRoot, s.skill);
+    let previous = null;
+    if (exists(target)) { mkdirSync(backups, { recursive: true }); previous = join(backups, `${s.skill}-pre-suite-${stamp}`); renameSync(target, previous); }
+    moved.push({ skill: s.skill, dest: target, previous });
     const args = [join(work, s.folder, 'install.sh'), ...(destRoot ? ['--dest-root', destRoot] : []), ...(compatRoot ? ['--compat-root', compatRoot] : []),
       ...(candidates.includes(s.skill) ? ['--allow-local-candidate', 'yes'] : []), ...installArgs];
     const r = spawnSync('bash', args, { encoding: 'utf8', timeout: 600000 });
     log(`${s.skill} ${s.version}: install.sh exit=${r.status}`);
-    if (r.status !== 0) die('SUITE_INSTALL_FAILED', `${s.skill}: ${(r.stderr || r.stdout || '').trim().split('\n').at(-1) ?? ''}`);
-    writeFileSync(join(destRoot, s.skill, 'release-signature.json'), JSON.stringify(s.release, null, 2) + '\n');
+    if (r.status !== 0) {
+      const rolled = rollBack();
+      die('SUITE_INSTALL_FAILED', `${s.skill}: ${(r.stderr || r.stdout || '').trim().split('\n').at(-1) ?? ''}; rolled back ${rolled.join(', ')} to the versions installed before (failed copies in ${backups})`);
+    }
+    try { writeFileSync(join(destRoot, s.skill, 'release-signature.json'), JSON.stringify(s.release, null, 2) + '\n'); }
+    catch (error) { const rolled = rollBack(); die('SUITE_INSTALL_FAILED', `${s.skill}: ${error.code || error.message}; rolled back ${rolled.join(', ')}`); }
     done.push({ skill: s.skill, version: s.version });
   }
   if (suite.dragon_runtime) log(`Dragon runtime ${suite.dragon_runtime.version} is in this suite; teamqa doctor says whether to install it (teamqa dragon install --from ${dir})`);
@@ -256,15 +281,30 @@ export function installedVersion(destRoot = join(homedir(), '.agents/skills')) {
   try { return JSON.parse(readFileSync(join(destRoot, 'team-qa', 'SOURCE.json'), 'utf8')).version; } catch { return null; }
 }
 
-// A run whose phase is not COMPLETE and that changed in the last 12 hours counts as running.
-export function activeRuns(cwd = process.cwd(), now = Date.now()) {
+// A run whose phase is not COMPLETE and that changed in the last 12 hours counts as running: a run of this folder's
+// runs/, and a run in any other folder that a session registered for continuation (the bindings of the continuation
+// registry, ~/.agentpro/teamqa/continuation; archived bindings do not count). An update from ~ no longer replaces the
+// Team QA a run in ~/app is using (M9).
+export function activeRuns(cwd = process.cwd(), now = Date.now(), { registryDir = pluginRegistryDir() } = {}) {
+  const running = runDir => {
+    const phase = join(runDir, 'phase.json');
+    try { return JSON.parse(readFileSync(phase, 'utf8')).phase !== 'COMPLETE' && now - statSync(phase).mtimeMs < 12 * 3600000; } catch { return false; /* missing or unreadable: not counted */ }
+  };
+  const real = path => { try { return realpathSync(path); } catch { return resolve(path); } };
+  const out = [], seen = new Set();
   const runs = join(cwd, 'runs');
-  if (!existsSync(runs)) return [];
-  const out = [];
-  for (const id of readdirSync(runs)) {
-    const phase = join(runs, id, 'phase.json');
-    if (!existsSync(phase)) continue;
-    try { const p = JSON.parse(readFileSync(phase, 'utf8')); if (p.phase !== 'COMPLETE' && now - statSync(phase).mtimeMs < 12 * 3600000) out.push(id); } catch { /* unreadable: not counted */ }
+  if (existsSync(runs)) for (const id of readdirSync(runs).sort()) {
+    if (running(join(runs, id))) { out.push(id); seen.add(real(join(runs, id))); }
+  }
+  let bindings = [];
+  try { bindings = readdirSync(registryDir).filter(name => name.endsWith('.json') && !name.startsWith('.')); } catch { bindings = []; }
+  for (const name of bindings.sort()) {
+    let binding;
+    try { if (!statSync(join(registryDir, name)).isFile()) continue; binding = JSON.parse(readFileSync(join(registryDir, name), 'utf8')); } catch { continue; }
+    const runDir = binding?.run_dir;
+    if (typeof runDir !== 'string' || !isAbsolute(runDir) || seen.has(real(runDir)) || !running(runDir)) continue;
+    seen.add(real(runDir));
+    out.push(`${typeof binding.run_id === 'string' ? binding.run_id : basename(runDir)} (${runDir})`);
   }
   return out;
 }
@@ -307,8 +347,8 @@ export function updateNotice({ channel = channelFrom(), destRoot, publicKey, cac
   } catch { return null; }
 }
 
-export function applyUpdate({ channel, destRoot = join(homedir(), '.agents/skills'), compatRoot = null, installArgs = [], publicKey = readPublicKey(PUBLIC_KEY_PATH), cwd = process.cwd(), log = () => {} } = {}) {
-  const busy = activeRuns(cwd);
+export function applyUpdate({ channel, destRoot = join(homedir(), '.agents/skills'), compatRoot = null, installArgs = [], publicKey = readPublicKey(PUBLIC_KEY_PATH), cwd = process.cwd(), registryDir = pluginRegistryDir(), log = () => {} } = {}) {
+  const busy = activeRuns(cwd, Date.now(), { registryDir });
   if (busy.length) die('UPDATE_RUN_ACTIVE', `wait for ${busy.join(', ')} to finish`);
   const check = checkUpdate({ channel, destRoot, publicKey });
   if (check.status === 'reinstall_needed') die('UPDATE_TOO_OLD', `installed ${check.installed} is older than ${check.upgrade_from}; install the ${check.latest} suite with its install.sh`);

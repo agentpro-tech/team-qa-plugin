@@ -4,7 +4,7 @@ import {verifyPlanUserEvent} from './lib/roster.mjs';
 import { preparePlanPresentation, loadPlanPresentation, assertPlanPresented } from './lib/chat-presentation.mjs';
 import { assertToolPreflight } from './lib/tool-preflight.mjs';
 import {createCurrentTeamQaReceipt,verifyCurrentTeamQaReceipt} from './lib/current-run-receipt.mjs';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -31,6 +31,7 @@ import {
   writeConfirmed,
 } from './lib/core.mjs';
 import { probeLiveCapabilities } from './lib/capability.mjs';
+import { anchorChildSkillPaths } from './lib/install-layout.mjs';
 import { runChildCanary } from './lib/child-canary.mjs';
 import { childVerdictIssue } from './lib/child-verdict.mjs';
 import { assertWebBinding, isDeployedTarget, WEB_CONTRACT_SHA256 } from './lib/deployed-target.mjs';
@@ -70,10 +71,19 @@ import {
   boardRender as teamworkBoardRender,
   boardSync as teamworkBoardSync,
   boardValidate as teamworkBoardValidate,
+  boardAudit as teamworkBoardAudit,
+  boardPublish as teamworkBoardPublish,
+  boardPublishNext as teamworkBoardPublishNext,
+  rootTranscript,
 } from './board-teamwork.mjs';
+import { auditBoardWrites, plansOf } from './lib/board-notion.mjs';
 import { selectRetestCases } from './lib/retest-scope.mjs';
 import { collectRunSecrets, countSecretsInText, scanRunOutputs } from './lib/test-secrets.mjs';
 import { costMarkdown } from './lib/cost.mjs';
+import { runTiming, timingMarkdown } from './lib/timing.mjs';
+import { APP_MAP_FILE, COVERAGE_CELLS_VERSION, COVERAGE_MAP_FILE, EXPLORATION_POLICY_FILE, buildCoverageMap, coverageMapText, coverageMarkdown, explorationPolicy } from './lib/coverage-cells.mjs';
+import { claudeProjectsRoot } from './lib/host-transcript.mjs';
+import { adjudicationMarkdown, adjudicationOverlay, adjudicationReportField } from './lib/adjudicator.mjs';
 import { RTM_EMPTY, RTM_REQUIREMENT, hasRtmEmpty, isRtmEmpty, isRtmRequirementHeaderLine, rtmRequirementIndex } from './lib/report-tokens.mjs';
 import { assertRunContract, assertArtifactPath, lockRunDocuments, transitionRun } from './lib/run-contract.mjs';
 import { boardDeliverySummary, deliveryPath, recordBlockedBoardDelivery } from './lib/board-delivery.mjs';
@@ -131,6 +141,8 @@ function loadConfig() {
   const value = readJson(path, { label: 'roles.json', invalidCode: 'ROLES_JSON_INVALID' });
   requireObject(value, 'ROLES_TYPE', 'root');
   rejectUnknownFields(value, ROLE_ROOT_FIELDS, 'ROLES_UNKNOWN_FIELD');
+  // Child skill paths follow the installed layout (an installed Team QA uses the QA GUI and QA Code next to it).
+  if ('skills' in value) value.skills = anchorChildSkillPaths(value.skills);
   return { value, path, cwd: dirname(path) };
 }
 
@@ -1113,13 +1125,21 @@ function coveragePercent(covered, total) { return total === 0 ? 'N/A' : Math.rou
 function computeReport(runId) {
   const governance = assertGovernedRelease(reportPaths(runId).runDir);
   const data = reportInputs(runId, governance);
+  // R2a: the adjudicator's recorded results. Shadow (the default) changes nothing here; an approved roster whose
+  // adjudicator seat enforces makes a contested PASS count as UNGRADED from this point on.
+  const adjudication = adjudicationOverlay({ runDir: data.paths.runDir, board: data.board });
+  if (adjudication?.mode === 'enforce') data.board = adjudication.board;
   const lock = governance.lock;
   const binding = governance.binding;
   const strictBinding = governance.official ? binding : null;
   const requirements = Object.entries(data.plan.tiers);
+  // R1b: with the tracked plan's coverage block the Coverage Gate counts cells that have a state receipt; a graded case
+  // whose declared cell has none does not cover its requirement (lib/coverage-cells.mjs).
+  const cells = coverageCells(data);
+  const cellUngraded = new Set(cells?.ungradedCases ?? []);
   const covered = (requirement) => {
     const caseIds = new Set(data.tracked.cases.filter((item) => item.req_id === requirement).map((item) => item.id));
-    return data.board.some((record) => caseIds.has(record.case_id) && ['pass', 'fail'].includes(record.verdict));
+    return data.board.some((record) => caseIds.has(record.case_id) && ['pass', 'fail'].includes(record.verdict) && !cellUngraded.has(record.case_id));
   };
   const high = requirements.filter(([, tier]) => tier === 'FULL');
   const low = requirements.filter(([, tier]) => tier === 'SMOKE');
@@ -1158,6 +1178,7 @@ function computeReport(runId) {
   if (targetConflict(data.attempts)) {
     issues.push(groundedIssue({ checker: 'target-consensus', code: 'TARGET_IDENTITY_CONFLICT' }));
   }
+  if (cells) issues.push(...cells.issues);
   const metrics = {
     coverage_high_pct: coveragePercent(high.filter(([requirement]) => covered(requirement)).length, high.length),
     coverage_low_pct: coveragePercent(low.filter(([requirement]) => covered(requirement)).length, low.length),
@@ -1243,9 +1264,11 @@ function computeReport(runId) {
     'coverage-exit': requirements.length,
     'defect-exit': data.board.length,
     'ungraded-exit': data.board.length,
+    ...(cells ? { 'coverage-cells': cells.cellCases } : {}),
   };
   return {
     data,
+    coverage: cells,
     report: {
       ...(data.tracked.schemaVersion === TRACKED_PLAN_SCHEMA_VERSION ? {
         reportSchemaVersion: 2,
@@ -1265,15 +1288,46 @@ function computeReport(runId) {
       reasons,
       waived_p1: waivedP1,
       grounded_issues: issues,
-      red_checkers: redCheckerLedger(issues, checked),
+      red_checkers: redCheckerLedger(issues, checked, { coverageCells: Boolean(cells) }),
       child_gates: childGateLedger(data.board),
+      ...(cells ? { coverage_cells: { version: COVERAGE_CELLS_VERSION, map: COVERAGE_MAP_FILE, map_sha256: sha256(cells.mapText), ...cells.summary } } : {}),
       // U5: an unattended run whose board review stayed FAIL records the blocked delivery; COMPLETE verified it.
       ...(existsSync(deliveryPath(data.paths.runDir)) ? { board_delivery: boardDeliverySummary(readJson(deliveryPath(data.paths.runDir), { label: 'board-delivery.json' })) } : {}),
+      // B0: board writes the root made outside `teamqa board publish` (a hand-made Notion page, Doc or Drive file).
+      ...boardConformance(data.paths.runDir),
+      // R2a: next to the real verdicts, what they would be with the adjudicator on (shadow), or what it applied.
+      ...adjudicationReportField(adjudication, { decision: reasons.length === 0 ? 'GO' : 'NO_GO', metrics }),
     },
   };
 }
 
-function reportMarkdown(report) {
+// R1b: the coverage map of a run whose tracked plan has the coverage block, or null (the old report is unchanged).
+// Inputs: the tracked plan, the signed plan's N/A cells, runs/<run_id>/app-map.json (QA GUI app map v2) when the
+// exploration wrote one, and the state receipts behind the latest records.
+function coverageCells(data) {
+  if (data.tracked.schemaVersion !== TRACKED_PLAN_SCHEMA_VERSION || data.tracked.coverage?.version !== COVERAGE_CELLS_VERSION) return null;
+  const appMapPath = join(data.paths.runDir, APP_MAP_FILE);
+  let appMap = null;
+  let appMapSha256 = null;
+  if (existsSync(appMapPath)) {
+    const text = readFileSync(appMapPath, 'utf8');
+    appMapSha256 = sha256(text);
+    try { appMap = JSON.parse(text); } catch { appMap = { schema: null }; }
+  }
+  const built = buildCoverageMap({ tracked: data.tracked, planCoverage: data.plan.coverage ?? null, appMap, appMapSha256,
+    records: data.board, boardDir: dirname(data.paths.board) });
+  return { ...built, mapText: coverageMapText(built.map) };
+}
+
+function boardConformance(runDir) {
+  const transcript = rootTranscript(runDir);
+  if (!transcript || !existsSync(transcript)) return {};
+  const audit = auditBoardWrites({ transcriptPath: transcript, plans: plansOf(runDir) });
+  return { board_conformance: { status: audit.status, planned: audit.planned, nonconforming: audit.nonconforming,
+    writes: audit.writes.filter((w) => !w.planned).slice(0, 20).map(({ tool, kind, line }) => ({ tool, kind, line })) } };
+}
+
+function reportMarkdown(report, coverageMap = null) {
   const traceability = report.reportSchemaVersion === 2 ? [
     '## Source traceability',
     '',
@@ -1282,6 +1336,7 @@ function reportMarkdown(report) {
     ...report.sourceTraceability.rows.map((row) => `| ${markdownValue(row.sourceRef)} | ${markdownValue(row.sourceSystem)} | ${markdownValue(row.externalKey)} | ${markdownValue(row.sourceTitle)} | ${markdownValue(row.caseId ?? RTM_EMPTY)} | ${markdownValue(row.verdict)} | ${row.evidence.length > 0 ? row.evidence.map(markdownValue).join('<br>') : '—'} |`),
     '',
   ] : [];
+  const cellSection = report.coverage_cells && coverageMap ? [coverageMarkdown(report.coverage_cells, coverageMap)] : [];
   const blocked = report.board_delivery ? [
     '## Board not handed over',
     '',
@@ -1290,13 +1345,24 @@ function reportMarkdown(report) {
     ...(report.board_delivery.open.length ? report.board_delivery.open.map((point) => `- ${markdownValue(point)}`) : ['- (the reviewer recorded no specific point)']),
     '',
   ] : [];
+  const handMade = report.board_conformance?.nonconforming ? [
+    '## Board written outside Team QA',
+    '',
+    `The root made ${report.board_conformance.nonconforming} board write(s) that \`teamqa board publish\` did not plan. Those pages or files are not the QA board and are not handed over:`,
+    '',
+    ...report.board_conformance.writes.map((w) => `- ${markdownValue(w.tool)} (${markdownValue(w.kind)}), transcript line ${w.line}`),
+    '',
+  ] : [];
   return [
     '# Summary report',
     '',
     `Decision: **${report.decision}**`,
     '',
     ...blocked,
+    ...handMade,
+    ...adjudicationMarkdown(report.adjudication),
     ...traceability,
+    ...cellSection,
     markers.REPORT_START,
     JSON.stringify(report, null, 2),
     markers.REPORT_END,
@@ -1324,10 +1390,15 @@ async function reportBuild(args) {
   const runDir = join(process.cwd(), 'runs', runId);
   const historicalDiagnostic = !existsSync(join(runDir, 'roster.json')) && !existsSync(join(runDir, 'phase.json'));
   if (!historicalDiagnostic) assertRunContract({ runDir, action: 'complete' });
-  const { data, report } = computeReport(runId);
+  const { data, report, coverage } = computeReport(runId);
   const prefix = historicalDiagnostic ? 'Historical diagnostic; current_run_graded=false.\n\n' : '';
+  // R1b: the full cell list goes beside the report; the report binds it by SHA-256.
+  if (coverage) writeFileSync(join(runDir, COVERAGE_MAP_FILE), coverage.mapText);
   // S2: the actual tokens and cost per role follow the machine-checked block (it is not part of what verify compares).
-  const text = prefix + reportMarkdown(report) + costMarkdown(runDir);
+  // R0: where the time went (timing.json beside the report), also outside the machine-checked block.
+  const timing = runTiming({ runDir, runId, rootTranscript: rootTranscript(runDir), projectsRoot: claudeProjectsRoot() });
+  writeFileSync(join(runDir, 'timing.json'), `${JSON.stringify(timing, null, 2)}\n`);
+  const text = prefix + reportMarkdown(report, coverage?.map ?? null) + costMarkdown(runDir) + timingMarkdown(timing);
   refuseTestSecrets(runDir, [[basename(data.paths.report), text]]);
   await writeConfirmed(data.paths.report, text, 'teamqa.report.write');
   const details = [
@@ -1346,6 +1417,9 @@ async function reportBuild(args) {
     // checkers declared that they ran, so that a report with no checkers does not pass silently.
     `grounded_issues=${report.grounded_issues.length}`,
     `red_checkers=${report.red_checkers.length}`,
+    // R1b: cells with a receipt and the cell count, the frontier and the stop reason, each on its own (no percentage).
+    ...(report.coverage_cells ? [`cells_covered=${report.coverage_cells.coarse.covered}`, `cells=${report.coverage_cells.coarse.cells}`,
+      `frontier=${report.coverage_cells.frontier.candidates}`, `stop=${report.coverage_cells.stop.reason}`] : []),
   ];
   if (report.waived_p1.length > 0) details.push(`waived_p1=${report.waived_p1.join(',')}`);
   details.push(...report.reasons, 'effect=confirmed');
@@ -1412,6 +1486,11 @@ async function reportVerify(args) {
   const observed = parseReport(paths.report).value;
   const mismatch = mismatchPath(observed, expected);
   if (mismatch) fail(2, 'REPORT_MISMATCH', mismatch);
+  // R1b: the coverage map beside the report is the one the report binds.
+  if (expected.coverage_cells) {
+    const mapPath = join(paths.runDir, COVERAGE_MAP_FILE);
+    if (!existsSync(mapPath) || sha256(readFileSync(mapPath, 'utf8')) !== expected.coverage_cells.map_sha256) fail(2, 'COVERAGE_MAP_MISMATCH', COVERAGE_MAP_FILE);
+  }
   emit('pass', `run=${runId}`, `decision=${expected.decision}`, ...(historicalDiagnostic ? ['historical_diagnostic=true', 'current_run_graded=false'] : []));
 }
 
@@ -1580,6 +1659,24 @@ async function coverageVerify(args) {
   emit('pass', `requirements=${graph.requirements.length}`);
 }
 
+// teamqa coverage policy (R1e): the exploration policy QA GUI's frontier explorer reads, from the run's tracked plan
+// (its coverage block and cell cases) and its signed plan (the destructive actions it approves).
+async function coveragePolicy(args) {
+  const options = parseFlags(args, { '--run': { key: 'runId', required: true }, '--out': { key: 'out' } });
+  const runId = safeRunId(options.runId);
+  const runDir = join(process.cwd(), 'runs', runId);
+  const plan = loadPlan(join(runDir, 'test-plan.md'));
+  assertValid(plan.errors);
+  const tracked = loadTracked(join(runDir, 'tracked-plan.json'));
+  assertValid(tracked.errors);
+  if (tracked.value.coverage?.version !== COVERAGE_CELLS_VERSION) fail(2, 'COVERAGE_CELLS_REQUIRED', 'the tracked plan has no coverage block (references/coverage-cells.md)');
+  const policy = explorationPolicy({ tracked: tracked.value, plan: plan.value, runId });
+  const out = options.out ? resolve(process.cwd(), options.out) : join(runDir, EXPLORATION_POLICY_FILE);
+  await writeConfirmed(out, `${JSON.stringify(policy, null, 2)}\n`, 'teamqa.coverage.policy');
+  emit('pass', `policy=${out}`, `requirement_cells=${policy.requirementCells.length}`, `high_risk=${policy.highRisk.length}`,
+    `approved_destructive=${policy.approvedDestructive.length}`, 'effect=confirmed');
+}
+
 async function retestSelect(args) {
   const options = parseFlags(args, {
     '--tracked': { key: 'tracked', required: true }, '--change': { key: 'change', required: true },
@@ -1739,13 +1836,18 @@ function help() {
   console.log('teamqa board prepare --file <canonical> --capabilities <probes> --out <payload>');
   console.log('teamqa board compare-page --file <canonical> --snapshot <read-page> --out <receipt>');
   console.log('teamqa board deliver-blocked --run <id> --reviews <r1,r2,r3> (unattended run: the board review stayed FAIL after 3 repair rounds)');
+  console.log('teamqa board publish --run <id> --to html|notion [--parent <Notion page>] --quality-review <receipt> (the only way to deliver a board)');
+  console.log('teamqa board publish-next --run <id> (after each planned Notion call; verifies the readback at the end)');
+  console.log('teamqa board audit --run <id> | --session <root transcript> (board writes made outside board publish)');
   console.log('teamqa retest select --tracked <plan> --change <impact> --out <selection>');
+  console.log('teamqa coverage policy --run <id> [--out <file>] (the exploration policy QA GUI\'s frontier explorer reads: requirement and high-risk cells, approved destructive actions)');
   console.log('teamqa smoke');
-  console.log('teamqa report build|verify|publish|diagnose --run <id>');
+  console.log('teamqa report build|verify|publish|diagnose|timing --run <id>');
+  console.log('teamqa adjudicate checklist|run|show --run <id> [--case <case>] (independent adjudicator; shadow unless the roster switches it on)');
   console.log('teamqa receipt create|verify');
   console.log('teamqa handoff create|verify|ack-verify');
   console.log('teamqa web requirements|bind|record --run <id> (deployed-build lane; references/claude-host.md)');
-  console.log('teamqa continuation register|inspect|stage-hooks');
+  console.log('teamqa continuation register|unregister|inspect|stage-hooks');
   emit('ungraded', 'HELP_ONLY');
 }
 
@@ -1804,8 +1906,18 @@ async function dispatch() {
   if (group === 'board' && action === 'sync') return teamworkBoardSync(args);
   if (group === 'board' && action === 'open') return teamworkBoardOpen(args);
   if (group === 'board' && action === 'deliver-blocked') return boardDeliverBlocked(args);
+  if (group === 'board' && action === 'publish') return teamworkBoardPublish(args);
+  if (group === 'board' && action === 'publish-next') return teamworkBoardPublishNext(args);
+  if (group === 'board' && action === 'audit') return teamworkBoardAudit(args);
   if (group === 'smoke' && action === undefined) return smoke(args);
   if (group === 'report' && action === 'diagnose') return reportDiagnose(args);
+  if (group === 'report' && action === 'timing') {
+    const { runId } = reportRunOption(args);
+    const runDir = join(process.cwd(), 'runs', runId);
+    const timing = runTiming({ runDir, runId, rootTranscript: rootTranscript(runDir), projectsRoot: claudeProjectsRoot() });
+    console.log(JSON.stringify({ schema: timing.schema, run_id: runId, wall: timing.wall, sources: timing.sources, summary: timing.summary, decisions: { root: timing.decisions.root.length, gui_actions: timing.decisions.gui_actions.length } }, null, 2));
+    return;
+  }
   if (group === 'report' && action === 'build') return reportBuild(args);
   if (group === 'report' && action === 'verify') return reportVerify(args);
   if (group === 'report' && action === 'publish') return reportPublish(args);
@@ -1814,8 +1926,11 @@ async function dispatch() {
   if (group === 'handoff' && action === 'create') return handoffCreate(args);
   if (group === 'handoff' && action === 'verify') return handoffVerify(args);
   if (group === 'handoff' && action === 'ack-verify') return handoffAckVerify(args);
-  if (group === 'web' && ['requirements', 'bind', 'record', 'overlay', 'collect'].includes(action)) return (await import('./lib/web-bind.mjs')).webCommand(action, args, { assertGovernedRelease, recordIssues, assertRecordBinding, assertPlannedSourceRefs, packageRoot: REPO_ROOT });
+  if (group === 'web' && ['requirements', 'bind', 'record', 'overlay', 'collect', 'collect-screen', 'screens'].includes(action)) return (await import('./lib/web-bind.mjs')).webCommand(action, args, { assertGovernedRelease, recordIssues, assertRecordBinding, assertPlannedSourceRefs, packageRoot: REPO_ROOT });
+  if (group === 'adjudicate') return (await import('./lib/adjudicator.mjs')).adjudicatorCommand(action, args);
+  if (group === 'speed') return (await import('./lib/speed-cli.mjs')).speedCommand(action, args, { parseFlags, fail, safeRunId });
   if (group === 'coverage' && action === 'verify') return coverageVerify(args);
+  if (group === 'coverage' && action === 'policy') return coveragePolicy(args);
   if (group === 'retest' && action === 'select') return retestSelect(args);
   fail(2, 'COMMAND_UNKNOWN', [group, action].filter(Boolean).join(' '));
 }
