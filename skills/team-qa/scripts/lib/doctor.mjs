@@ -29,7 +29,7 @@ export function actionHelp(action, req, { runtimeUrl = null, plugin = false } = 
     install_scroll: 'Team QA cannot find the SCROLL runtime it ships with (vendor/scroll). Reinstall the signed suite (teamqa suite install --dir <suite>, or teamqa update), or set TEAMQA_SCROLL_ROOT to a SCROLL copy.',
     install_suite: 'Install the signed Team QA suite (teamqa suite install --dir <suite>, or teamqa update); it installs Team QA, QA GUI and QA Code together.',
     install_runtime: 'Install the signed Dragon runtime: teamqa dragon install --from <dragon-runtime package, its https URL, or the Team QA suite folder>; then run teamqa doctor again.',
-    start_runtime: 'The Dragon runtime is installed but not answering. Start it with: node ~/.dragon-browser/runtime/current/tools/macos-service.mjs status (then install or restart as it says).',
+    start_runtime: 'The Dragon runtime is installed but not answering. Start it with: node \"$(realpath ~/.dragon-browser/runtime/current)/tools/macos-service.mjs\" status (then install or restart as it says).',
     update_runtime: 'Install the newer signed Dragon runtime: teamqa dragon install --from <package, URL or suite folder>; the current release is kept for rollback.',
     install_extension: `Open ${store} in Chrome and click "Add to Chrome".`,
     update_extension: 'Chrome updates the Store extension on its own within a few hours; to update now open chrome://extensions, turn on Developer mode and click Update.',

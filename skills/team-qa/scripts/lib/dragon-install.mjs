@@ -6,7 +6,7 @@
 // keeps the previous release for rollback and starts the bridge with the manual destructive policy unless the user
 // already chose otherwise.
 import { createHash, createPublicKey, verify } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, normalize, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -82,11 +82,32 @@ export function installDragonRuntime({ source, platform = process.platform, run 
   const artifactPath = locateDragonRuntime(source);
   const verified = verifyDragonRuntime(artifactPath, artifactPath + '.sig.json', { requirements });
   log(`verified Dragon runtime ${verified.version} (${verified.packageHash})`);
-  const dir = extractDragonRuntime(verified);
+  // The real path: on macOS the temp folder is reached through a symlink (/var, /tmp), and the package's installer runs
+  // its CLI only when argv[1] is its real path. Started by the unresolved path it did nothing and exited 0.
+  const dir = realpathSync(extractDragonRuntime(verified));
   const args = [join(dir, 'tools', 'macos-service.mjs'), 'install', '--source', dir, ...(verified.build ? ['--build', verified.build] : []), ...(dryRun ? ['--dry-run'] : [])];
   const r = run(process.execPath, args, { encoding: 'utf8', timeout: 180000 });
   if (r.status !== 0) die('DRAGON_RUNTIME_INSTALL_FAILED', String(r.stderr || r.stdout || '').trim().split('\n').at(-1) ?? '');
-  return { version: verified.version, build: verified.build, source: dir, output: String(r.stdout || '').trim() };
+  const report = installerReport(r.stdout);
+  // Exit 0 alone proves nothing: the installer must report this version installed and running (or, on a dry run, planned).
+  const confirmed = report && (dryRun ? report.dryRun === true : report.ok === true)
+    && report.version === verified.version && (dryRun || (report.bridgeVersion ?? report.version) === verified.version);
+  if (!confirmed) die('DRAGON_RUNTIME_INSTALL_UNCONFIRMED', report
+    ? `the installer did not report Dragon ${verified.version} ${dryRun ? 'planned' : 'running'}: ${JSON.stringify(report).slice(0, 300)}`
+    : 'the installer printed no report; nothing was installed');
+  return { version: verified.version, build: verified.build, source: dir, output: String(r.stdout || '').trim(), report };
+}
+
+// The installer prints one JSON object (on one line, or pretty-printed on a dry run), possibly after log lines.
+function installerReport(stdout) {
+  const text = String(stdout || '').trim();
+  if (!text) return null;
+  const tryParse = t => { try { const v = JSON.parse(t); return v && typeof v === 'object' && !Array.isArray(v) ? v : null; } catch { return null; } };
+  const whole = tryParse(text);
+  if (whole) return whole;
+  const lines = text.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) if (lines[i].startsWith('{')) { const v = tryParse(lines.slice(i).join('\n')); if (v) return v; }
+  return null;
 }
 
 export function dragonCommand(action, args = []) {

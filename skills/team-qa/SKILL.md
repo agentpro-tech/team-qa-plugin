@@ -389,7 +389,10 @@ allows a rehearsal, and it must not point at the official runtime.
 Release only after local `main` is clean and equal to GitHub `main` read live. The runtime must have
 `SOURCE.json`, `package-manifest.json` and `release-truth.json`; missing one layer means not complete.
 
-*v1.16.0 — 2026-11-10. GUI cases run QA GUI's detectors through Dragon R1a (Dragon 1.7.0; on an older Dragon they
+*v1.16.1 — 2026-11-10. `teamqa dragon install` installs for real: it runs the package's installer by its real path
+(on macOS the temp folder is a symlink, and the installer skipped its work and exited 0) and passes only when the
+installer reports the version running (`DRAGON_RUNTIME_INSTALL_UNCONFIRMED` otherwise).
+v1.16.0 — 2026-11-10. GUI cases run QA GUI's detectors through Dragon R1a (Dragon 1.7.0; on an older Dragon they
 are reported, not run): forced loading and error states (U1–U3), the transient probe of the case's main action (a save
 without a reset path gets fresh-value trials, a delete is N/A), the entry probe of each screen, and the width sweep and
 overlay check once per screen, also for a screen a case reaches from a share link. An executor proves the build with

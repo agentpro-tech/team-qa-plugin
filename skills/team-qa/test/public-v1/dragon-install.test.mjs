@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, generateKeyPairSync, sign } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { extractDragonRuntime, installDragonRuntime, locateDragonRuntime, verifyDragonRuntime } from '../../scripts/lib/dragon-install.mjs';
 import { readRequirements } from '../../scripts/lib/dragon-requirements.mjs';
 
@@ -51,7 +52,7 @@ test('a runtime package signed by Dragon verifies; another key, a changed byte, 
 
 test('install verifies, extracts into a fresh folder and hands over to the package\'s own installer', () => {
   const calls = [];
-  const run = (cmd, args) => { calls.push(args); return { status: 0, stdout: '{"ok":true}', stderr: '' }; };
+  const run = (cmd, args) => { calls.push(args); return { status: 0, stdout: '{"ok":true,"version":"1.6.10","bridgeVersion":"1.6.10"}', stderr: '' }; };
   const r = installDragonRuntime({ source: runtimePackage(), platform: 'darwin', run, requirements: REQ });
   assert.equal(r.version, '1.6.10');
   assert.equal(calls.length, 1);
@@ -62,6 +63,46 @@ test('install verifies, extracts into a fresh folder and hands over to the packa
   assert.throws(() => installDragonRuntime({ source: runtimePackage({ key: OTHER }), platform: 'darwin', run, requirements: REQ }), /DRAGON_RUNTIME_WRONG_KEY/);
   assert.equal(calls.length, 1, 'a refused package never reaches an installer');
   assert.throws(() => installDragonRuntime({ source: runtimePackage(), platform: 'darwin', run: () => ({ status: 1, stderr: 'PORT_IN_USE: busy' }), requirements: REQ }), /DRAGON_RUNTIME_INSTALL_FAILED PORT_IN_USE/);
+});
+
+// The installer of a Dragon runtime package runs its CLI only when argv[1] is its real path (the main() guard Dragon's
+// tools use). On macOS the temp folder is a symlink, so the unresolved path made the install a silent exit 0.
+const GUARDED_INSTALLER = `import { pathToFileURL } from 'node:url';
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const dry = process.argv.includes('--dry-run');
+  console.log(JSON.stringify(dry ? { dryRun: true, version: '1.6.10' } : { ok: true, version: '1.6.10', bridgeVersion: '1.6.10' }));
+}
+`;
+function withLinkedTmp(fn) {
+  const real = tmp('real'), link = join(tmp('link'), 'tmp');
+  symlinkSync(real, link, 'dir');
+  const before = process.env.TMPDIR;
+  process.env.TMPDIR = link;
+  try { return fn(real); } finally { if (before === undefined) delete process.env.TMPDIR; else process.env.TMPDIR = before; rmSync(real, { recursive: true, force: true }); }
+}
+
+test('install runs the package installer by its real path, so a guarded installer runs behind a symlinked temp folder', () => {
+  const pkg = runtimePackage({ files: [['server.js', 'console.log(1)\n'], ['package.json', JSON.stringify({ version: '1.6.10' })], ['tools/macos-service.mjs', GUARDED_INSTALLER]] });
+  withLinkedTmp(real => {
+    const r = installDragonRuntime({ source: pkg, platform: 'darwin', requirements: REQ });
+    assert.equal(r.source, realpathSync(r.source));
+    assert.ok(r.source.startsWith(realpathSync(real)), r.source);
+    assert.equal(r.report.ok, true);
+    assert.equal(installDragonRuntime({ source: pkg, platform: 'darwin', requirements: REQ, dryRun: true }).report.dryRun, true);
+  });
+});
+
+test('install is refused unless the installer reports the version installed and running', () => {
+  const out = stdout => () => ({ status: 0, stdout, stderr: '' });
+  const install = (stdout, extra = {}) => installDragonRuntime({ source: runtimePackage(), platform: 'darwin', run: out(stdout), requirements: REQ, ...extra });
+  assert.throws(() => install(''), /DRAGON_RUNTIME_INSTALL_UNCONFIRMED the installer printed no report/);
+  assert.throws(() => install('installed, probably'), /DRAGON_RUNTIME_INSTALL_UNCONFIRMED/);
+  assert.throws(() => install('{"ok":false,"version":"1.6.10"}'), /DRAGON_RUNTIME_INSTALL_UNCONFIRMED/);
+  assert.throws(() => install('{"ok":true,"version":"1.6.9","bridgeVersion":"1.6.9"}'), /DRAGON_RUNTIME_INSTALL_UNCONFIRMED/);
+  assert.throws(() => install('{"ok":true,"version":"1.6.10","bridgeVersion":"1.6.9"}'), /DRAGON_RUNTIME_INSTALL_UNCONFIRMED/, 'the old bridge still answering');
+  assert.throws(() => install('{"ok":true,"version":"1.6.10"}', { dryRun: true }), /DRAGON_RUNTIME_INSTALL_UNCONFIRMED/, 'a dry run must say it is one');
+  assert.equal(install('[macos-service] staging\n{"ok":true,"version":"1.6.10","bridgeVersion":"1.6.10"}').report.ok, true);
+  assert.equal(install('{\n  "dryRun": true,\n  "version": "1.6.10",\n  "writes": []\n}', { dryRun: true }).report.dryRun, true);
 });
 
 test('a suite folder that carries the runtime package is a source too', () => {

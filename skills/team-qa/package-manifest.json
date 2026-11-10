@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "team-qa",
-  "version": "1.16.0",
+  "version": "1.16.1",
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -20,12 +20,12 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "2e2801cc4c2f878f68764bd8244367ad4f8dbf52eae3c81b7b024407869b9979",
+      "sha256": "636943811864628148dbba9782df340b9c7b0390432f5c7673cb494ac3519d70",
       "mode": "0644"
     },
     {
       "path": "VERSION",
-      "sha256": "46081fd90571a274160408ebc81fc91b78ffca4049d477998e3b6909ac245e05",
+      "sha256": "32575309a6ef3fb5bf608f27d6867cb87a8a8abb2605d4a19f3d918401cc2756",
       "mode": "0644"
     },
     {
@@ -430,7 +430,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "00dfd3050ee3aa9a67593ed0b13077b91776d2aa7e1977f156ac22ae83a6f6b9",
+      "sha256": "db81756d1ce4cf1ab77de6c977c0e7929e5f47110f73a9670364d8c2a2af273d",
       "mode": "0644"
     },
     {
@@ -825,7 +825,7 @@
     },
     {
       "path": "scripts/lib/doctor.mjs",
-      "sha256": "4775753506a58c609525ab6c9d5cb713082815805a8b3f4c13d66f8af1d777ed",
+      "sha256": "eef869d6327dfa03a34b42d7b2b62e00fbcd9f722da06f22e4b219519ea1cf91",
       "mode": "0644"
     },
     {
@@ -840,7 +840,7 @@
     },
     {
       "path": "scripts/lib/dragon-install.mjs",
-      "sha256": "ea78ea4c123059aeb74e5557e7d666281eb57f51b93b2d4db52d444f307e6e63",
+      "sha256": "60441afb0bca3cba21d7feffd911d28c497ccdb7889e15bb2f2cdcb98a1fc74c",
       "mode": "0644"
     },
     {
@@ -1930,7 +1930,7 @@
     },
     {
       "path": "test/public-v1/dragon-install.test.mjs",
-      "sha256": "baedea10fbbd562f1d1b95d154b5c06c3313ac67b29e9a1a656134e0f610caec",
+      "sha256": "f28a551cd0cafbc08c934c940d9670692b03d40c3def2a7ecf6d4aee7a7e6df5",
       "mode": "0644"
     },
     {
@@ -2110,7 +2110,7 @@
     },
     {
       "path": "test/release-b/reliability-handoff.mutations.json",
-      "sha256": "ad0e26a6013acbf1076c5dceeb50cb80c881c8d15620d716b1593a5e48d3cad6",
+      "sha256": "d8cdca62c02193d2753690fd1daf688c8395b7cb53507a2867d760b87be95035",
       "mode": "0644"
     },
     {

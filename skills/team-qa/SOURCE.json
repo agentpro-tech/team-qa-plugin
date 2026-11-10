@@ -1,11 +1,11 @@
 {
   "schema": "agentpro/skill-source/v1",
   "skill": "team-qa",
-  "version": "1.16.0",
+  "version": "1.16.1",
   "repo": "https://github.com/agentpro-tech/team-qa.git",
-  "commit": "07b4b8ff55544d7b0b3070d00d342bbee646493f",
-  "tree": "a2b836c9af554016cb34cde4b9fd5432833aeb03",
-  "manifest_sha256": "f28c3f1410475804233c664780698192125085fdfa11da42202026918159cd3f",
-  "package_sha256": "adf22bbc11bdd3d794ae2e086c0ba7257b2651533c83f06629042b5207a354cd",
-  "built_at": "2026-11-09T19:02:46.495Z"
+  "commit": "835a8384f3a64102706a566161410e53a2d627d0",
+  "tree": "39006c5935993810ed4b597ce113acd93926418b",
+  "manifest_sha256": "a25082a2f9d773f5046167a1253fbf348dba3b5b130134868bb5692d28e5ea42",
+  "package_sha256": "e8c298840c9c546bc4797845b233b60f6526469d6b6976c9f98b4a1c523c9e3f",
+  "built_at": "2026-11-10T00:06:20.584Z"
 }
