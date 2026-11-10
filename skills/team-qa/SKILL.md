@@ -389,7 +389,10 @@ allows a rehearsal, and it must not point at the official runtime.
 Release only after local `main` is clean and equal to GitHub `main` read live. The runtime must have
 `SOURCE.json`, `package-manifest.json` and `release-truth.json`; missing one layer means not complete.
 
-*v1.16.1 — 2026-11-10. `teamqa dragon install` installs for real: it runs the package's installer by its real path
+*v1.16.2 — 2026-11-10. Beside the Claude Code plugin, the suite installer and `teamqa update` keep the Codex links and
+move the ~/.claude/skills links of qa-code, qa-gui and team-qa to `<dest-root>/.backups`, so Claude Code loads Team QA
+once (from the plugin) and Codex keeps using ~/.agents/skills.
+v1.16.1 — 2026-11-10. `teamqa dragon install` installs for real: it runs the package's installer by its real path
 (on macOS the temp folder is a symlink, and the installer skipped its work and exited 0) and passes only when the
 installer reports the version running (`DRAGON_RUNTIME_INSTALL_UNCONFIRMED` otherwise).
 v1.16.0 — 2026-11-10. GUI cases run QA GUI's detectors through Dragon R1a (Dragon 1.7.0; on an older Dragon they

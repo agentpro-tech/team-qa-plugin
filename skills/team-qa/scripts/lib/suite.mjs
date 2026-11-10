@@ -221,8 +221,34 @@ export function installSuite(dir, { destRoot = join(homedir(), '.agents/skills')
     catch (error) { const rolled = rollBack(); die('SUITE_INSTALL_FAILED', `${s.skill}: ${error.code || error.message}; rolled back ${rolled.join(', ')}`); }
     done.push({ skill: s.skill, version: s.version });
   }
+  const parked = parkClaudeLinks({ destRoot, compatRoot, skills: done.map(d => d.skill), backups, stamp, log });
   if (suite.dragon_runtime) log(`Dragon runtime ${suite.dragon_runtime.version} is in this suite; teamqa doctor says whether to install it (teamqa dragon install --from ${dir})`);
-  return { version: suite.version, installed: done };
+  return { version: suite.version, installed: done, parked };
+}
+
+// The skills' installers link each skill into ~/.claude/skills and ~/.codex/skills. When Claude Code already runs Team
+// QA as the plugin team-qa@agentpro, the ~/.claude/skills links would make it load Team QA twice (doctor:
+// DUPLICATE_INSTALL), so they are moved to <dest-root>/.backups/claude-links-<stamp>; Codex keeps its links. Only a link
+// that points at this install is moved, and nothing is deleted.
+export function parkClaudeLinks({ destRoot, compatRoot = null, skills, backups, stamp, log = () => {} }) {
+  const claudeDir = join(compatRoot ?? homedir(), '.claude');
+  let plugin = false;
+  try { plugin = readFileSync(join(claudeDir, 'plugins', 'installed_plugins.json'), 'utf8').includes(`"${PLUGIN_ID}"`); } catch {}
+  if (!plugin) return [];
+  const real = path => { try { return realpathSync(path); } catch { return null; } };
+  const parked = [];
+  for (const skill of skills) {
+    const link = join(claudeDir, 'skills', skill);
+    let isLink = false;
+    try { isLink = lstatSync(link).isSymbolicLink(); } catch {}
+    if (!isLink || real(link) === null || real(link) !== real(join(destRoot, skill))) continue;
+    const to = join(backups, `claude-links-${stamp}`);
+    mkdirSync(to, { recursive: true });
+    renameSync(link, join(to, skill));
+    parked.push(skill);
+  }
+  if (parked.length) log(`Claude Code runs Team QA as the plugin ${PLUGIN_ID}: moved the ~/.claude/skills links of ${parked.join(', ')} to ${join(backups, `claude-links-${stamp}`)}; Codex keeps its links`);
+  return parked;
 }
 
 export function publishSuite(dir, channelDir, { name = 'stable', privatePath = defaultPrivateKeyPath(), now = Date.now(), publicKey = readPublicKey(PUBLIC_KEY_PATH) } = {}) {

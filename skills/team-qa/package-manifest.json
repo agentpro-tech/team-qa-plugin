@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "team-qa",
-  "version": "1.16.1",
+  "version": "1.16.2",
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -20,12 +20,12 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "636943811864628148dbba9782df340b9c7b0390432f5c7673cb494ac3519d70",
+      "sha256": "208fed294b85b930829fe49fb92de0c4acd7c06fe3f78fe88f2256700a289271",
       "mode": "0644"
     },
     {
       "path": "VERSION",
-      "sha256": "32575309a6ef3fb5bf608f27d6867cb87a8a8abb2605d4a19f3d918401cc2756",
+      "sha256": "c6e6b7a91d2e4a7ad8d6967aca6d10ea98daf4d1927ebf7a7e2f3f23742dcf4b",
       "mode": "0644"
     },
     {
@@ -430,7 +430,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "db81756d1ce4cf1ab77de6c977c0e7929e5f47110f73a9670364d8c2a2af273d",
+      "sha256": "fde8e16c8fd06471e958a6fb3764b900b0e3289a7be609bd6c3b90504bd8dead",
       "mode": "0644"
     },
     {
@@ -995,7 +995,7 @@
     },
     {
       "path": "scripts/lib/suite.mjs",
-      "sha256": "8fd72b9b6148eb0660a759fe1b4408304ff2b15b34ac199abdd3b13c9c8ac89b",
+      "sha256": "9b2373660de64b80c7adb7b28bb57534d0459adecdf388e06ed7533d7184ab0c",
       "mode": "0644"
     },
     {
@@ -1955,7 +1955,7 @@
     },
     {
       "path": "test/public-v1/release-suite.test.mjs",
-      "sha256": "7da13cc167c02fb8b01a583e124a1ef3cd72216e3f9d162ddd57c5492788b5d4",
+      "sha256": "94dc3a54c6b1b4f793bc2bc641cdc01b66c043cb98c3c91023a5b8820dbed06b",
       "mode": "0644"
     },
     {
@@ -2110,7 +2110,7 @@
     },
     {
       "path": "test/release-b/reliability-handoff.mutations.json",
-      "sha256": "d8cdca62c02193d2753690fd1daf688c8395b7cb53507a2867d760b87be95035",
+      "sha256": "ed2c69b4f578b7750007fd7d5660c402704a38f3ea2403814a0fe0a059186c76",
       "mode": "0644"
     },
     {

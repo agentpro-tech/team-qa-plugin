@@ -1,7 +1,7 @@
 {
   "name": "team-qa",
   "displayName": "Team QA",
-  "version": "1.16.1",
+  "version": "1.16.2",
   "description": "A QA team inside Claude Code: it plans the testing, gets your sign-off, runs independent agents for the GUI and the code, checks every verdict against evidence and ends with GO or NO_GO.",
   "author": {
     "name": "Agent Pro",

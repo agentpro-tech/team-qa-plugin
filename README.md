@@ -2,7 +2,7 @@
 
 Team QA runs QA on your app the way a small QA team would. It plans the testing, shows you the plan, the roles, the models and a cost estimate, and waits for your approval. Then it runs separate agents for each role (one drives the browser through Dragon, one reviews the code), checks every verdict against evidence, and ends with a GO or NO_GO you can trace back to screenshots, network logs and recordings.
 
-This is the Claude Code plugin of Team QA 1.16.1. It holds the signed suite: Team QA, QA GUI and QA Code. Team QA is free to use for now, with no licence needed.
+This is the Claude Code plugin of Team QA 1.16.2. It holds the signed suite: Team QA, QA GUI and QA Code. Team QA is free to use for now, with no licence needed.
 
 ## Install
 

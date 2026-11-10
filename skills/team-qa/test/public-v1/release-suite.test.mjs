@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, generateKeyPairSync } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -107,6 +107,30 @@ test('a suite is refused when a zip, its signature or its key is not the publish
   assert.equal(buildSuite({ releases: three, out: tmp('o'), privatePath: OWNER.privatePath, requirements: REQ, allowPersonalPaths: true }).skills.length, 3);
   const dirty = [envelope(tmp('c'), 'qa-code', '1.9.2', 'see ' + '/' + 'Users/someperson/Dev/notes\n'), envelope(tmp('d'), 'qa-gui', '2.15.0'), envelope(tmp('e'), 'team-qa', '1.14.0')];
   assert.throws(() => buildSuite({ releases: dirty, out: tmp('o'), privatePath: OWNER.privatePath, requirements: REQ }), /SUITE_PAYLOAD_HYGIENE qa-code: PERSONAL_PATH SKILL\.md/);
+});
+
+test('beside the Claude Code plugin, a suite install keeps the Codex links and moves the Claude Code ones aside', () => {
+  const dir = suiteDir(), dest = tmp('dest'), compat = tmp('compat'), lines = [];
+  for (const scope of ['.claude', '.codex']) {
+    mkdirSync(join(compat, scope, 'skills'), { recursive: true });
+    for (const skill of ['qa-code', 'qa-gui', 'team-qa']) symlinkSync(join(dest, skill), join(compat, scope, 'skills', skill));
+  }
+  symlinkSync(join(tmp('elsewhere')), join(compat, '.claude', 'skills', 'other-skill'));
+  // Without the plugin nothing moves.
+  assert.deepEqual(installSuite(dir, { destRoot: dest, compatRoot: compat, publicKey: OWNER.publicKey }).parked, []);
+  assert.ok(lstatSync(join(compat, '.claude', 'skills', 'team-qa')).isSymbolicLink());
+  mkdirSync(join(compat, '.claude', 'plugins'), { recursive: true });
+  writeFileSync(join(compat, '.claude', 'plugins', 'installed_plugins.json'), JSON.stringify({ version: 2, plugins: { 'team-qa@agentpro': [{}] } }));
+  const r = installSuite(dir, { destRoot: dest, compatRoot: compat, publicKey: OWNER.publicKey, log: l => lines.push(l) });
+  assert.deepEqual(r.parked, ['qa-code', 'qa-gui', 'team-qa']);
+  for (const skill of ['qa-code', 'qa-gui', 'team-qa']) {
+    assert.equal(existsSync(join(compat, '.claude', 'skills', skill)), false);
+    assert.ok(lstatSync(join(compat, '.codex', 'skills', skill)).isSymbolicLink(), 'Codex keeps its link');
+  }
+  assert.ok(lstatSync(join(compat, '.claude', 'skills', 'other-skill')).isSymbolicLink(), 'a link to anything else stays');
+  const parkedDir = readdirSync(join(dest, '.backups')).find(n => n.startsWith('claude-links-'));
+  assert.ok(parkedDir && lstatSync(join(dest, '.backups', parkedDir, 'team-qa')).isSymbolicLink(), 'moved, not deleted');
+  assert.match(lines.join('\n'), /plugin team-qa@agentpro: moved the ~\/\.claude\/skills links of qa-code, qa-gui, team-qa/);
 });
 
 test('a suite marked license_required installs only with a valid licence', () => {

@@ -5,15 +5,15 @@
   "repo": "/private/tmp/agentpro-release/team-qa",
   "repo_url": "https://github.com/agentpro-tech/team-qa.git",
   "branch": "main",
-  "head": "835a8384f3a64102706a566161410e53a2d627d0",
-  "remote_main": "835a8384f3a64102706a566161410e53a2d627d0",
+  "head": "c281f0317c803a4fbc54deff01b522e5e6a14dce",
+  "remote_main": "c281f0317c803a4fbc54deff01b522e5e6a14dce",
   "remote_transport": "git-ls-remote-live",
   "worktree_clean": true,
-  "canonical_manifest_sha256": "a25082a2f9d773f5046167a1253fbf348dba3b5b130134868bb5692d28e5ea42",
+  "canonical_manifest_sha256": "e1c0841ca79d49ffd688e3842bd38fb78023c308b78c171a9d2022bd5444f574",
   "canonical_files_verified": 493,
   "runtime": {
     "checked": false
   },
-  "checked_at": "2026-11-10T00:06:20.325Z",
-  "integrity_sha256": "06fe02dd3dced3e8cead520efbdd82e5174e81649ac29c4bd1edffc697d53394"
+  "checked_at": "2026-11-10T00:20:22.411Z",
+  "integrity_sha256": "4241e81281c91669186f607f0743d586c642d1493c5c3bd8d6951e57b1fb037a"
 }
