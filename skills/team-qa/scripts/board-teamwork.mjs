@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   emit,
@@ -25,6 +25,7 @@ import {
   NOTION_RECEIPT_SCHEMA, auditBoardWrites, buildNotionPlan, inputHash, notionPaths, parseCreateDatabase, parseCreatePages,
   parseQuery, plannedResults, plansOf, readPlan, resolvePlaceholders, stepRecord,
 } from './lib/board-notion.mjs';
+import { COLAB_RECEIPT_SCHEMA, colabConfig, publishColab } from './lib/board-colab.mjs';
 
 function qaBoardTool() {
   const path = resolve(process.env.TEAMQA_QA_GUI_BOARD_TOOL
@@ -476,6 +477,59 @@ async function lockNext(runDir, plan, step, captures) {
   await writeJson(join(p.dir, 'next-input.json'), record.input, 'teamqa.board.notion.next');
   return record;
 }
+// The sealed HTML board of the current revision. A Doc-Colab publish reuses the one already sealed for this revision.
+function htmlDelivery(runDir, file, qualityReview, { reuse = false } = {}) {
+  const out = join(runDir, 'board-html', `rev-${readJson(file).rev}`, 'index.html');
+  if (existsSync(out)) {
+    if (!reuse) fail(3, 'BOARD_OUTPUT_EXISTS', out);
+    verifyBoardDelivery({ file, artifactPath: out });
+    return { out, renderer: 'sealed', reused: true };
+  }
+  mkdirSync(dirname(out), { recursive: true });
+  let renderer = 'doc-colab';
+  if (existsSync(docColabScript())) {
+    boardRender(['--file', file, '--out', out, '--renderer', 'native', '--quality-review', qualityReview], true);
+    boardIntegrityVerify(['--file', file, '--artifact', out], true);
+  } else {
+    renderer = 'native';
+    const tool = resolve(join(dirname(qaBoardTool()[1]), 'native-renderer.mjs'));
+    execute([process.execPath, tool, file, '--out', out], 'BOARD_RENDER_FAILED');
+    sealQualityDelivery(file, out, 'native', qualityReview);
+  }
+  return { out, renderer, reused: false };
+}
+
+// C8: the board on Doc-Colab. The HTML board is sealed first (same quality gate as --to html); then the run's
+// Doc-Colab doc is created or updated, evidence uploaded, and the doc read back and compared with the board.
+// The receipt and the readback stay in runs/<id>/board-colab/, one pair per board revision.
+async function publishBoardColab({ options, runDir, file }) {
+  const html = htmlDelivery(runDir, file, options.qualityReview, { reuse: true });
+  const cfg = colabConfig({ url: options.colabUrl, keyFile: options.colabKeyFile });
+  const board = readJson(file);
+  const dir = join(runDir, 'board-colab');
+  const latest = join(dir, 'receipt.json');
+  const prior = existsSync(latest) ? readJson(latest) : null;
+  const known = prior?.schema === COLAB_RECEIPT_SCHEMA ? Object.fromEntries(Object.values(prior.evidence || {}).map((e) => [e.sha256, e.url])) : {};
+  const runId = safeRunId(options.runId);
+  const result = await publishColab({ board, boardFile: file, runDir, runId, version: TEAMQA_VERSION(), canonicalSha256: sha256File(file),
+    channel: options.channel, cfg, known });
+  mkdirSync(dir, { recursive: true });
+  const readbackPath = join(dir, `readback-rev-${board.rev}.json`);
+  await writeJson(readbackPath, result.readback, 'teamqa.board.colab.readback');
+  const receiptPath = join(dir, `receipt-rev-${board.rev}.json`);
+  const receipt = { schema: COLAB_RECEIPT_SCHEMA, run_id: runId, version: TEAMQA_VERSION(),
+    board: { path: file, sha256: sha256File(file) }, artifact: { path: html.out, sha256: sha256File(html.out) },
+    readback: { path: readbackPath, sha256: sha256File(readbackPath) },
+    doc: { id: result.id, url: result.url, rev: result.rev }, channel: options.channel || null, evidence: result.urls,
+    comparison: { matchPercent: result.comparison.matchPercent, matchedFields: result.comparison.matchedFields, totalFields: result.comparison.totalFields },
+    verified_at: new Date().toISOString() };
+  await writeJson(receiptPath, receipt, 'teamqa.board.colab.receipt');
+  copyFileSync(receiptPath, latest);
+  emit('pass', 'to=colab', `doc=${result.id}`, `url=${result.url}`, `rev=${result.rev}`, `evidence=${Object.keys(result.urls).length}`,
+    `artifact=${html.out}`, `receipt=${receiptPath}`, 'integrity=verified', 'effect=confirmed');
+  console.log(`board-link.json: provider "colab", url "${result.url}", artifact "${relative(runDir, html.out)}", artifact_sha256 "${receipt.artifact.sha256}", snapshot "${relative(runDir, readbackPath)}", snapshot_sha256 "${receipt.readback.sha256}", payload "${relative(runDir, receiptPath)}", payload_sha256 "${sha256File(receiptPath)}"`);
+}
+
 export async function boardPublish(args) {
   const options = parseFlags(args, {
     '--run': { key: 'runId', required: true },
@@ -484,6 +538,9 @@ export async function boardPublish(args) {
     '--file': { key: 'file' },
     '--quality-review': { key: 'qualityReview' },
     '--session': { key: 'session' },
+    '--channel': { key: 'channel' },
+    '--colab-url': { key: 'colabUrl' },
+    '--colab-key-file': { key: 'colabKeyFile' },
   });
   const runDir = runDirOf(options.runId);
   if (!existsSync(runDir)) fail(2, 'RUN_DIR_MISSING', runDir);
@@ -491,24 +548,13 @@ export async function boardPublish(args) {
   verifyQualityReview(file, options.qualityReview);
   validateFile(file);
   if (options.to === 'html') {
-    const out = join(runDir, 'board-html', `rev-${readJson(file).rev}`, 'index.html');
-    if (existsSync(out)) fail(3, 'BOARD_OUTPUT_EXISTS', out);
-    mkdirSync(dirname(out), { recursive: true });
-    let renderer = 'doc-colab';
-    if (existsSync(docColabScript())) {
-      boardRender(['--file', file, '--out', out, '--renderer', 'native', '--quality-review', options.qualityReview], true);
-      boardIntegrityVerify(['--file', file, '--artifact', out], true);
-    } else {
-      renderer = 'native';
-      const tool = resolve(join(dirname(qaBoardTool()[1]), 'native-renderer.mjs'));
-      execute([process.execPath, tool, file, '--out', out], 'BOARD_RENDER_FAILED');
-      sealQualityDelivery(file, out, 'native', options.qualityReview);
-    }
+    const { out, renderer } = htmlDelivery(runDir, file, options.qualityReview);
     emit('pass', 'to=html', `renderer=${renderer}`, `board=${file}`, `artifact=${out}`, `artifact_sha256=${sha256File(out)}`,
       `lock=board_render:${out},board_quality:${out}.quality.json`, 'integrity=verified', 'effect=confirmed');
     return;
   }
-  if (options.to !== 'notion') fail(2, 'BOARD_PUBLISH_TARGET', 'html|notion');
+  if (options.to === 'colab') return publishBoardColab({ options, runDir, file });
+  if (options.to !== 'notion') fail(2, 'BOARD_PUBLISH_TARGET', 'html|notion|colab');
   if (!options.parent) fail(2, 'ARG_REQUIRED', '--parent <Notion page id or URL>');
   const archived = archiveNotionDir(runDir);
   const p = notionPaths(runDir);

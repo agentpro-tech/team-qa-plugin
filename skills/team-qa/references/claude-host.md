@@ -160,7 +160,8 @@ needs a verdict), `report build` has a "Board not handed over" section listing t
 
 ## Deployed build (web) lane
 
-This route is for a target that has only a running build (no source repo), for example a Vite SPA. The target is a
+This route is for a target that has only a running build (no source repo), for example a Next.js page, a Vite SPA or a
+static HTML page that loads no script by src (its build id is the sha256 of the whole HTML). The target is a
 `deployed-build` with identity proof from the root transcript; a graded verdict comes only from the QA GUI receipt
 `qa-gui/receipt/web-v1`. Every command runs with the folder that holds `runs/` as cwd and prints exactly one result
 line: `web identity …` and `preflight build` print JSON even on error (`ok:false`, `code`); `web requirements`,
@@ -193,7 +194,7 @@ in `runs/<id>/archive/`.
    `mcp__Dragon_Browser__dragon_rpc`, one command at a time, never in parallel.
 2. Scout read: `session.create` (log in if needed) → `openTab` on the exact `preview_url` → `getPageIdentity` and
    `getTabInfo` on that tab. Then `teamqa web identity draft --run <id> [--round <n>] --project-id <p>
-   --environment Local --preview-url <url> --backend-origin <origin>`: the command takes the latest page read/`getTabInfo` pair
+   --environment <Local|Test|Staging|Production> --preview-url <url> --backend-origin <origin>`: the command takes the latest page read/`getTabInfo` pair
    of the exact `preview_url` in the root transcript, writes `runs/<id>/identity/target.draft.json` and prints
    the line `TEAMQA_IDENTITY_PREFLIGHT run=<id> round=<n> target=<target_binding_sha256>`.
 3. Put that marker line unchanged into the assistant chat text (an echo through Bash does not count).
@@ -351,6 +352,27 @@ of the plan; a tier without a case stays outside the graph (QA GUI needs non-emp
   FAIL receipt with a FAIL row for that case (`lib/child-verdict.mjs`); when the board already has a FAIL case, another case
   cannot record `pass` from that receipt (`CHILD_VERDICT_CONFLICT`). An ungraded attempt is recorded with
   `--function ungraded --ui ungraded` (reason `QA_GUI_UNGRADED`), and the next attempt then points `parent_attempt_id` at it by itself.
+
+## Buzz as root
+
+Since 1.17.0 a Claude agent session started by Buzz can be the root. Its transcript is an Agent SDK transcript
+(`entrypoint: sdk-ts`, `turnOrigin: sdk`), so it has no typed human line; each turn is an SDK prompt whose text holds the
+Buzz message as a signed Nostr event in `<buzz-event>…</buzz-event>` (`lib/buzz-host.mjs`).
+
+- Trust: the event id must be the NIP-01 hash of its fields and the BIP-340 Schnorr signature must hold for its pubkey
+  (`lib/nostr.mjs`, no network). An agent can copy a message into its transcript but cannot write one in an approver's name.
+- Approvers: the Buzz host grant, `~/.agentpro/teamqa/buzz-host-grant.json`, lists the Buzz public keys (npub or hex) that
+  may open a Team QA session and approve. The owner issues it with `teamqa grant buzz --approvers <npub,…> --days <n>
+  --this-machine`; it is signed with the owner key and bound to this machine, like the owner grant. `teamqa grant buzz --show`
+  prints its state. Without a valid grant every Buzz session stays `CLAUDE_HOST_HEADLESS`.
+- Root: the first SDK prompt of the transcript must carry an event signed by an approver; its `h` tag (channel) and thread
+  (its `e` tag, or its own id when it is a top-level message) are the session's channel and thread.
+- Approval: the roster or plan user event names the transcript line of the approver's reply; `text` is the event content,
+  trimmed. It counts only when the event holds, its author is an approver, its channel and thread are the session's, and its
+  `created_at` is not older than the transcript line that showed the artifact (2 minutes of clock skew;
+  `BUZZ_APPROVAL_BEFORE_ARTIFACT`). Another person's reply, or a reply from another thread, is `HUMAN_EVENT_NOT_USER`.
+- Show the roster and the plan in the thread with the Buzz send tool before asking for approval; the run id and hash in that
+  call are the "shown before approval" line.
 
 ## Limits of this release
 

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { fail, readJson, rejectUnknownFields, sha256File, stableJson, writeConfirmed, runAdapter, outputJson, visibleCodexAssistantText } from './core.mjs';
 import { boardComparePage, boardIntegrityVerify } from '../board-teamwork.mjs';
 import { verifyBoardDelivery } from './board-quality.mjs';
+import { COLAB_RECEIPT_SCHEMA, verifyColabReadback } from './board-colab.mjs';
 import { assertToolPreflight, readHostToolEvidence } from './tool-preflight.mjs';
 import { homedir } from 'node:os';
 import { scanOriginalSource } from './original-source.mjs';
@@ -71,7 +72,8 @@ function compareNotionBoard({ canonical, snapshot }) {
 }
 
 export function verifyBoardLink({ runDir, roster, file, readToolEvidence = readHostToolEvidence,
-  verifyDelivery = verifyBoardDelivery, comparePage = boardComparePage, compareNotion = compareNotionBoard }) {
+  verifyDelivery = verifyBoardDelivery, comparePage = boardComparePage, compareNotion = compareNotionBoard,
+  verifyArtifact = (canonical, artifact) => boardIntegrityVerify(['--file', canonical, '--artifact', artifact], true) }) {
   const path = file ?? join(runDir, 'board-link.json');
   need(existsSync(path), 'QA_BOARD_LINK_MISSING');
   const link = readJson(path);
@@ -85,6 +87,21 @@ export function verifyBoardLink({ runDir, roster, file, readToolEvidence = readH
     const artifact = resolve(runDir, link.artifact ?? '');
     need(existsSync(artifact) && sha256File(artifact) === link.artifact_sha256 && link.url === artifact, 'QA_BOARD_LOCAL_LINK');
     boardIntegrityVerify(['--file', canonical, '--artifact', artifact], true);
+  } else if (link.provider === 'colab') {
+    // Doc-Colab: the sealed HTML board, plus the doc read back after publishing and the receipt that binds them.
+    need(/^https?:\/\/[^\s]+\/d\/[A-Za-z0-9_-]+$/.test(link.url ?? ''), 'QA_BOARD_CLOUD_LINK');
+    const artifact = resolve(runDir, link.artifact ?? '');
+    need(link.artifact && existsSync(artifact) && sha256File(artifact) === link.artifact_sha256, 'QA_BOARD_LOCAL_LINK');
+    verifyArtifact(canonical, artifact);
+    const receiptPath = resolve(runDir, link.payload ?? ''), snapshot = resolve(runDir, link.snapshot ?? '');
+    need(link.payload && link.snapshot && existsSync(receiptPath) && sha256File(receiptPath) === link.payload_sha256
+      && existsSync(snapshot) && sha256File(snapshot) === link.snapshot_sha256, 'QA_BOARD_LINK_STALE');
+    const receipt = readJson(receiptPath);
+    need(receipt.schema === COLAB_RECEIPT_SCHEMA && receipt.doc?.url === link.url && resolve(receipt.board?.path ?? '') === canonical
+      && receipt.board.sha256 === link.canonical_sha256 && resolve(receipt.readback?.path ?? '') === snapshot
+      && receipt.readback.sha256 === link.snapshot_sha256 && resolve(receipt.artifact?.path ?? '') === artifact, 'QA_BOARD_COLAB_RECEIPT');
+    const cmp = verifyColabReadback({ board, receipt, readback: readJson(snapshot) });
+    need(cmp.ok && cmp.matchPercent === 100, 'QA_BOARD_COLAB_READBACK', JSON.stringify(cmp.mismatches).slice(0, 200));
   } else {
     need(['space', 'notion'].includes(link.provider) && /^https:\/\//.test(link.url ?? ''), 'QA_BOARD_CLOUD_LINK');
     const snapshot = resolve(runDir, link.snapshot ?? '');

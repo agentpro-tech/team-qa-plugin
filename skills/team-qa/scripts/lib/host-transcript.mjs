@@ -6,6 +6,7 @@ import { closeSync, existsSync, fstatSync, openSync, readSync, realpathSync } fr
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fail, readJson, sha256, visibleCodexAssistantText } from './core.mjs';
+import { buzzSessionRoot } from './buzz-host.mjs';
 
 export const CLAUDE_HOST_KIND = 'claude-code';
 const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -74,7 +75,10 @@ export function claudeHostSource(path) {
     if (entry?.type !== 'user' || entry.isMeta === true || entry.toolUseResult !== undefined) continue;
     if (!Array.isArray(entry.message?.content) && typeof entry.message?.content !== 'string') continue;
     if (Array.isArray(entry.message.content) && entry.message.content.some(c => c?.type === 'tool_result')) continue;
-    if (entry.origin?.kind !== 'human' || entry.turnOrigin === 'sdk' || /^sdk/i.test(entry.entrypoint || '')) fail(3, 'CLAUDE_HOST_HEADLESS', '', 'ungraded');
+    // A headless session is refused unless it is a Buzz session opened by an approver of the Buzz host grant (1.17.0).
+    if (entry.origin?.kind !== 'human' || entry.turnOrigin === 'sdk' || /^sdk/i.test(entry.entrypoint || '')) {
+      if (!buzzSessionRoot(lines)) fail(3, 'CLAUDE_HOST_HEADLESS', '', 'ungraded');
+    }
     break;
   }
   for (let i = 0; i < lines.length; i++) {
@@ -86,6 +90,12 @@ export function claudeHostSource(path) {
   }
   fail(3, 'CLAUDE_HOST_METADATA_MISSING', '', 'ungraded');
 }
+// The Buzz channel and thread a Buzz session belongs to (null for an interactive Claude Code session).
+export function claudeBuzzRoot(path) {
+  if (!isClaudeTranscriptPath(path)) return null;
+  return buzzSessionRoot(headerLines(realpathSync(path)));
+}
+
 export function verifyClaudeHost(source) {
   const actual = claudeHostSource(source?.path);
   if (JSON.stringify(actual) !== JSON.stringify(source)) fail(3, 'CLAUDE_HOST_DRIFT', '', 'ungraded');

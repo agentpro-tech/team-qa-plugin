@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "team-qa",
-  "version": "1.16.2",
+  "version": "1.17.0",
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -20,12 +20,12 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "208fed294b85b930829fe49fb92de0c4acd7c06fe3f78fe88f2256700a289271",
+      "sha256": "c4615f984e049f6906c9e16a427bf79343e830a531d1f9002839390198e296dc",
       "mode": "0644"
     },
     {
       "path": "VERSION",
-      "sha256": "c6e6b7a91d2e4a7ad8d6967aca6d10ea98daf4d1927ebf7a7e2f3f23742dcf4b",
+      "sha256": "00afc49f1599e59129a59b64c2b019de3fe35300c05bb9d96cb25002576ff43b",
       "mode": "0644"
     },
     {
@@ -430,7 +430,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "fde8e16c8fd06471e958a6fb3764b900b0e3289a7be609bd6c3b90504bd8dead",
+      "sha256": "043d01e5b75fe4810c3d5e2d05d15382cce8c2b6bd5a3819eebc120bad70ea74",
       "mode": "0644"
     },
     {
@@ -490,7 +490,7 @@
     },
     {
       "path": "references/chat-and-preflight.md",
-      "sha256": "07d636d5b64dd59f334324d77d57b6aa44c8a6d0697221f2e86f531c477c8e35",
+      "sha256": "8c98e8de387363cb2322700fd99a7b93240d6ad50763ff08d792237960fade34",
       "mode": "0644"
     },
     {
@@ -500,7 +500,7 @@
     },
     {
       "path": "references/claude-host.md",
-      "sha256": "6f64f897b7a2736b0d30f6b4dcccc33ad2fa0b8cd0088b849159720ab1f40f7a",
+      "sha256": "b2d6bf8ad407d7ad387c10a2904a0e98c99b4519a9dc0eec1e7cb1918e7c5302",
       "mode": "0644"
     },
     {
@@ -665,7 +665,7 @@
     },
     {
       "path": "scripts/board-teamwork.mjs",
-      "sha256": "b4448d143a0d7ea77a67d3b8a9c9339972c8e489cb630a1bdc0360b5d96d3d6e",
+      "sha256": "2ef52393f38115d761baa6ae05ef41d4728d64fe16ec4a5e84969d1d8be37a16",
       "mode": "0644"
     },
     {
@@ -709,6 +709,11 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/lib/board-colab.mjs",
+      "sha256": "0e26fdb81a489917b3f17fb5a3736c2888a7e39e5fecd9c0905a9b61a37a86e2",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/lib/board-delivery.mjs",
       "sha256": "9103f293dd791bf1eb4cbf781e029268038e72be4dd06f4c8d98d42ba817764d",
       "mode": "0644"
@@ -739,6 +744,11 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/lib/buzz-host.mjs",
+      "sha256": "e7c13fe6d01ae65f28851300db338dd339afaed3a95d5d56ddc91156bcbd5fa6",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/lib/capability.mjs",
       "sha256": "3f65db4a37f25478dfeb3e83296117caa49fbda95d89acac88d838bdfc947a93",
       "mode": "0644"
@@ -750,7 +760,7 @@
     },
     {
       "path": "scripts/lib/chat-presentation.mjs",
-      "sha256": "7ff8723e0157ba5c986ede84054aef5b896ec5a7e29c1dea2a0b07a9fe0b53ec",
+      "sha256": "26f51c9a0686d925d27a099861e440d05529e8a2821e7af3263aaaa9f876a7ff",
       "mode": "0644"
     },
     {
@@ -870,7 +880,7 @@
     },
     {
       "path": "scripts/lib/host-transcript.mjs",
-      "sha256": "6641134efb863ecf2808b2e21494344e72d88b854a1d138bbb52e252e7364633",
+      "sha256": "e0973787a651f60ea688106727cfbdf1c5a89756a3f8e75658866643743bf657",
       "mode": "0644"
     },
     {
@@ -891,6 +901,11 @@
     {
       "path": "scripts/lib/native-host.mjs",
       "sha256": "cd6ea941e641cb0a9f5919b862cc6d0a6616c63a220b84c1e84b81d90430b477",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/lib/nostr.mjs",
+      "sha256": "c17a15eff38d0d0c3dfa1ee4c6e6fe53621d61f76dbb9f60564b6378cfbd06a8",
       "mode": "0644"
     },
     {
@@ -945,7 +960,7 @@
     },
     {
       "path": "scripts/lib/roster.mjs",
-      "sha256": "2c415f372798b79e611031837ede2036ff2d594e0963ad9478b9c8f36029b1dd",
+      "sha256": "ef9faef268ea4f7a7814b6698ad478caafe30c9cf8eb250bd450811e7b6dbc6c",
       "mode": "0644"
     },
     {
@@ -1020,7 +1035,7 @@
     },
     {
       "path": "scripts/lib/tool-preflight.mjs",
-      "sha256": "88c9928b2fe6b65bb4cf007487ef90efbebae5ad4f761c9a53168d9d4bd697cc",
+      "sha256": "d9eb1a97a442cf196c84ddf7a51039c518b61afea83216d8cea4f4e136022be2",
       "mode": "0644"
     },
     {
@@ -1040,7 +1055,7 @@
     },
     {
       "path": "scripts/lib/web-identity.mjs",
-      "sha256": "7d53c0a5230bc6b114c4bb1e09a03610ac6a18915a9adb57d3114e565e88c17a",
+      "sha256": "e4b42ba043e94ff2af0e4450b88a2d10659a30cc8d598dde279eeda64e5bf88d",
       "mode": "0644"
     },
     {
@@ -1105,7 +1120,7 @@
     },
     {
       "path": "scripts/teamqa.mjs",
-      "sha256": "50e1d73bcaa1a8213c4ee13cd84c4f900833df3bb38c4e8424559bf1b7562373",
+      "sha256": "b332e5e24cf0eb9515db5ec4287996cad372721491b656e3ddc5e47f1a29916a",
       "mode": "0755"
     },
     {
@@ -1444,6 +1459,11 @@
       "mode": "0644"
     },
     {
+      "path": "test/board-colab.test.mjs",
+      "sha256": "96ae06d8976ea1951cc2bc2af215b33274a06ccb02f7a542e6979999697ede5c",
+      "mode": "0644"
+    },
+    {
       "path": "test/board-notion.test.mjs",
       "sha256": "5fab9ec541451a36c91320fdc36d47f837f871be02c4eb7e0c3d58fdf3d6318f",
       "mode": "0644"
@@ -1461,6 +1481,11 @@
     {
       "path": "test/board-write-hook.test.mjs",
       "sha256": "22324d43f4d9b4e38ecd39b2ca72f1cb5e5e9b0e2900bb1bc432b695f7679f8e",
+      "mode": "0644"
+    },
+    {
+      "path": "test/buzz-host/buzz-host.test.mjs",
+      "sha256": "e5832b4f4790e7ed67d72c3207c0e92468673328579b3a19313d2cc505be1f05",
       "mode": "0644"
     },
     {
@@ -1495,7 +1520,7 @@
     },
     {
       "path": "test/chat-preflight/chat-presentation.test.mjs",
-      "sha256": "631457a6089be40047f494faabc8eb4abe8547dfe56b77bc7be385df4a6baab3",
+      "sha256": "c08b33ca56553a7d83fcc6bcddb81a8c2c46db96b3e9698eec38c9ed91f1b898",
       "mode": "0644"
     },
     {
@@ -1545,7 +1570,7 @@
     },
     {
       "path": "test/claude-host/deployed-lane.test.mjs",
-      "sha256": "b7fd2e3005d52021e572ad140dd30c4edcbaed789e952eedb1c9523656dc70fa",
+      "sha256": "e2f7c080772063eef90b403f63d34f98320a7a9eb07e87b6d0109cdba5fd6a1a",
       "mode": "0644"
     },
     {
@@ -1859,6 +1884,11 @@
       "mode": "0644"
     },
     {
+      "path": "test/native-adapters/static-identity.test.mjs",
+      "sha256": "a7304adaab2ef7d6baf39e975e1a3c2df614e3f0de56ccd564a95f57e3834664",
+      "mode": "0644"
+    },
+    {
       "path": "test/native-adapters/vite-identity.test.mjs",
       "sha256": "f6407e82ee72ec857f8b3910ef8acbee2be5a8761bad0ee440db38c9af001404",
       "mode": "0644"
@@ -2110,7 +2140,7 @@
     },
     {
       "path": "test/release-b/reliability-handoff.mutations.json",
-      "sha256": "ed2c69b4f578b7750007fd7d5660c402704a38f3ea2403814a0fe0a059186c76",
+      "sha256": "cd5b34701bd48544f430fe9421886cbad7b37a5fe114b94b514dfc88e223040b",
       "mode": "0644"
     },
     {
@@ -2265,7 +2295,7 @@
     },
     {
       "path": "test/roster-hardening/provider-interface.test.mjs",
-      "sha256": "515d16b8fb298bbf7029ac770400dafbbfc706838e814401a1203207a7469563",
+      "sha256": "9c47ab158804c0aebc009cd88b8938df1d5cc6c0db77cfba325b11c2733c65b9",
       "mode": "0644"
     },
     {

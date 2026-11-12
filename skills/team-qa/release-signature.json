@@ -3,12 +3,12 @@
   "key_id": "0cf79a5cf736467e17536e403e95fa66d9b901f29457b98d3111452329b3caa8",
   "signed": {
     "skill": "team-qa",
-    "version": "1.16.2",
-    "commit": "c281f0317c803a4fbc54deff01b522e5e6a14dce",
-    "tree": "5147f4bca3a30e0aa555d73ac89c825eb6223ce9",
+    "version": "1.17.0",
+    "commit": "bc1a43a0c9eaba58b5747cfa4f9a7568d4a65c6a",
+    "tree": "f770211418329cd828e4046b811e1ceeac5b98c9",
     "repo": "https://github.com/agentpro-tech/team-qa.git",
-    "manifest_sha256": "e1c0841ca79d49ffd688e3842bd38fb78023c308b78c171a9d2022bd5444f574",
-    "package_sha256": "e5826ebadcadb51df9c8cecd4f454fe134688d1071ed2e7c50ebc72e6f23d883"
+    "manifest_sha256": "fee0d2d8f74246a694f191a17507c9d312984b5417ac158056144088e4300850",
+    "package_sha256": "c8c01dd741f1e58917f40ee35c9c7af6d94584db2b87de9c1891b88add2e830f"
   },
-  "signature": "DaYFfGmE2UamQA34zaRRVCXlN7lh8s9bqpiTiap6cvbF+A79Kak/pLSAKxWdcwCPNtCgiewbin4WnggiOEVVAg=="
+  "signature": "IbLKUV0HESmWb0VyKlshUCgKy8MUFaQ4K3M72vQKn9mV+aQqTq9CsEDKC5gLCELbVEKNDZ2YfKwAmb0BuG/aDw=="
 }

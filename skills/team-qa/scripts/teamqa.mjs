@@ -1804,6 +1804,7 @@ function help() {
   console.log('teamqa doctor [--json] (what this machine still needs to run Team QA, in order, with the fix for the first gap)');
   console.log('teamqa doctor --bundle <file.json> [--run <id>] (a diagnostic file for support; secrets, e-mails and the home path are taken out)');
   console.log('teamqa grant fingerprint|keygen|issue|show (owner only: another browser platform than the Store Dragon needs a signed grant)');
+  console.log('teamqa grant buzz --approvers <npub,…> --days <n> --this-machine | --show (owner only: lets a Buzz agent session be the root, approved by these Buzz accounts)');
   console.log('teamqa activate <license.json> (the free licence; same as teamqa license activate) | teamqa license show | issue --email <e> --days <n> --out <file> (owner)');
   console.log('teamqa suite verify|install --dir <suite> | build|publish (owner) (the three skills as one signed bundle)');
   console.log('teamqa update [--check] [--channel <dir|https url>] (install the newer signed suite; refused while a run is active)');
@@ -1836,7 +1837,7 @@ function help() {
   console.log('teamqa board prepare --file <canonical> --capabilities <probes> --out <payload>');
   console.log('teamqa board compare-page --file <canonical> --snapshot <read-page> --out <receipt>');
   console.log('teamqa board deliver-blocked --run <id> --reviews <r1,r2,r3> (unattended run: the board review stayed FAIL after 3 repair rounds)');
-  console.log('teamqa board publish --run <id> --to html|notion [--parent <Notion page>] --quality-review <receipt> (the only way to deliver a board)');
+  console.log('teamqa board publish --run <id> --to html|notion|colab [--parent <Notion page>] [--channel <Buzz channel>] --quality-review <receipt> (the only way to deliver a board)');
   console.log('teamqa board publish-next --run <id> (after each planned Notion call; verifies the readback at the end)');
   console.log('teamqa board audit --run <id> | --session <root transcript> (board writes made outside board publish)');
   console.log('teamqa retest select --tracked <plan> --change <impact> --out <selection>');
@@ -1856,6 +1857,7 @@ async function dispatch() {
   if (!group || group === 'help' || group === '--help') return help();
   if (group === 'continuation') return (await import('./continuation.mjs')).continuationCommand(action, args);
   if (group === 'doctor') return (await import('./lib/doctor.mjs')).doctorCommand([action, ...args].filter(Boolean));
+  if (group === 'grant' && action === 'buzz') return (await import('./lib/buzz-host.mjs')).buzzGrantCommand(args);
   if (group === 'grant') return (await import('./lib/owner-grant.mjs')).grantCommand(action, args);
   if (group === 'license') return (await import('./lib/license.mjs')).licenseCommand(action, args);
   if (group === 'activate') return (await import('./lib/license.mjs')).licenseCommand('activate', [action, ...args].filter(Boolean));

@@ -329,9 +329,35 @@ function passiveUrl(preview_url) {
   must(['http:','https:'].includes(url.protocol),'WEB_PASSIVE_URL');
   return url;
 }
-function passiveIdentityFromParts({scripts,tags},url) {
+// A static HTML page (no script loaded by src, no Next.js assets) is its own build: the id is the sha256 of the whole
+// HTML (getPageIdentity's html_sha256, over the bytes getPageHtml returns) and the manifest lists its same-origin <link>
+// assets. A page that loads any script by src, or Next.js assets without __NEXT_DATA__, is not static and fails closed.
+// A script that a browser extension injects (a chrome-extension: or moz-extension: src) is not the page's own code.
+function loadsPageCode(t,url) {
+  if(t.tag!=='script')return false;
+  const raw=htmlAttribute(t.attrs,'src');if(raw===undefined)return false;
+  let src;try{src=new URL(decodeHtmlAttribute(raw),url);}catch{return true;}
+  return src.protocol==='http:'||src.protocol==='https:';
+}
+function staticPage(tags,url) {
+  if(tags.some(t=>loadsPageCode(t,url)))return false;
+  return !tags.some(t=>{const raw=htmlAttribute(t.attrs,'href');if(!raw)return false;try{return new URL(decodeHtmlAttribute(raw),url).pathname.startsWith('/_next/');}catch{return false;}});
+}
+function passiveStaticIdentity(url,tags,htmlSha256) {
+  must(/^[a-f0-9]{64}$/.test(htmlSha256||''),'WEB_PASSIVE_HTML');
+  const urls=new Set();
+  for(const t of tags) {
+    const raw=htmlAttribute(t.attrs,'href');if(!raw)continue;
+    let asset;try{asset=new URL(decodeHtmlAttribute(raw),url);}catch{must(false,'WEB_PASSIVE_HTML');}
+    if(asset.origin!==url.origin)continue;
+    must(!asset.username&&!asset.password,'WEB_PASSIVE_HTML');asset.hash='';urls.add(asset.href);
+  }
+  const manifest={kind:'static-html-assets/v1',html_sha256:htmlSha256,urls:[...urls].sort()};
+  return {preview_url:url.href,frontend_build:{kind:'static-html',id:'sha256-'+htmlSha256},asset_manifest_sha256:sha256(JSON.stringify(manifest))};
+}
+function passiveIdentityFromParts({scripts,tags},url,htmlSha256) {
   const next=scripts.filter(s=>htmlAttribute(s.attrs,'id')===NEXT_DATA);
-  if(next.length===0){const entries=viteEntries(tags,url);if(entries.length)return passiveViteIdentity(url,entries);}
+  if(next.length===0){const entries=viteEntries(tags,url);if(entries.length)return passiveViteIdentity(url,entries);if(staticPage(tags,url))return passiveStaticIdentity(url,tags,htmlSha256);}
   must(next.length===1,'WEB_PASSIVE_NEXT_DATA');
   must(next[0].next_data?.json===true,'WEB_PASSIVE_NEXT_DATA');
   const buildId=next[0].next_data.build_id;
@@ -351,7 +377,7 @@ function passiveIdentityFromParts({scripts,tags},url) {
 }
 export function parsePassiveDeployedHtml(html,{preview_url,maxLength=1048576}={}) {
   must(typeof html==='string'&&Number.isInteger(maxLength)&&maxLength>0&&maxLength<=1048576&&html.length<=maxLength&&Buffer.byteLength(html,'utf8')<=1048576&&/^<html\b/i.test(html.trim())&&/<\/html>\s*$/i.test(html)&&!html.includes('<!-- truncated -->'),'WEB_PASSIVE_HTML');
-  return passiveIdentityFromParts(passiveHtmlParts(html),passiveUrl(preview_url));
+  return passiveIdentityFromParts(passiveHtmlParts(html),passiveUrl(preview_url),sha256(html));
 }
 // A getPageIdentity result: the read was whole (from <html to </html>, uncut, at most 1 MiB as characters and as UTF-8
 // bytes, no part left out), and its parts give the identity exactly as the whole HTML would.
@@ -364,7 +390,7 @@ export function parsePassiveIdentityRead(r,{preview_url}={}) {
     &&r.tags.every(x=>part(x)&&Object.keys(x).length===2&&['script','link'].includes(x.tag)&&typeof x.attrs==='string')
     &&part(r.evidence)&&r.evidence.kind==='dom'&&/^sha256:[a-f0-9]{64}$/.test(String(r.evidence.contentHash)),'DRAGON_IDENTITY_SHAPE');
   must(r.complete===true&&r.truncated===false&&r.omitted===0&&r.html_length>0&&r.html_length<=1048576&&r.html_bytes<=1048576,'WEB_PASSIVE_HTML');
-  return passiveIdentityFromParts({scripts:r.scripts,tags:r.tags},passiveUrl(preview_url));
+  return passiveIdentityFromParts({scripts:r.scripts,tags:r.tags},passiveUrl(preview_url),r.html_sha256);
 }
 // The identity of a passive page read, whichever of the two reads it is.
 export const PASSIVE_PAGE_METHODS=['getPageHtml','getPageIdentity'];

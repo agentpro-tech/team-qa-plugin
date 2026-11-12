@@ -1,5 +1,5 @@
 // Deployed-build identity for a Claude Code root (eval compat 3, part B1).
-//   teamqa web identity draft --run <id> [--round <n>] --project-id <p> --environment <Local|Test|Staging>
+//   teamqa web identity draft --run <id> [--round <n>] --project-id <p> --environment <Local|Test|Staging|Production>
 //                             --preview-url <url> --backend-origin <origin> [--transcript <root.jsonl>]
 //   teamqa web identity prove --run <id> [--round <n>] [--transcript <root.jsonl>]
 // draft turns the root's latest scout page read (getPageIdentity or getPageHtml) into the 8-field identity and the
@@ -20,7 +20,7 @@ export const DRAFT_FILE = 'identity/target.draft.json';
 export const PROOF_FILE = 'identity/proof.json';
 export const TARGET_FILE = 'identity/target.json';
 const DRAFT_FIELDS = ['project_id', 'preview_url', 'version', 'kind', 'environment', 'backend_origin', 'frontend_build', 'asset_manifest_sha256', 'target_binding_sha256'];
-const ENVIRONMENTS = ['Local', 'Test', 'Staging'];
+const ENVIRONMENTS = ['Local', 'Test', 'Staging', 'Production'];
 const bad = (code, detail = '') => fail(2, code, detail);
 const blocked = (code, detail = '') => fail(3, code, detail, 'ungraded');
 

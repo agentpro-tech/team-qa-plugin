@@ -132,6 +132,36 @@ test('Notion board link verifies its pinned delivery before the readback compara
     compareNotion:({canonical:source,snapshot:readback})=>{assert.equal(source,canonical);assert.equal(readback,snapshot);order.push('compare');return{fixture:true};}});
   assert.equal(verified.url,observed.url);assert.deepEqual(order,['quality','compare']);
 });
+test('Colab board link: the sealed HTML, the receipt and a readback still equal to the board', async () => {
+  const { colabBody, COLAB_RECEIPT_SCHEMA } = await import('../../scripts/lib/board-colab.mjs');
+  const r=roster(), dir=mkdtempSync(join(tmpdir(),'qa-link-colab-'));
+  const canonical=join(dir,'board.json'),artifact=join(dir,'index.html'),readback=join(dir,'readback.json'),receiptPath=join(dir,'receipt.json');
+  const board={boardId:r.run_id,currentRound:r.round,rev:2,title:'Cart',env:'TEST',cases:[{id:'TC-01',title:'Qty',status:'PASS',functionVerdict:'PASS',uiVerdict:'PASS'}],defects:[]};
+  writeFileSync(canonical,JSON.stringify(board));writeFileSync(artifact,'<html>sealed</html>');
+  const url='https://docs.example/d/qa-'+r.run_id;
+  const write=(body,receiptExtra={})=>{
+    writeFileSync(readback,JSON.stringify(body));
+    const receipt={schema:COLAB_RECEIPT_SCHEMA,run_id:r.run_id,version:'9.9.9',board:{path:canonical,sha256:sha256File(canonical)},artifact:{path:artifact,sha256:sha256File(artifact)},
+      readback:{path:readback,sha256:sha256File(readback)},doc:{id:'qa-'+r.run_id,url,rev:3},evidence:{},...receiptExtra};
+    writeFileSync(receiptPath,JSON.stringify(receipt));
+    writeFileSync(join(dir,'board-link.json'),JSON.stringify({schema:'team-qa/board-link/v1',run_id:r.run_id,round:r.round,roster_hash:r.roster_hash,target:r.target,provider:'colab',
+      canonical,canonical_sha256:sha256File(canonical),artifact,artifact_sha256:sha256File(artifact),snapshot:readback,snapshot_sha256:sha256File(readback),
+      payload:receiptPath,payload_sha256:sha256File(receiptPath),url}));
+  };
+  const good=colabBody(board,{runId:r.run_id,version:'9.9.9',canonicalSha256:sha256File(canonical)});
+  const checked=[];
+  const verifyArtifact=(c,a)=>{checked.push([c,a]);};
+  write(good);
+  assert.equal(verifyBoardLink({runDir:dir,roster:r,verifyArtifact}).url,url);
+  assert.deepEqual(checked,[[canonical,artifact]]);
+  const edited=structuredClone(good);edited.tasks[0].status='FAIL';write(edited);
+  rejects(()=>verifyBoardLink({runDir:dir,roster:r,verifyArtifact}),'QA_BOARD_COLAB_READBACK');
+  write(good,{doc:{id:'x',url:'https://docs.example/d/other',rev:1}});
+  rejects(()=>verifyBoardLink({runDir:dir,roster:r,verifyArtifact}),'QA_BOARD_COLAB_RECEIPT');
+  write(good);
+  const link=JSON.parse(readFileSync(join(dir,'board-link.json')));link.url='file:///tmp/board.html';writeFileSync(join(dir,'board-link.json'),JSON.stringify(link));
+  rejects(()=>verifyBoardLink({runDir:dir,roster:r,verifyArtifact}),'QA_BOARD_CLOUD_LINK');
+});
 test('CLI emits the same reviewable table rather than the historical log-only display', () => {
   const r=roster(), dir=mkdtempSync(join(tmpdir(),'qa-chat-cli-')),file=join(dir,'roster.json');
   writeFileSync(file,JSON.stringify(r));

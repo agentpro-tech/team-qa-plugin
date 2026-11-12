@@ -307,7 +307,18 @@ test('identity artifacts are byte stable, never overwritten and refused under a 
     rejected(teamqa(l.ws, ['web', 'identity', 'prove', '--run', l.runId], { [key]: 'x' }), 'WEB_TARGET_ENV_SET');
   }
   rejected(teamqa(l.ws, [...DRAFT_ARGS('hub-web-003').slice(0, 11), '--backend-origin', `${BACKEND}/rest/v1`]), 'WEB_IDENTITY_BACKEND_ORIGIN');
-  rejected(teamqa(l.ws, [...DRAFT_ARGS('hub-web-003').slice(0, 7), '--environment', 'Production', ...DRAFT_ARGS('hub-web-003').slice(9)]), 'WEB_IDENTITY_ENVIRONMENT');
+  rejected(teamqa(l.ws, [...DRAFT_ARGS('hub-web-003').slice(0, 7), '--environment', 'Prod', ...DRAFT_ARGS('hub-web-003').slice(9)]), 'WEB_IDENTITY_ENVIRONMENT');
+});
+
+test('identity draft accepts a Production target and keeps the environment in the draft', { skip: NEEDS_SCROLL }, () => {
+  const ws = workspace(), tx = new Transcript(ws, '6e0d2f8b-1c4a-4d3e-8f90-b2c3d4e5f6a7');
+  scout(tx, {});
+  const args = DRAFT_ARGS('hub-web-prod'); args[args.indexOf('Local')] = 'Production';
+  const draft = teamqa(ws, args);
+  assert.equal(draft.status, 0, draft.stdout + draft.stderr);
+  const body = JSON.parse(readFileSync(join(ws, 'runs', 'hub-web-prod', 'identity', 'target.draft.json'), 'utf8'));
+  assert.equal(body.environment, 'Production');
+  assert.equal(body.target_binding_sha256, deployedTargetBindingSha256(body));
 });
 
 test('prove reads a persisted getPageHtml result from the original blocks the transcript line keeps', { skip: NEEDS_SCROLL }, () => {

@@ -7,7 +7,8 @@ import { randomUUID } from 'node:crypto';
 import { isDeployedTarget, deployedTargetShapeErrors } from './deployed-target.mjs';
 import { verifyNativeRoleSource } from './native-dispatch.mjs';
 import { scanOriginalSource } from './original-source.mjs';
-import { claudeHumanText, claudeProjectsRoot, codexSessionsRoot, isClaudeTranscriptPath, orchestratorSessionId } from './host-transcript.mjs';
+import { claudeBuzzRoot, claudeHumanText, claudeProjectsRoot, codexSessionsRoot, isClaudeTranscriptPath, orchestratorSessionId } from './host-transcript.mjs';
+import { buzzHumanText } from './buzz-host.mjs';
 export { orchestratorSessionId };
 import { verifyNativeHost } from './native-host.mjs';
 import { sourceRepoUrl } from './source-repo.mjs';
@@ -466,14 +467,24 @@ export function verifyUserMessageSource(e,{hash,runId}={}) {
   // ~/.claude, symlinks followed); under the latter only a root transcript.
   const path=realpathSync(e.source.path),claudeRoot=claudeProjectsRoot();requireValue([codexSessionsRoot(),claudeRoot].some(root=>root&&path.startsWith(root+'/')),'HUMAN_EVENT_SOURCE_UNTRUSTED');
   if(claudeRoot&&path.startsWith(claudeRoot+'/'))requireValue(isClaudeTranscriptPath(path),'HUMAN_EVENT_SOURCE_UNTRUSTED');
-  let line='',prior=false;
+  let line='',prior=false,priorAt=null;
   scanOriginalSource(path,(raw,index)=>{
     if(index===e.source.line-1)line=raw;
-    if(index<e.source.line-1&&hash&&raw.includes(hash)&&raw.includes(runId))prior=true;
+    if(index<e.source.line-1&&hash&&raw.includes(hash)&&raw.includes(runId)){prior=true;try{const t=Date.parse(JSON.parse(raw).timestamp);if(Number.isFinite(t))priorAt=t;}catch{/* a non-JSON line keeps the earlier time */}}
   });
   requireValue(sha256(line)===e.source.sha256,'HUMAN_EVENT_SOURCE_DRIFT');
   const entry=JSON.parse(line);
-  if(isClaudeTranscriptPath(path))requireValue(claudeHumanText(entry)===e.text.trim(),'HUMAN_EVENT_NOT_USER');
+  if(isClaudeTranscriptPath(path)){
+    const typed=claudeHumanText(entry);
+    if(typed!==null)requireValue(typed===e.text.trim(),'HUMAN_EVENT_NOT_USER');
+    else{
+      // Buzz host (1.17.0): the approver's signed Buzz message in the session's own channel and thread, written after
+      // the artifact it approves was shown (2 minutes of clock skew allowed).
+      const buzz=buzzHumanText(entry,claudeBuzzRoot(path));
+      requireValue(buzz&&buzz.text===e.text.trim(),'HUMAN_EVENT_NOT_USER');
+      if(prior)requireValue(priorAt!==null&&buzz.event.created_at*1000>=priorAt-120000,'BUZZ_APPROVAL_BEFORE_ARTIFACT');
+    }
+  }
   else{const p=entry?.payload||entry?.message||entry;requireValue(p?.role==='user'&&extractHumanText(p)===e.text.trim(),'HUMAN_EVENT_NOT_USER');}
   return {e,prior};
 }

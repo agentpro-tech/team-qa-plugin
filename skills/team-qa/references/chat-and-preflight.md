@@ -118,6 +118,10 @@ the raw output from the original read connector must match the snapshot and the 
 canonical `compare-page`; Notion calls `compare-notion` with a raw rows shape that the child supports.
 A response without a normalizing adapter stays BLOCKED; never invent a normalized readback.
 Doc-Colab adds `artifact,artifact_sha256`; the URL is an absolute file link, and the exact bytes go through the child gate.
+Colab (`--to colab`, the hosted Doc-Colab) adds `artifact,artifact_sha256` (the sealed HTML board),
+`snapshot,snapshot_sha256` (the doc as read back, `board-colab/readback-rev-<n>.json`) and `payload,payload_sha256`
+(`board-colab/receipt-rev-<n>.json`); the URL is the doc's `https://…/d/<id>` link. Verification re-checks the sealed
+HTML, the receipt binding, and that the saved readback still equals the canonical board field by field.
 
 `plan-chat.json` locks the text and the snapshots in `plan-presentations/`; SIGN/replay re-check the hashes,
 the board readback and the original assistant message. A refresh does not edit an old approval. A plan change must be shown

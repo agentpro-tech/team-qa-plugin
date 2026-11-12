@@ -27,6 +27,7 @@ async function isolatedRoster(anchorPath, modulePath) {
     .replace("from './native-dispatch.mjs'",`from '${pathToFileURL(join(sourceRoot,'scripts/lib/native-dispatch.mjs')).href}'`)
     .replace("from './native-host.mjs'",`from '${pathToFileURL(join(sourceRoot,'scripts/lib/native-host.mjs')).href}'`)
     .replace("from './host-transcript.mjs'",`from '${pathToFileURL(join(sourceRoot,'scripts/lib/host-transcript.mjs')).href}'`)
+    .replace("from './buzz-host.mjs'",`from '${pathToFileURL(join(sourceRoot,'scripts/lib/buzz-host.mjs')).href}'`)
     .replace("from './original-source.mjs'",`from '${pathToFileURL(join(sourceRoot,'scripts/lib/original-source.mjs')).href}'`)
     .replace("from './core.mjs'",`from '${pathToFileURL(join(sourceRoot,'scripts/lib/core.mjs')).href}'`)
     .replace("from './chat-presentation.mjs'",`from '${pathToFileURL(join(sourceRoot,'scripts/lib/chat-presentation.mjs')).href}'`)

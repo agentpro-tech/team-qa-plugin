@@ -48,6 +48,8 @@ In a Codex chat with `collaboration.spawn_agent`, prefer native with exact `mode
 
 In Claude Code, the interactive session is the orchestrating root: the roster/plan is shown in the assistant chat, the user types “Approve”, and preflight and continuation read the original transcript `~/.claude/projects/<project>/<session-id>.jsonl` (`$CLAUDE_CONFIG_DIR/projects/…` when that variable is set; a symlinked `~/.claude` is followed). LLM roles run through the `claude` seat (`claude -p` with exact `--model`/`--effort`, a separate session, with the parent session's environment variables removed); effort is observed from the worker's original transcript through QA Code ≥ 1.9.0. The hook uses `continuation stage-hooks --host claude`. Details, trusted sources and limits are in [Claude Code as root](references/claude-host.md).
 
+In Buzz (1.17.0), a Claude agent session that Buzz started can be the root as well. Buzz runs the agent through the Claude Agent SDK and hands it each message as a signed Nostr event inside `<buzz-event>…</buzz-event>`. Team QA accepts the session only when the message that opened it is signed by an approver of the Buzz host grant (`teamqa grant buzz`, signed with the owner key for this machine; otherwise `CLAUDE_HOST_HEADLESS`). Show the roster and the plan in the thread (post them with the Buzz send tool, run id and hash included), then wait for the approver to reply in that same thread. The approval's user event points `source.line` at the transcript line that carries the approver's reply, and its `text` is that reply exactly (the event content, trimmed). The reply counts only when its signature holds, its author is an approver, it is in the session's channel and thread, and it was written after the artifact was shown (`BUZZ_APPROVAL_BEFORE_ARTIFACT`). See [Claude Code as root](references/claude-host.md#buzz-as-root).
+
 A run with a roster/current phase uses the current contract; legacy utilities and reports that carry `historical_diagnostic=true current_run_graded=false` are only for historical diagnosis, even when the old calculation gives GO. An official receipt/handoff must re-verify approval, roles, docs, child evidence and coverage; a legacy signature/receipt does not certify a new run.
 
 For a run that must continue over several turns, use [scoped continuation](references/continuation.md): register the exact root/run, check the decision from cases and evidence, then review/trust the hook on the exact Codex host. Without a native canary, the hook is not yet confirmed to enforce. `CONTINUE` performs the remaining step; `WAIT` reports starting with `NOT COMPLETE` (the marker that the stop hook checks for); only a verified COMPLETE gate closes the run. A blocked case or a board export error does not stop independent cases that are already allowed. The hook's automatic prompt is not an approval.
@@ -68,7 +70,16 @@ outside `board publish` under "Board written outside Team QA" and they are never
 teamqa board publish --run <run_id> --to notion --parent <Notion page id or URL> --quality-review <review-receipt.json>
 teamqa board publish-next --run <run_id>      # after each planned call, until it prints integrity=verified
 teamqa board publish --run <run_id> --to html --quality-review <review-receipt.json>
+teamqa board publish --run <run_id> --to colab --channel <Buzz channel> --quality-review <review-receipt.json>
 ```
+
+`--to colab` puts the board on Doc-Colab, the team's shared docs in Buzz: one task-board per run (doc id
+`qa-<run_id>`), every case and defect a card with its Function/UI verdicts, steps, findings and evidence images.
+It seals the HTML board first (same quality gate as `--to html`), uploads evidence once, writes the doc, reads it back
+and stops unless the readback equals the canonical board. A new revision updates the same doc and keeps its comments.
+Comments on the board reach the QA agent's Doc-Colab inbox. The key is the agent's Doc-Colab key (`COLAB_KEY_FILE`,
+`--colab-key-file`, or `~/.config/doc-colab/key` from `colab login`) and is never printed; the server is `COLAB_URL`.
+It prints the `board-link.json` fields for provider `colab`; paste the doc link it prints in the job thread.
 
 `--to notion` (Claude Code or Codex with a Notion MCP connection) creates two databases, Cases and Defects, from the
 canonical board. It prints one Notion call at a time: call that tool with the JSON of `board-notion/next-input.json`
@@ -389,7 +400,13 @@ allows a rehearsal, and it must not point at the official runtime.
 Release only after local `main` is clean and equal to GitHub `main` read live. The runtime must have
 `SOURCE.json`, `package-manifest.json` and `release-truth.json`; missing one layer means not complete.
 
-*v1.16.2 — 2026-11-10. Beside the Claude Code plugin, the suite installer and `teamqa update` keep the Codex links and
+*v1.17.0 — 2026-11-11. Buzz as the root: a Buzz agent session can run Team QA when an approver of the Buzz host grant
+(`teamqa grant buzz`, signed with the owner key) opened it, and the approver's signed reply in the same thread approves the
+roster and the plan. Signatures are checked on the machine (BIP-340 over the NIP-01 event id). Other SDK sessions stay
+`CLAUDE_HOST_HEADLESS`. The deployed-build (web) lane of a Claude Code or Buzz root now accepts a Production target,
+as the shared target check already did; a write there still needs a Production grant. A static HTML page (no script
+loaded by src, no Next.js assets) is a deployed build too: its id is the sha256 of the whole HTML.
+v1.16.2 — 2026-11-10. Beside the Claude Code plugin, the suite installer and `teamqa update` keep the Codex links and
 move the ~/.claude/skills links of qa-code, qa-gui and team-qa to `<dest-root>/.backups`, so Claude Code loads Team QA
 once (from the plugin) and Codex keeps using ~/.agents/skills.
 v1.16.1 — 2026-11-10. `teamqa dragon install` installs for real: it runs the package's installer by its real path
