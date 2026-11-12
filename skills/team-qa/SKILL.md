@@ -73,13 +73,18 @@ teamqa board publish --run <run_id> --to html --quality-review <review-receipt.j
 teamqa board publish --run <run_id> --to colab --channel <Buzz channel> --quality-review <review-receipt.json>
 ```
 
-`--to colab` puts the board on Doc-Colab, the team's shared docs in Buzz: one task-board per run (doc id
-`qa-<run_id>`), every case and defect a card with its Function/UI verdicts, steps, findings and evidence images.
-It seals the HTML board first (same quality gate as `--to html`), uploads evidence once, writes the doc, reads it back
-and stops unless the readback equals the canonical board. A new revision updates the same doc and keeps its comments.
-Comments on the board reach the QA agent's Doc-Colab inbox. The key is the agent's Doc-Colab key (`COLAB_KEY_FILE`,
-`--colab-key-file`, or `~/.config/doc-colab/key` from `colab login`) and is never printed; the server is `COLAB_URL`.
-It prints the `board-link.json` fields for provider `colab`; paste the doc link it prints in the job thread.
+`--to colab` puts the board on Doc-Colab as a task board, one per run (doc id `qa-<run_id>`): every case and
+defect is a card with its Function/UI verdicts, priority, steps, findings and evidence, in columns by status, so the
+team can use Kanban, table, timeline and filters and comment on each card. Under the board, an Overview page shows the
+release verdict and live numbers (cases, passed, open and closed defects) and charts that Doc-Colab keeps up to date.
+It seals the HTML board first (same quality gate as `--to html`), uploads evidence once, writes the cards, reads
+everything back and stops unless the readback equals the canonical board. A new revision moves the same cards and
+keeps their comments; a case that left the board has its card archived, and cards people added are left alone. A run
+first published by 1.17 as a single doc keeps that form. Comments reach the QA agent's Doc-Colab inbox. The key is the
+agent's Doc-Colab key (`COLAB_KEY_FILE`, `--colab-key-file`, or `~/.config/doc-colab/key` from `colab login`) and is
+never printed; the server is `COLAB_URL`. It prints the `board-link.json` fields for provider `colab`; paste the board
+link (and the overview link it prints) in the job thread. People who work in Claude or Codex can install the Doc-Colab
+plugin to open and comment on the board from there.
 
 `--to notion` (Claude Code or Codex with a Notion MCP connection) creates two databases, Cases and Defects, from the
 canonical board. It prints one Notion call at a time: call that tool with the JSON of `board-notion/next-input.json`

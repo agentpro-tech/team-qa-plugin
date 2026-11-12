@@ -25,7 +25,7 @@ import {
   NOTION_RECEIPT_SCHEMA, auditBoardWrites, buildNotionPlan, inputHash, notionPaths, parseCreateDatabase, parseCreatePages,
   parseQuery, plannedResults, plansOf, readPlan, resolvePlaceholders, stepRecord,
 } from './lib/board-notion.mjs';
-import { COLAB_RECEIPT_SCHEMA, colabConfig, publishColab } from './lib/board-colab.mjs';
+import { COLAB_RECEIPT_SCHEMA, colabConfig, publishColabRun } from './lib/board-colab.mjs';
 
 function qaBoardTool() {
   const path = resolve(process.env.TEAMQA_QA_GUI_BOARD_TOOL
@@ -500,7 +500,8 @@ function htmlDelivery(runDir, file, qualityReview, { reuse = false } = {}) {
 }
 
 // C8: the board on Doc-Colab. The HTML board is sealed first (same quality gate as --to html); then the run's
-// Doc-Colab doc is created or updated, evidence uploaded, and the doc read back and compared with the board.
+// Doc-Colab task board and overview page are created or updated (a run first published by 1.17 keeps its single doc),
+// evidence uploaded, and everything read back and compared with the board.
 // The receipt and the readback stay in runs/<id>/board-colab/, one pair per board revision.
 async function publishBoardColab({ options, runDir, file }) {
   const html = htmlDelivery(runDir, file, options.qualityReview, { reuse: true });
@@ -511,7 +512,7 @@ async function publishBoardColab({ options, runDir, file }) {
   const prior = existsSync(latest) ? readJson(latest) : null;
   const known = prior?.schema === COLAB_RECEIPT_SCHEMA ? Object.fromEntries(Object.values(prior.evidence || {}).map((e) => [e.sha256, e.url])) : {};
   const runId = safeRunId(options.runId);
-  const result = await publishColab({ board, boardFile: file, runDir, runId, version: TEAMQA_VERSION(), canonicalSha256: sha256File(file),
+  const result = await publishColabRun({ board, boardFile: file, runDir, runId, version: TEAMQA_VERSION(), canonicalSha256: sha256File(file),
     channel: options.channel, cfg, known });
   mkdirSync(dir, { recursive: true });
   const readbackPath = join(dir, `readback-rev-${board.rev}.json`);
@@ -520,12 +521,12 @@ async function publishBoardColab({ options, runDir, file }) {
   const receipt = { schema: COLAB_RECEIPT_SCHEMA, run_id: runId, version: TEAMQA_VERSION(),
     board: { path: file, sha256: sha256File(file) }, artifact: { path: html.out, sha256: sha256File(html.out) },
     readback: { path: readbackPath, sha256: sha256File(readbackPath) },
-    doc: { id: result.id, url: result.url, rev: result.rev }, channel: options.channel || null, evidence: result.urls,
+    form: result.form, doc: { id: result.id, url: result.url, rev: result.rev, ...(result.overviewUrl ? { overview: result.overviewUrl } : {}) }, channel: options.channel || null, evidence: result.urls,
     comparison: { matchPercent: result.comparison.matchPercent, matchedFields: result.comparison.matchedFields, totalFields: result.comparison.totalFields },
     verified_at: new Date().toISOString() };
   await writeJson(receiptPath, receipt, 'teamqa.board.colab.receipt');
   copyFileSync(receiptPath, latest);
-  emit('pass', 'to=colab', `doc=${result.id}`, `url=${result.url}`, `rev=${result.rev}`, `evidence=${Object.keys(result.urls).length}`,
+  emit('pass', 'to=colab', `form=${result.form}`, `doc=${result.id}`, `url=${result.url}`, ...(result.overviewUrl ? [`overview=${result.overviewUrl}`] : []), `rev=${result.rev}`, `evidence=${Object.keys(result.urls).length}`,
     `artifact=${html.out}`, `receipt=${receiptPath}`, 'integrity=verified', 'effect=confirmed');
   console.log(`board-link.json: provider "colab", url "${result.url}", artifact "${relative(runDir, html.out)}", artifact_sha256 "${receipt.artifact.sha256}", snapshot "${relative(runDir, readbackPath)}", snapshot_sha256 "${receipt.readback.sha256}", payload "${relative(runDir, receiptPath)}", payload_sha256 "${sha256File(receiptPath)}"`);
 }

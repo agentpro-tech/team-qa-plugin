@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { fail, readJson, rejectUnknownFields, sha256File, stableJson, writeConfirmed, runAdapter, outputJson, visibleCodexAssistantText } from './core.mjs';
 import { boardComparePage, boardIntegrityVerify } from '../board-teamwork.mjs';
 import { verifyBoardDelivery } from './board-quality.mjs';
-import { COLAB_RECEIPT_SCHEMA, verifyColabReadback } from './board-colab.mjs';
+import { COLAB_RECEIPT_SCHEMA, verifyColabDelivery } from './board-colab.mjs';
 import { assertToolPreflight, readHostToolEvidence } from './tool-preflight.mjs';
 import { homedir } from 'node:os';
 import { scanOriginalSource } from './original-source.mjs';
@@ -100,7 +100,7 @@ export function verifyBoardLink({ runDir, roster, file, readToolEvidence = readH
     need(receipt.schema === COLAB_RECEIPT_SCHEMA && receipt.doc?.url === link.url && resolve(receipt.board?.path ?? '') === canonical
       && receipt.board.sha256 === link.canonical_sha256 && resolve(receipt.readback?.path ?? '') === snapshot
       && receipt.readback.sha256 === link.snapshot_sha256 && resolve(receipt.artifact?.path ?? '') === artifact, 'QA_BOARD_COLAB_RECEIPT');
-    const cmp = verifyColabReadback({ board, receipt, readback: readJson(snapshot) });
+    const cmp = verifyColabDelivery({ board, receipt, readback: readJson(snapshot) });
     need(cmp.ok && cmp.matchPercent === 100, 'QA_BOARD_COLAB_READBACK', JSON.stringify(cmp.mismatches).slice(0, 200));
   } else {
     need(['space', 'notion'].includes(link.provider) && /^https:\/\//.test(link.url ?? ''), 'QA_BOARD_CLOUD_LINK');

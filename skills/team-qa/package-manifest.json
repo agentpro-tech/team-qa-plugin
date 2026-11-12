@@ -1,7 +1,7 @@
 {
   "schema": "agentpro/skill-package-manifest/v1",
   "skill": "team-qa",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -20,12 +20,12 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "c4615f984e049f6906c9e16a427bf79343e830a531d1f9002839390198e296dc",
+      "sha256": "94c759f597d880d8c641c5339fc99de12b8c6659ad40d9a81d27d3e3c4e1383b",
       "mode": "0644"
     },
     {
       "path": "VERSION",
-      "sha256": "00afc49f1599e59129a59b64c2b019de3fe35300c05bb9d96cb25002576ff43b",
+      "sha256": "04d659518a1793d5396007fcabdc9211a8c1db8406bf4e0fa8069171fdb06518",
       "mode": "0644"
     },
     {
@@ -430,7 +430,7 @@
     },
     {
       "path": "package-files.json",
-      "sha256": "043d01e5b75fe4810c3d5e2d05d15382cce8c2b6bd5a3819eebc120bad70ea74",
+      "sha256": "02436f6e62330b3196045f28963dd019c75b1b2c3f409b529e2b8288094a75ae",
       "mode": "0644"
     },
     {
@@ -665,7 +665,7 @@
     },
     {
       "path": "scripts/board-teamwork.mjs",
-      "sha256": "2ef52393f38115d761baa6ae05ef41d4728d64fe16ec4a5e84969d1d8be37a16",
+      "sha256": "337a832883c231c5688dea4c7042991ffbfd859bb1e97f0a769741b54462dee0",
       "mode": "0644"
     },
     {
@@ -710,7 +710,7 @@
     },
     {
       "path": "scripts/lib/board-colab.mjs",
-      "sha256": "0e26fdb81a489917b3f17fb5a3736c2888a7e39e5fecd9c0905a9b61a37a86e2",
+      "sha256": "4880d7c14a1ea021d3ce6a1f45e0766aac7176ccf285ebe9126feb3ed79dd2d9",
       "mode": "0644"
     },
     {
@@ -760,7 +760,7 @@
     },
     {
       "path": "scripts/lib/chat-presentation.mjs",
-      "sha256": "26f51c9a0686d925d27a099861e440d05529e8a2821e7af3263aaaa9f876a7ff",
+      "sha256": "d2e1f0530e2e7b4eab48268717ee7e699325cc64b3f31d046f3115e309203166",
       "mode": "0644"
     },
     {
@@ -1456,6 +1456,11 @@
     {
       "path": "test/attempt-history.test.mjs",
       "sha256": "5bc1dfc8e3015bbd6f60794e01d51b1a70f6ffada427d80a77606602007c9292",
+      "mode": "0644"
+    },
+    {
+      "path": "test/board-colab-board.test.mjs",
+      "sha256": "a8dc3120e4c50858f53aaac0c832cda98c6568a83c2a347435bdca35fee84625",
       "mode": "0644"
     },
     {
